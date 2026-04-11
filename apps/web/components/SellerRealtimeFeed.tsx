@@ -13,7 +13,6 @@ type FeedItem = {
 export function SellerRealtimeFeed() {
   const [items, setItems] = useState<FeedItem[]>([]);
   const apiUrl = useMemo(() => process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000', []);
-  const demoUserId = useMemo(() => process.env.NEXT_PUBLIC_DEMO_USER_ID ?? 'demo-user', []);
 
   useEffect(() => {
     const socket = io(apiUrl, {
@@ -21,7 +20,11 @@ export function SellerRealtimeFeed() {
     });
 
     socket.on('connect', () => {
-      socket.emit('join-user-room', demoUserId);
+      const accessToken = window.localStorage.getItem('accessToken');
+      if (!accessToken) {
+        return;
+      }
+      socket.emit('join-user-room', { token: accessToken });
     });
 
     const push = (label: string) => {
@@ -44,7 +47,7 @@ export function SellerRealtimeFeed() {
     return () => {
       socket.disconnect();
     };
-  }, [apiUrl, demoUserId]);
+  }, [apiUrl]);
 
   return (
     <Card className="mt-5 p-4">

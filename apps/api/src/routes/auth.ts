@@ -5,11 +5,10 @@ import { prisma } from '../lib/prisma';
 import { comparePassword, hashPassword, signAccessToken, signRefreshToken } from '../lib/auth';
 import { createOtp, verifyOtp } from '../services/otp';
 import { requireAuth } from '../middleware/auth';
-import { redis } from '../lib/redis';
 
 const authRoutes: FastifyPluginAsync = async (fastify) => {
   const OTP_VERIFY_MAX_ATTEMPTS = 5;
-  const authSensitiveLimiter = fastify.rateLimit({ max: OTP_VERIFY_MAX_ATTEMPTS, timeWindow: '1 minute' });
+  const authSensitiveLimiter = fastify.rateLimit({ max: OTP_VERIFY_MAX_ATTEMPTS, timeWindow: '1 minute', keyGenerator: (request) => request.ip });
   const loginLimiter = fastify.rateLimit({ max: 10, timeWindow: '1 minute' });
 
   fastify.post('/register', { preHandler: [authSensitiveLimiter] }, async (request, reply) => {
@@ -34,24 +33,23 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
     return reply.code(201).send({ userId: user.id, message: 'Registered. Verify OTP sent to your email.' });
   });
 
-  fastify.post('/verify-otp', { preHandler: [authSensitiveLimiter] }, async (request, reply) => {
-    const body = request.body as { email: string; otp: string };
-    const limiterKey = `otp_verify:${request.ip}:${body.email}`;
-    const current = Number((await redis.get(limiterKey)) ?? 0);
-    if (current >= OTP_VERIFY_MAX_ATTEMPTS) {
-      return reply.code(429).send({ message: 'Too many OTP verification attempts. Try again shortly.' });
-    }
-    await redis.multi().incr(limiterKey).expire(limiterKey, 60).exec();
+  fastify.post(
+    '/verify-otp',
+    {
+      config: { rateLimit: { max: OTP_VERIFY_MAX_ATTEMPTS, timeWindow: '1 minute' } },
+    },
+    async (request, reply) => {
+      const body = request.body as { email: string; otp: string };
 
-    const ok = await verifyOtp(body.email, body.otp);
-    if (!ok) {
-      return reply.code(400).send({ message: 'Invalid OTP' });
-    }
-    await redis.del(limiterKey);
+      const ok = await verifyOtp(body.email, body.otp);
+      if (!ok) {
+        return reply.code(400).send({ message: 'Invalid OTP' });
+      }
 
-    await prisma.user.update({ where: { email: body.email }, data: { isVerified: true } });
-    return reply.send({ verified: true });
-  });
+      await prisma.user.update({ where: { email: body.email }, data: { isVerified: true } });
+      return reply.send({ verified: true });
+    },
+  );
 
   fastify.post('/login', { preHandler: [loginLimiter] }, async (request, reply) => {
     const body = request.body as { email: string; password: string; trustDevice?: boolean; deviceName?: string };
