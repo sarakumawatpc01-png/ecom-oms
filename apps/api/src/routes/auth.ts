@@ -8,7 +8,10 @@ import { requireAuth } from '../middleware/auth';
 import { redis } from '../lib/redis';
 
 const authRoutes: FastifyPluginAsync = async (fastify) => {
-  fastify.post('/register', { config: { rateLimit: { max: 5, timeWindow: '1 minute' } } }, async (request, reply) => {
+  const registerOtpLimiter = fastify.rateLimit({ max: 5, timeWindow: '1 minute' });
+  const loginLimiter = fastify.rateLimit({ max: 10, timeWindow: '1 minute' });
+
+  fastify.post('/register', { preHandler: [registerOtpLimiter] }, async (request, reply) => {
     const body = request.body as { email: string; password: string; name: string; role?: 'seller' | 'sub_user' };
 
     const existing = await prisma.user.findUnique({ where: { email: body.email } });
@@ -30,7 +33,7 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
     return reply.code(201).send({ userId: user.id, message: 'Registered. Verify OTP sent to your email.' });
   });
 
-  fastify.post('/verify-otp', { config: { rateLimit: { max: 5, timeWindow: '1 minute' } } }, async (request, reply) => {
+  fastify.post('/verify-otp', { preHandler: [registerOtpLimiter] }, async (request, reply) => {
     const body = request.body as { email: string; otp: string };
     const limiterKey = `otp_verify:${request.ip}:${body.email}`;
     const current = Number((await redis.get(limiterKey)) ?? 0);
@@ -49,7 +52,7 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
     return reply.send({ verified: true });
   });
 
-  fastify.post('/login', { config: { rateLimit: { max: 10, timeWindow: '1 minute' } } }, async (request, reply) => {
+  fastify.post('/login', { preHandler: [loginLimiter] }, async (request, reply) => {
     const body = request.body as { email: string; password: string; trustDevice?: boolean; deviceName?: string };
     const user = await prisma.user.findUnique({ where: { email: body.email } });
 
