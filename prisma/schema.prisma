@@ -1,0 +1,645 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  admin
+  seller
+  sub_user
+}
+
+enum SubUserRole {
+  admin
+  order_manager
+  view_only
+}
+
+enum Platform {
+  amazon
+  flipkart
+  meesho
+}
+
+enum SessionStatus {
+  active
+  expired
+  not_connected
+  error
+}
+
+enum OrderStatus {
+  pending
+  accepted
+  packed
+  ready_to_ship
+  shipped
+  delivered
+  cancelled
+  returned
+  rto
+}
+
+enum PaymentType {
+  cod
+  prepaid
+}
+
+enum ReturnType {
+  customer_return
+  rto
+}
+
+enum EvidenceStatus {
+  none
+  captured
+  submitted
+}
+
+enum ClaimStatus {
+  not_raised
+  raised
+  under_review
+  won
+  lost
+}
+
+enum FileType {
+  photo
+  video
+}
+
+enum CaptureStage {
+  packing
+  return_received
+}
+
+enum StorageLocation {
+  r2_temp
+  google_drive
+  device
+}
+
+enum BillingTransactionType {
+  purchase
+  topup
+  grace
+  refund
+}
+
+enum PaymentStatus {
+  pending
+  paid
+  failed
+  refunded
+}
+
+enum AiJobType {
+  listing_optimize
+  image_generate
+  bg_remove
+}
+
+enum AiJobStatus {
+  queued
+  processing
+  done
+  failed
+}
+
+enum Channel {
+  in_app
+  email
+  sms
+  whatsapp
+}
+
+model User {
+  id               String   @id @default(uuid()) @db.Uuid
+  email            String   @unique
+  passwordHash     String
+  name             String
+  phone            String?
+  businessName     String?
+  gstin            String?
+  pan              String?
+  address          String?
+  city             String?
+  state            String?
+  pincode          String?
+  planId           String?  @db.Uuid
+  creditsPurchased Int      @default(0)
+  creditsUsed      Int      @default(0)
+  creditsGraceUsed Int      @default(0)
+  planExpiresAt    DateTime?
+  isActive         Boolean  @default(true)
+  isVerified       Boolean  @default(false)
+  role             UserRole @default(seller)
+  parentUserId     String?  @db.Uuid
+  subUserRole      SubUserRole?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  plan                 Plan?                  @relation(fields: [planId], references: [id])
+  parentUser           User?                  @relation("UserHierarchy", fields: [parentUserId], references: [id])
+  subUsers             User[]                 @relation("UserHierarchy")
+  linkedAccounts       LinkedAccount[]
+  sellerAccounts       SellerAccount[]
+  orders               Order[]
+  products             Product[]
+  labels               Label[]
+  invoices             Invoice[]
+  returns              Return[]
+  evidenceFiles        EvidenceFile[]
+  billingTransactions  BillingTransaction[]
+  aiJobs               AiJob[]
+  notifications        NotificationLog[]
+  trustedDevices       TrustedDevice[]
+  loginHistory         LoginHistory[]
+  sellerInvoices       SellerInvoice[]
+  adminActivities      AdminActivityLog[]     @relation("AdminActivity")
+  aiModelSettingsEdits AiModelSetting[]       @relation("AiModelSettingEditor")
+}
+
+model Plan {
+  id                String   @id @default(uuid()) @db.Uuid
+  name              String   @unique
+  orderCount        Int
+  priceInr          Decimal  @db.Decimal(10, 2)
+  pricePerOrder     Decimal? @db.Decimal(10, 4)
+  graceOrders       Int      @default(50)
+  graceRatePaise    Int      @default(150)
+  features          Json?
+  isActive          Boolean  @default(true)
+  displayOrder      Int?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  users                User[]
+  billingTransactions  BillingTransaction[]
+}
+
+model PlatformIntegration {
+  id                 String   @id @default(uuid()) @db.Uuid
+  platform           Platform @unique
+  clientId           String?
+  clientSecretEnc    String?
+  extraConfig        Json?
+  isActive           Boolean  @default(true)
+  lastTestStatus     String?
+  lastTestMessage    String?
+  updatedByAdminId   String?  @db.Uuid
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
+model SellerAccount {
+  id                 String   @id @default(uuid()) @db.Uuid
+  userId             String   @db.Uuid
+  platform           Platform
+  accountNickname    String?
+  accessTokenEnc     String?
+  refreshTokenEnc    String?
+  accountIdentifier  String?
+  marketplaceId      String?
+  sessionStatus      SessionStatus @default(not_connected)
+  tokenExpiresAt     DateTime?
+  lastSyncAt         DateTime?
+  lastSyncSuccess    Boolean       @default(false)
+  lastError          String?
+  syncEnabled        Boolean       @default(true)
+  syncFrequencyMin   Int           @default(5)
+  autoAcceptOrders   Boolean       @default(false)
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+
+  user               User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model LinkedAccount {
+  id                   String   @id @default(uuid()) @db.Uuid
+  userId               String   @db.Uuid
+  platform             Platform
+  accountNickname      String?
+  meeshoPhone          String?
+  meeshoPasswordEnc    String?
+  amazonSellerId       String?
+  amazonRefreshToken   String?
+  amazonMarketplaceId  String?
+  flipkartAppId        String?
+  flipkartAppSecret    String?
+  flipkartAccessToken  String?
+  flipkartRefreshToken String?
+  sessionStatus        SessionStatus @default(not_connected)
+  lastSyncAt           DateTime?
+  lastSyncSuccess      Boolean @default(false)
+  lastError            String?
+  syncEnabled          Boolean @default(true)
+  syncFrequencyMin     Int @default(5)
+  autoAcceptOrders     Boolean @default(false)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sessions      Session[]
+  orders        Order[]
+
+  @@index([userId])
+}
+
+model Session {
+  id              String   @id @default(uuid()) @db.Uuid
+  linkedAccountId String   @db.Uuid
+  cookiesJson     String
+  expiresAt       DateTime?
+  createdAt       DateTime @default(now())
+  refreshedAt     DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  linkedAccount LinkedAccount @relation(fields: [linkedAccountId], references: [id], onDelete: Cascade)
+}
+
+model Product {
+  id             String   @id @default(uuid()) @db.Uuid
+  userId         String   @db.Uuid
+  platform       Platform
+  sku            String
+  title          String
+  description    String?
+  imageUrl       String?
+  price          Decimal? @db.Decimal(10, 2)
+  stock          Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orderItems OrderItem[]
+
+  @@unique([userId, platform, sku])
+}
+
+model Order {
+  id                String      @id @default(uuid()) @db.Uuid
+  userId            String      @db.Uuid
+  linkedAccountId   String?     @db.Uuid
+  platform          Platform
+  platformOrderId   String
+  platformSuborderId String?
+  status            OrderStatus
+  customerName      String?
+  customerPhone     String?
+  customerAddress   String?
+  customerCity      String?
+  customerState     String?
+  customerPincode   String?
+  products          Json?
+  orderAmount       Decimal?    @db.Decimal(10, 2)
+  paymentType       PaymentType?
+  codAmount         Decimal?    @db.Decimal(10, 2)
+  platformFee       Decimal?    @db.Decimal(10, 2)
+  awbNumber         String?
+  courierName       String?
+  dispatchDeadline  DateTime?
+  shippedAt         DateTime?
+  deliveredAt       DateTime?
+  cancelledAt       DateTime?
+  returnInitiatedAt DateTime?
+  creditCounted     Boolean     @default(false)
+  creditDeductedAt  DateTime?
+  invoiceGenerated  Boolean     @default(false)
+  labelDownloaded   Boolean     @default(false)
+  notes             String?
+  rawData           Json?
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+
+  user           User          @relation(fields: [userId], references: [id])
+  linkedAccount  LinkedAccount? @relation(fields: [linkedAccountId], references: [id])
+  items          OrderItem[]
+  labels         Label[]
+  invoices       Invoice[]
+  returns        Return[]
+  evidenceFiles  EvidenceFile[]
+
+  @@unique([platform, platformOrderId, userId])
+  @@index([userId, status])
+}
+
+model OrderItem {
+  id             String   @id @default(uuid()) @db.Uuid
+  orderId        String   @db.Uuid
+  productId      String?  @db.Uuid
+  name           String
+  sku            String?
+  quantity       Int      @default(1)
+  price          Decimal? @db.Decimal(10, 2)
+  imageUrl       String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  order          Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product        Product? @relation(fields: [productId], references: [id])
+}
+
+model Claim {
+  id                String   @id @default(uuid()) @db.Uuid
+  returnId          String?  @db.Uuid
+  orderId           String   @db.Uuid
+  userId            String   @db.Uuid
+  platform          Platform
+  claimStatus       ClaimStatus @default(not_raised)
+  claimReason       String?
+  claimAmount       Decimal? @db.Decimal(10, 2)
+  platformClaimId   String?
+  claimRaisedAt     DateTime?
+  claimResolutionAt DateTime?
+  notes             String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+model Label {
+  id            String   @id @default(uuid()) @db.Uuid
+  orderId       String   @db.Uuid
+  userId        String   @db.Uuid
+  platform      Platform
+  labelFormat   String
+  storageKey    String
+  storageUrl    String?
+  fileSizeBytes Int?
+  downloadedAt  DateTime?
+  expiresAt     DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Invoice {
+  id            String   @id @default(uuid()) @db.Uuid
+  invoiceNumber String   @unique
+  orderId       String   @db.Uuid
+  userId        String   @db.Uuid
+  sellerGstin   String?
+  sellerName    String?
+  sellerAddress String?
+  buyerName     String?
+  buyerState    String?
+  itemsJson     Json?
+  subtotal      Decimal? @db.Decimal(10, 2)
+  cgst          Decimal? @default(0) @db.Decimal(10, 2)
+  sgst          Decimal? @default(0) @db.Decimal(10, 2)
+  igst          Decimal? @default(0) @db.Decimal(10, 2)
+  total         Decimal? @db.Decimal(10, 2)
+  storageKey    String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Return {
+  id                String        @id @default(uuid()) @db.Uuid
+  orderId           String        @db.Uuid
+  userId            String        @db.Uuid
+  platform          Platform
+  platformReturnId  String?
+  returnReason      String?
+  returnType        ReturnType?
+  returnInitiatedAt DateTime?
+  returnDeliveredAt DateTime?
+  claimDeadline     DateTime?
+  evidenceStatus    EvidenceStatus @default(none)
+  claimStatus       ClaimStatus    @default(not_raised)
+  claimRaisedAt     DateTime?
+  claimResolutionAt DateTime?
+  amountRecovered   Decimal?      @db.Decimal(10, 2)
+  platformClaimId   String?
+  notes             String?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  order         Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  evidenceFiles EvidenceFile[]
+}
+
+model EvidenceFile {
+  id                  String          @id @default(uuid()) @db.Uuid
+  returnId            String?         @db.Uuid
+  userId              String          @db.Uuid
+  orderId             String          @db.Uuid
+  fileType            FileType
+  captureStage        CaptureStage
+  storageLocation     StorageLocation
+  storageKey          String?
+  fileSizeBytes       Int?
+  capturedAt          DateTime
+  submittedToPlatform Boolean         @default(false)
+  submittedAt         DateTime?
+  expiresAt           DateTime?
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
+
+  return Return? @relation(fields: [returnId], references: [id])
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  order  Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+}
+
+model BillingTransaction {
+  id                String                 @id @default(uuid()) @db.Uuid
+  userId            String                 @db.Uuid
+  transactionType   BillingTransactionType
+  planId            String?                @db.Uuid
+  ordersPurchased   Int?
+  amountInr         Decimal?               @db.Decimal(10, 2)
+  razorpayOrderId   String?
+  razorpayPaymentId String?
+  paymentStatus     PaymentStatus
+  invoiceNumber     String?
+  paidAt            DateTime?
+  createdAt         DateTime               @default(now())
+  updatedAt         DateTime               @updatedAt
+
+  user          User           @relation(fields: [userId], references: [id])
+  plan          Plan?          @relation(fields: [planId], references: [id])
+  sellerInvoice SellerInvoice?
+}
+
+model CreditTransaction {
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String   @db.Uuid
+  orderId     String?  @db.Uuid
+  delta       Int
+  reason      String
+  metadata    Json?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model AiJob {
+  id            String      @id @default(uuid()) @db.Uuid
+  userId         String      @db.Uuid
+  jobType        AiJobType
+  platform       Platform?
+  linkedAccountId String?    @db.Uuid
+  inputData      Json?
+  outputData     Json?
+  aiModelUsed    String?
+  tokensUsed     Int?
+  creditsCharged Decimal?    @db.Decimal(10, 4)
+  status         AiJobStatus
+  errorMessage   String?
+  createdAt      DateTime    @default(now())
+  completedAt    DateTime?
+  updatedAt      DateTime    @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model AiModelSetting {
+  id               String   @id @default(uuid()) @db.Uuid
+  taskType         String   @unique
+  modelProvider    String
+  modelName        String
+  apiKeyEncrypted  String
+  isActive         Boolean  @default(true)
+  costPerCallPaise Int
+  updatedByAdmin   String?  @db.Uuid
+  updatedAt        DateTime @default(now())
+  createdAt        DateTime @default(now())
+
+  admin User? @relation("AiModelSettingEditor", fields: [updatedByAdmin], references: [id])
+}
+
+model SiteSetting {
+  id          String   @id @default(uuid()) @db.Uuid
+  key         String   @unique
+  value       String?
+  valueType   String
+  description String?
+  updatedAt   DateTime @default(now())
+  createdAt   DateTime @default(now())
+}
+
+model NotificationLog {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @db.Uuid
+  channel   Channel
+  type      String
+  title     String
+  message   String
+  isRead    Boolean  @default(false)
+  sentAt    DateTime @default(now())
+  readAt    DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model TrustedDevice {
+  id         String   @id @default(uuid()) @db.Uuid
+  userId     String   @db.Uuid
+  deviceName String
+  trustToken String   @unique
+  ipAddress  String?
+  userAgent  String?
+  expiresAt  DateTime
+  lastUsedAt DateTime?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model LoginHistory {
+  id            String   @id @default(uuid()) @db.Uuid
+  userId        String   @db.Uuid
+  ipAddress     String?
+  userAgent     String?
+  deviceHint    String?
+  success       Boolean
+  failureReason String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model SellerInvoice {
+  id                   String   @id @default(uuid()) @db.Uuid
+  invoiceNumber        String   @unique
+  userId               String   @db.Uuid
+  billingTransactionId String   @unique @db.Uuid
+  yourGstin            String?
+  sellerGstin          String?
+  amountBeforeGst      Decimal? @db.Decimal(10, 2)
+  gstAmount            Decimal? @db.Decimal(10, 2)
+  totalAmount          Decimal? @db.Decimal(10, 2)
+  storageKey           String?
+  issuedAt             DateTime @default(now())
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  user               User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  billingTransaction BillingTransaction @relation(fields: [billingTransactionId], references: [id], onDelete: Cascade)
+}
+
+model AdminActivityLog {
+  id         String   @id @default(uuid()) @db.Uuid
+  adminId    String   @db.Uuid
+  action     String
+  targetType String
+  targetId   String?
+  details    Json?
+  ipAddress  String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  admin User @relation("AdminActivity", fields: [adminId], references: [id], onDelete: Cascade)
+}
+
+model ApiLog {
+  id         String   @id @default(uuid()) @db.Uuid
+  userId     String?  @db.Uuid
+  method     String
+  path       String
+  statusCode Int
+  latencyMs  Int
+  payload    Json?
+  error      String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model SyncLog {
+  id             String   @id @default(uuid()) @db.Uuid
+  userId         String?  @db.Uuid
+  linkedAccountId String? @db.Uuid
+  platform       Platform
+  status         String
+  message        String?
+  startedAt      DateTime @default(now())
+  finishedAt     DateTime?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model WebhookEvent {
+  id          String   @id @default(uuid()) @db.Uuid
+  platform    Platform
+  eventType   String
+  payload     Json
+  processed   Boolean  @default(false)
+  processedAt DateTime?
+  error       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}

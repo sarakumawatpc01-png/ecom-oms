@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM"],
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "strict": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "baseUrl": ".",
+    "paths": {
+      "@agencyfic/ui": ["packages/ui/src/index.ts"],
+      "@agencyfic/ui/*": ["packages/ui/src/*"],
+      "@agencyfic/utils": ["packages/utils/src/index.ts"],
+      "@agencyfic/utils/*": ["packages/utils/src/*"]
+    }
+  }
+}

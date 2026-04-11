@@ -1,0 +1,20 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --sb: #0d0f1a;
+  --sb-text: #7a85b0;
+  --page: #f0f4f9;
+  --admin: #7c3aed;
+  --accent: #f97316;
+}
+
+body {
+  background: var(--page);
+  color: #0f172a;
+}
+
+.panel-card {
+  @apply rounded-xl border border-slate-200 bg-white shadow-sm;
+}

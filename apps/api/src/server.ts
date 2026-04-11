@@ -1,0 +1,83 @@
+import Fastify from 'fastify';
+import cors from '@fastify/cors';
+import helmet from '@fastify/helmet';
+import jwt from '@fastify/jwt';
+import rateLimit from '@fastify/rate-limit';
+import sensible from '@fastify/sensible';
+import { env } from './config/env';
+import healthRoutes from './routes/health';
+import authRoutes from './routes/auth';
+import adminRoutes from './routes/admin';
+import integrationRoutes from './routes/integrations';
+import orderRoutes from './routes/orders';
+import webhookRoutes from './routes/webhooks';
+import schedulerPlugin from './plugins/scheduler';
+import { startQueueWorkers } from './queues/index';
+import billingRoutes from './routes/billing';
+import claimsRoutes from './routes/claims';
+import evidenceRoutes from './routes/evidence';
+import labelRoutes from './routes/labels';
+import invoiceRoutes from './routes/invoices';
+import aiRoutes from './routes/ai';
+import notificationRoutes from './routes/notifications';
+import reportsRoutes from './routes/reports';
+import teamRoutes from './routes/team';
+import siteSettingsRoutes from './routes/site-settings';
+import { prisma } from './lib/prisma';
+
+export function buildServer(options?: { withBackgroundJobs?: boolean }) {
+  const withBackgroundJobs = options?.withBackgroundJobs ?? true;
+  const app = Fastify({ logger: true });
+  app.decorate('io', undefined);
+
+  app.register(cors, { origin: true, credentials: true });
+  app.register(helmet);
+  app.register(sensible);
+  app.register(rateLimit, { global: true, max: 100, timeWindow: '1 minute' });
+  app.register(jwt, { secret: env.JWT_ACCESS_SECRET });
+
+  app.addHook('onResponse', async (request, reply) => {
+    app.log.info({ method: request.method, url: request.url, statusCode: reply.statusCode }, 'request.completed');
+    if (!env.ENABLE_API_LOG_PERSISTENCE) {
+      return;
+    }
+    try {
+      await prisma.apiLog.create({
+        data: {
+          userId: request.userContext?.userId,
+          method: request.method,
+          path: request.url,
+          statusCode: reply.statusCode,
+          latencyMs: Math.max(0, Math.round(reply.elapsedTime)),
+          payload: request.body as object | undefined,
+        },
+      });
+    } catch (error) {
+      app.log.warn({ err: error, path: request.url }, 'api_log.persist_failed');
+    }
+  });
+
+  app.register(healthRoutes, { prefix: '/health' });
+  app.register(authRoutes, { prefix: '/api/auth' });
+  app.register(adminRoutes, { prefix: '/api/admin' });
+  app.register(integrationRoutes, { prefix: '/api/integrations' });
+  app.register(orderRoutes, { prefix: '/api/orders' });
+  app.register(webhookRoutes, { prefix: '/api/webhooks' });
+  app.register(billingRoutes, { prefix: '/api/billing' });
+  app.register(claimsRoutes, { prefix: '/api/claims' });
+  app.register(evidenceRoutes, { prefix: '/api/evidence' });
+  app.register(labelRoutes, { prefix: '/api/labels' });
+  app.register(invoiceRoutes, { prefix: '/api/invoices' });
+  app.register(aiRoutes, { prefix: '/api/ai' });
+  app.register(notificationRoutes, { prefix: '/api/notifications' });
+  app.register(reportsRoutes, { prefix: '/api/reports' });
+  app.register(teamRoutes, { prefix: '/api/team' });
+  app.register(siteSettingsRoutes, { prefix: '/api/site-settings' });
+
+  if (withBackgroundJobs) {
+    app.register(schedulerPlugin);
+    startQueueWorkers();
+  }
+
+  return app;
+}
