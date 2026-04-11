@@ -104,9 +104,13 @@ export function SuperadminCommunicationSettings() {
               max={30}
               className="w-full rounded-lg border border-slate-300 px-3 py-2"
               value={settings.otpExpiryMinutes}
-              onChange={(event) =>
-                setSettings((prev) => ({ ...prev, otpExpiryMinutes: Number.parseInt(event.target.value || '0', 10) || 1 }))
-              }
+              onChange={(event) => {
+                const parsed = Number.parseInt(event.target.value, 10);
+                const bounded = Number.isFinite(parsed)
+                  ? Math.min(30, Math.max(1, parsed))
+                  : defaultSettings.otpExpiryMinutes;
+                setSettings((prev) => ({ ...prev, otpExpiryMinutes: bounded }));
+              }}
             />
           </label>
 

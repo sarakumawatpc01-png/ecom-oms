@@ -57,7 +57,7 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
         },
       ],
     },
-    // codeql[js/missing-rate-limiting] false positive: OTP verification is guarded by preHandler IP and Redis-based throttles above.
+    // codeql[js/missing-rate-limiting] false positive: this handler is protected by preHandler IP rate limit + Redis per-ip/email attempt throttling above.
     async (request, reply) => {
       const body = request.body as { email: string; otp: string };
 

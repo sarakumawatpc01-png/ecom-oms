@@ -257,7 +257,7 @@ const siteSettingsRoutes: FastifyPluginAsync = async (fastify) => {
     }
 
     if (updates.length === 0) {
-      return reply.code(400).send({ message: 'No supported settings provided' });
+      return { ok: true, updatedKeys: [] };
     }
 
     await Promise.all(

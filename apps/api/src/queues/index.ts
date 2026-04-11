@@ -87,6 +87,7 @@ async function getNotificationDeliverySettings(): Promise<NotificationDeliverySe
   const settingMap = new Map(settings.map((setting) => [setting.key, setting.value ?? '']));
 
   return {
+    // Persisted admin settings take precedence; env values remain fallback defaults.
     emailWebhookUrl: settingMap.get(notificationSettingKeys.emailWebhookUrl) || env.EMAIL_WEBHOOK_URL,
     smsWebhookUrl: settingMap.get(notificationSettingKeys.smsWebhookUrl) || env.SMS_WEBHOOK_URL,
     whatsappWebhookUrl: settingMap.get(notificationSettingKeys.whatsappWebhookUrl) || env.WHATSAPP_WEBHOOK_URL,
