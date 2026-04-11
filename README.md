@@ -11,6 +11,8 @@ Multi-tenant Order Management System for Amazon India, Flipkart, and Meesho.
 - `prisma` – Prisma schema and seed
 - `docker` – Docker Compose and NGINX
 - `docs` – Deployment and architecture docs
+  - `docs/operations-runbook.md` – Incident handling runbook
+  - `docs/probe-alert-checklist.md` – Production probe and alert checklist
 
 ## Quick Start
 

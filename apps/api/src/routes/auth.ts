@@ -2,16 +2,18 @@ import { randomUUID } from 'crypto';
 import { addDays } from '../services/date';
 import type { FastifyPluginAsync } from 'fastify';
 import { prisma } from '../lib/prisma';
+import { redis } from '../lib/redis';
 import { comparePassword, hashPassword, signAccessToken, signRefreshToken } from '../lib/auth';
 import { createOtp, verifyOtp } from '../services/otp';
 import { requireAuth } from '../middleware/auth';
 
 const authRoutes: FastifyPluginAsync = async (fastify) => {
   const OTP_VERIFY_MAX_ATTEMPTS = 5;
-  const authSensitiveLimiter = fastify.rateLimit({ max: OTP_VERIFY_MAX_ATTEMPTS, timeWindow: '1 minute', keyGenerator: (request) => request.ip });
+  const OTP_VERIFY_WINDOW_SECONDS = 60;
+  const ipBasedLimiter = fastify.rateLimit({ max: OTP_VERIFY_MAX_ATTEMPTS, timeWindow: '1 minute', keyGenerator: (request) => request.ip });
   const loginLimiter = fastify.rateLimit({ max: 10, timeWindow: '1 minute' });
 
-  fastify.post('/register', { preHandler: [authSensitiveLimiter] }, async (request, reply) => {
+  fastify.post('/register', { preHandler: [ipBasedLimiter] }, async (request, reply) => {
     const body = request.body as { email: string; password: string; name: string; role?: 'seller' | 'sub_user' };
 
     const existing = await prisma.user.findUnique({ where: { email: body.email } });
@@ -36,8 +38,26 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
   fastify.post(
     '/verify-otp',
     {
-      config: { rateLimit: { max: OTP_VERIFY_MAX_ATTEMPTS, timeWindow: '1 minute' } },
+      preHandler: [
+        ipBasedLimiter,
+        async (request, reply) => {
+          const body = request.body as { email?: string };
+          const normalizedEmail = body.email?.trim().toLowerCase();
+          if (!normalizedEmail) {
+            return;
+          }
+          const key = `ratelimit:verify-otp:${request.ip}:${normalizedEmail}`;
+          const attempts = await redis.incr(key);
+          if (attempts === 1) {
+            await redis.expire(key, OTP_VERIFY_WINDOW_SECONDS);
+          }
+          if (attempts > OTP_VERIFY_MAX_ATTEMPTS) {
+            return reply.code(429).send({ message: 'Too many OTP verification attempts. Try again later.' });
+          }
+        },
+      ],
     },
+    // codeql[js/missing-rate-limiting] false positive: OTP verification is guarded by preHandler IP and Redis-based throttles above.
     async (request, reply) => {
       const body = request.body as { email: string; otp: string };
 
