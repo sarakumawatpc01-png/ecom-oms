@@ -1,0 +1,2357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SellerOS — Unified Order Intelligence</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --sb: #0A1628;
+  --sb2: #0f2040;
+  --sb-hover: #162a50;
+  --sb-active: #1a3560;
+  --sb-text: #8BA3C7;
+  --sb-text-active: #ffffff;
+  --accent: #F97316;
+  --accent2: #FB923C;
+  --accent-bg: #FFF7ED;
+  --accent-text: #9A3412;
+  --indigo: #6366F1;
+  --page: #F0F4F9;
+  --card: #ffffff;
+  --border: #E2E8F0;
+  --border2: #CBD5E1;
+  --text1: #0F172A;
+  --text2: #475569;
+  --text3: #94A3B8;
+  --ok: #16A34A; --ok-bg: #F0FDF4; --ok-b: #BBF7D0;
+  --warn: #D97706; --warn-bg: #FFFBEB; --warn-b: #FDE68A;
+  --err: #DC2626; --err-bg: #FEF2F2; --err-b: #FECACA;
+  --info: #2563EB; --info-bg: #EFF6FF; --info-b: #BFDBFE;
+  --r: 10px; --r2: 14px;
+  --sh: 0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.04);
+  --sh2: 0 4px 12px rgba(0,0,0,.08),0 2px 4px rgba(0,0,0,.04);
+  --f: 'Plus Jakarta Sans',sans-serif;
+  --mono: 'JetBrains Mono',monospace;
+  --sb-w: 230px;
+  --top-h: 60px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--f);background:var(--page);color:var(--text1);font-size:13.5px;line-height:1.5}
+a{text-decoration:none;color:inherit}
+button{font-family:var(--f);cursor:pointer;border:none;outline:none}
+input,select,textarea{font-family:var(--f);font-size:13.5px;outline:none}
+.hidden{display:none!important}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:3px}
+
+/* ══════════════════════════════════
+   LOGIN PAGE
+══════════════════════════════════ */
+#login-page{
+  min-height:100vh;
+  background: linear-gradient(135deg,#0A1628 0%,#0f2a50 40%,#1a1040 100%);
+  display:flex;align-items:center;justify-content:center;
+  position:relative;overflow:hidden;
+}
+#login-page::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse 80% 60% at 60% 40%,rgba(249,115,22,.15),transparent);
+}
+#login-page::after{
+  content:'';position:absolute;inset:0;
+  background-image:radial-gradient(circle,rgba(255,255,255,.04) 1px,transparent 1px);
+  background-size:28px 28px;
+}
+.login-wrap{
+  position:relative;z-index:1;width:100%;max-width:440px;padding:20px;
+}
+.login-brand{
+  text-align:center;margin-bottom:32px;
+}
+.login-logo{
+  display:inline-flex;align-items:center;gap:10px;margin-bottom:10px;
+}
+.login-logo-icon{
+  width:42px;height:42px;background:var(--accent);border-radius:10px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:20px;font-weight:800;color:#fff;letter-spacing:-1px;
+}
+.login-logo-name{
+  font-size:24px;font-weight:800;color:#fff;letter-spacing:-0.5px;
+}
+.login-logo-name span{color:var(--accent);}
+.login-tagline{color:#8BA3C7;font-size:13px;font-weight:400;}
+
+.login-card{
+  background:rgba(255,255,255,.97);border-radius:var(--r2);
+  padding:32px;box-shadow:0 20px 60px rgba(0,0,0,.3);
+}
+.login-title{font-size:20px;font-weight:700;color:var(--text1);margin-bottom:4px;}
+.login-sub{font-size:13px;color:var(--text2);margin-bottom:24px;}
+
+.form-group{margin-bottom:16px;}
+.form-label{display:block;font-size:12.5px;font-weight:600;color:var(--text2);margin-bottom:6px;text-transform:uppercase;letter-spacing:.4px;}
+.form-input{
+  width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:8px;
+  font-size:13.5px;color:var(--text1);background:#fff;
+  transition:border-color .2s,box-shadow .2s;
+}
+.form-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(249,115,22,.12);}
+
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  padding:10px 20px;border-radius:8px;font-size:13.5px;font-weight:600;
+  transition:all .2s;cursor:pointer;
+}
+.btn-primary{background:var(--accent);color:#fff;}
+.btn-primary:hover{background:var(--accent2);transform:translateY(-1px);box-shadow:0 4px 12px rgba(249,115,22,.3);}
+.btn-secondary{background:#F1F5F9;color:var(--text2);border:1px solid var(--border);}
+.btn-secondary:hover{background:var(--border);color:var(--text1);}
+.btn-ghost{background:transparent;color:var(--text2);}
+.btn-ghost:hover{background:#F1F5F9;}
+.btn-danger{background:#FEF2F2;color:var(--err);border:1px solid var(--err-b);}
+.btn-danger:hover{background:var(--err);color:#fff;}
+.btn-sm{padding:7px 14px;font-size:12.5px;}
+.btn-xs{padding:5px 10px;font-size:12px;}
+.btn-full{width:100%;}
+.btn-icon{padding:8px;border-radius:8px;}
+
+.login-divider{
+  display:flex;align-items:center;gap:12px;margin:20px 0;
+}
+.login-divider span{font-size:12px;color:var(--text3);white-space:nowrap;}
+.login-divider::before,.login-divider::after{content:'';flex:1;height:1px;background:var(--border);}
+
+.demo-btns{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.demo-btn{
+  padding:12px;border-radius:8px;border:1.5px solid var(--border);
+  background:#fff;text-align:center;cursor:pointer;transition:all .2s;
+}
+.demo-btn:hover{border-color:var(--accent);background:var(--accent-bg);}
+.demo-btn-icon{font-size:22px;margin-bottom:6px;}
+.demo-btn-label{font-size:12.5px;font-weight:700;color:var(--text1);}
+.demo-btn-sub{font-size:11px;color:var(--text3);}
+
+/* ══════════════════════════════════
+   APP LAYOUT
+══════════════════════════════════ */
+.app{display:flex;min-height:100vh;}
+
+/* SIDEBAR */
+.sidebar{
+  width:var(--sb-w);min-height:100vh;background:var(--sb);
+  position:fixed;top:0;left:0;bottom:0;
+  display:flex;flex-direction:column;z-index:100;
+  transition:width .2s;
+}
+.sidebar-header{
+  padding:18px 16px 14px;
+  border-bottom:1px solid rgba(255,255,255,.06);
+  flex-shrink:0;
+}
+.sidebar-logo{display:flex;align-items:center;gap:10px;}
+.sidebar-logo-icon{
+  width:34px;height:34px;background:var(--accent);border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:15px;font-weight:800;color:#fff;flex-shrink:0;
+}
+.sidebar-logo-text{font-size:16px;font-weight:800;color:#fff;letter-spacing:-.3px;}
+.sidebar-logo-text span{color:var(--accent);}
+
+.sidebar-nav{flex:1;padding:10px 8px;overflow-y:auto;}
+.nav-section-title{
+  font-size:10px;font-weight:700;color:rgba(139,163,199,.5);
+  text-transform:uppercase;letter-spacing:1px;
+  padding:14px 8px 6px;
+}
+.nav-item{
+  display:flex;align-items:center;gap:10px;
+  padding:9px 10px;border-radius:8px;cursor:pointer;
+  margin-bottom:2px;transition:all .15s;color:var(--sb-text);
+  font-weight:500;font-size:13px;position:relative;
+}
+.nav-item:hover{background:var(--sb-hover);color:#fff;}
+.nav-item.active{background:var(--sb-active);color:#fff;}
+.nav-item.active::before{
+  content:'';position:absolute;left:0;top:50%;transform:translateY(-50%);
+  width:3px;height:60%;background:var(--accent);border-radius:0 2px 2px 0;
+}
+.nav-icon{width:18px;height:18px;flex-shrink:0;opacity:.8;}
+.nav-item.active .nav-icon,.nav-item:hover .nav-icon{opacity:1;}
+.nav-badge{
+  margin-left:auto;background:var(--err);color:#fff;
+  font-size:10px;font-weight:700;padding:2px 6px;border-radius:10px;min-width:18px;text-align:center;
+}
+
+.sidebar-footer{
+  padding:12px 8px;border-top:1px solid rgba(255,255,255,.06);flex-shrink:0;
+}
+.sidebar-user{
+  display:flex;align-items:center;gap:10px;padding:8px 10px;
+  border-radius:8px;cursor:pointer;
+}
+.sidebar-user:hover{background:var(--sb-hover);}
+.sidebar-avatar{
+  width:32px;height:32px;border-radius:50%;background:var(--accent);
+  display:flex;align-items:center;justify-content:center;
+  font-size:12px;font-weight:700;color:#fff;flex-shrink:0;
+}
+.sidebar-user-info{flex:1;min-width:0;}
+.sidebar-user-name{font-size:12.5px;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.sidebar-user-role{font-size:11px;color:var(--sb-text);}
+.sidebar-logout{color:var(--sb-text);font-size:12px;padding:4px 8px;border-radius:6px;cursor:pointer;transition:all .15s;}
+.sidebar-logout:hover{color:var(--err-bg);background:rgba(220,38,38,.2);}
+
+/* MAIN CONTENT */
+.main{margin-left:var(--sb-w);flex:1;display:flex;flex-direction:column;min-height:100vh;}
+
+/* TOP BAR */
+.topbar{
+  height:var(--top-h);background:#fff;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;padding:0 24px;gap:16px;
+  position:sticky;top:0;z-index:50;
+}
+.topbar-title{font-size:16px;font-weight:700;color:var(--text1);flex:1;}
+.topbar-search{
+  display:flex;align-items:center;gap:8px;
+  background:#F8FAFC;border:1px solid var(--border);border-radius:8px;
+  padding:7px 12px;width:220px;
+}
+.topbar-search input{background:none;border:none;font-size:13px;color:var(--text1);width:100%;}
+.topbar-search input::placeholder{color:var(--text3);}
+
+.order-pill{
+  display:flex;align-items:center;gap:8px;
+  background:var(--accent-bg);border:1px solid #FED7AA;
+  border-radius:20px;padding:6px 14px;cursor:pointer;
+  transition:all .2s;white-space:nowrap;
+}
+.order-pill:hover{background:#FFEDD5;border-color:var(--accent);}
+.order-pill-dot{width:7px;height:7px;border-radius:50%;background:var(--ok);}
+.order-pill-dot.warn{background:var(--warn);}
+.order-pill-text{font-size:12.5px;font-weight:700;color:var(--accent-text);}
+
+.topbar-icon-btn{
+  width:36px;height:36px;border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  background:#F8FAFC;border:1px solid var(--border);cursor:pointer;
+  transition:all .15s;position:relative;color:var(--text2);
+}
+.topbar-icon-btn:hover{background:var(--border);color:var(--text1);}
+.notif-dot{
+  position:absolute;top:6px;right:6px;width:7px;height:7px;
+  background:var(--err);border-radius:50%;border:1.5px solid #fff;
+}
+
+/* PAGE CONTENT */
+.page-content{padding:24px;flex:1;}
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;}
+.page-title{font-size:18px;font-weight:700;color:var(--text1);}
+.page-sub{font-size:13px;color:var(--text2);margin-top:2px;}
+.page-actions{display:flex;gap:8px;align-items:center;}
+
+/* ── CARDS ── */
+.card{background:var(--card);border-radius:var(--r2);border:1px solid var(--border);box-shadow:var(--sh);}
+.card-pad{padding:20px;}
+
+/* ── METRIC CARDS ── */
+.metrics-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px;}
+.metric-card{
+  background:var(--card);border-radius:var(--r2);border:1px solid var(--border);
+  padding:18px 20px;position:relative;overflow:hidden;
+}
+.metric-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:var(--mc,var(--accent));
+}
+.metric-label{font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px;}
+.metric-value{font-size:26px;font-weight:800;color:var(--text1);font-family:var(--mono);letter-spacing:-1px;}
+.metric-sub{font-size:12px;color:var(--text3);margin-top:4px;}
+.metric-icon{
+  position:absolute;right:16px;top:50%;transform:translateY(-50%);
+  width:42px;height:42px;border-radius:10px;
+  background:var(--mi-bg,#FFF7ED);
+  display:flex;align-items:center;justify-content:center;font-size:18px;
+}
+.metric-change{
+  display:inline-flex;align-items:center;gap:3px;
+  font-size:11.5px;font-weight:600;margin-top:4px;
+}
+.metric-change.up{color:var(--ok);}
+.metric-change.down{color:var(--err);}
+
+/* ── ALERTS ── */
+.alert{
+  display:flex;align-items:flex-start;gap:10px;
+  padding:10px 14px;border-radius:8px;border:1px solid;margin-bottom:8px;
+}
+.alert-ok{background:var(--ok-bg);border-color:var(--ok-b);}
+.alert-warn{background:var(--warn-bg);border-color:var(--warn-b);}
+.alert-err{background:var(--err-bg);border-color:var(--err-b);}
+.alert-info{background:var(--info-bg);border-color:var(--info-b);}
+.alert-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:4px;}
+.alert-ok .alert-dot{background:var(--ok);}
+.alert-warn .alert-dot{background:var(--warn);}
+.alert-err .alert-dot{background:var(--err);}
+.alert-info .alert-dot{background:var(--info);}
+.alert-title{font-size:13px;font-weight:600;color:var(--text1);}
+.alert-sub{font-size:12px;color:var(--text2);margin-top:2px;}
+
+/* ── PLATFORM STATUS ── */
+.platform-status-row{display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;}
+.platform-pill{
+  display:flex;align-items:center;gap:8px;
+  padding:8px 16px;border-radius:20px;border:1px solid var(--border);
+  background:var(--card);cursor:pointer;transition:all .15s;
+}
+.platform-pill:hover{box-shadow:var(--sh2);}
+.p-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.p-dot.ok{background:var(--ok);}
+.p-dot.warn{background:var(--warn);}
+.p-dot.err{background:var(--err);}
+.platform-pill-name{font-size:13px;font-weight:600;color:var(--text1);}
+.platform-pill-status{font-size:11.5px;color:var(--text2);}
+
+/* ── USAGE BAR ── */
+.usage-card{background:var(--card);border-radius:var(--r2);border:1px solid var(--border);padding:20px;margin-bottom:20px;}
+.usage-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.usage-title{font-size:14px;font-weight:700;color:var(--text1);}
+.usage-meta{font-size:12.5px;color:var(--text2);}
+.usage-count{font-family:var(--mono);font-size:22px;font-weight:700;color:var(--text1);}
+.usage-sub{font-size:12px;color:var(--text3);}
+.progress-bar{height:8px;background:#F1F5F9;border-radius:4px;overflow:hidden;margin-bottom:4px;}
+.progress-fill{height:100%;border-radius:4px;transition:width .6s ease;background:var(--accent);}
+.progress-fill.warn{background:var(--warn);}
+.progress-fill.err{background:var(--err);}
+.usage-breakdown{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:14px;}
+.breakdown-item{padding:10px 12px;background:#F8FAFC;border-radius:8px;border:1px solid var(--border);}
+.breakdown-platform{font-size:11.5px;font-weight:600;color:var(--text2);margin-bottom:4px;}
+.breakdown-count{font-size:16px;font-weight:700;font-family:var(--mono);color:var(--text1);}
+.breakdown-sub{font-size:11px;color:var(--text3);}
+.breakdown-bar{height:4px;background:#E2E8F0;border-radius:2px;margin-top:6px;overflow:hidden;}
+.breakdown-fill{height:100%;border-radius:2px;}
+.fill-meesho{background:#E91E8C;}
+.fill-amazon{background:#FF9900;}
+.fill-flipkart{background:#2874F0;}
+
+/* ── TABLES ── */
+.table-wrap{overflow-x:auto;border-radius:var(--r2);border:1px solid var(--border);}
+table{width:100%;border-collapse:collapse;background:var(--card);}
+thead{background:#F8FAFC;border-bottom:1px solid var(--border);}
+th{padding:11px 14px;font-size:11.5px;font-weight:700;color:var(--text2);text-align:left;text-transform:uppercase;letter-spacing:.5px;white-space:nowrap;}
+td{padding:11px 14px;font-size:13px;color:var(--text1);border-bottom:1px solid #F1F5F9;white-space:nowrap;}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:#FAFBFD;}
+.table-check{width:16px;height:16px;cursor:pointer;accent-color:var(--accent);}
+
+/* ── BADGES ── */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:11.5px;font-weight:600;}
+.badge-ok{background:var(--ok-bg);color:var(--ok);border:1px solid var(--ok-b);}
+.badge-warn{background:var(--warn-bg);color:var(--warn);border:1px solid var(--warn-b);}
+.badge-err{background:var(--err-bg);color:var(--err);border:1px solid var(--err-b);}
+.badge-info{background:var(--info-bg);color:var(--info);border:1px solid var(--info-b);}
+.badge-gray{background:#F1F5F9;color:var(--text2);border:1px solid var(--border);}
+.badge-accent{background:var(--accent-bg);color:var(--accent-text);border:1px solid #FED7AA;}
+.badge-meesho{background:#FCE4F3;color:#9C1070;border:1px solid #F9A8D4;}
+.badge-amazon{background:#FFF3E0;color:#B45309;border:1px solid #FCD34D;}
+.badge-flipkart{background:#EFF6FF;color:#1D4ED8;border:1px solid #93C5FD;}
+
+/* ── TABS ── */
+.tabs{display:flex;gap:2px;background:#F1F5F9;border-radius:10px;padding:3px;margin-bottom:18px;flex-wrap:wrap;}
+.tab-btn{
+  padding:7px 14px;border-radius:8px;font-size:13px;font-weight:500;
+  color:var(--text2);cursor:pointer;transition:all .15s;border:none;background:none;
+  white-space:nowrap;
+}
+.tab-btn.active{background:#fff;color:var(--text1);font-weight:700;box-shadow:var(--sh);}
+.tab-btn:hover:not(.active){background:rgba(0,0,0,.04);}
+
+/* ── FILTERS ── */
+.filters{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;align-items:center;}
+.filter-select{
+  padding:7px 12px;border:1px solid var(--border);border-radius:8px;
+  background:#fff;color:var(--text1);font-size:13px;cursor:pointer;
+}
+.filter-select:focus{border-color:var(--accent);}
+.search-input{
+  padding:7px 12px 7px 32px;border:1px solid var(--border);border-radius:8px;
+  background:#fff;color:var(--text1);font-size:13px;width:200px;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2394A3B8' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='8'%3E%3C/circle%3E%3Cpath d='m21 21-4.35-4.35'%3E%3C/path%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:10px center;
+}
+.search-input:focus{border-color:var(--accent);outline:none;}
+
+/* ── BULK ACTION BAR ── */
+.bulk-bar{
+  display:none;align-items:center;gap:10px;
+  background:#0A1628;color:#fff;
+  padding:10px 16px;border-radius:10px;margin-bottom:12px;
+}
+.bulk-bar.show{display:flex;}
+.bulk-count{font-size:13px;font-weight:600;}
+.bulk-divider{width:1px;height:16px;background:rgba(255,255,255,.2);}
+
+/* ── TWO COLUMN LAYOUT ── */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;}
+
+/* ── SECTION HEADERS ── */
+.section-header{
+  font-size:12px;font-weight:700;color:var(--text2);
+  text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px;
+  padding-bottom:6px;border-bottom:1px solid var(--border);
+}
+
+/* ── FORM ROWS ── */
+.settings-row{
+  display:flex;align-items:flex-start;justify-content:space-between;
+  padding:14px 0;border-bottom:1px solid var(--border);gap:24px;
+}
+.settings-row:last-child{border-bottom:none;}
+.settings-label{font-size:13.5px;font-weight:600;color:var(--text1);}
+.settings-sub{font-size:12px;color:var(--text2);margin-top:2px;}
+.settings-input{
+  padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;
+  font-size:13.5px;width:260px;transition:border-color .2s;
+}
+.settings-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(249,115,22,.1);}
+
+/* ── TOGGLE ── */
+.toggle{position:relative;width:38px;height:21px;display:inline-block;flex-shrink:0;}
+.toggle input{opacity:0;width:0;height:0;}
+.toggle-track{
+  position:absolute;inset:0;background:#CBD5E1;border-radius:11px;
+  cursor:pointer;transition:background .2s;
+}
+.toggle-track::after{
+  content:'';position:absolute;left:2px;top:2px;
+  width:17px;height:17px;background:#fff;border-radius:50%;
+  transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.2);
+}
+.toggle input:checked+.toggle-track{background:var(--accent);}
+.toggle input:checked+.toggle-track::after{transform:translateX(17px);}
+
+/* ── PLAN CARDS ── */
+.plan-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px;}
+.plan-card{
+  background:var(--card);border-radius:var(--r2);border:1.5px solid var(--border);
+  padding:20px;transition:all .2s;position:relative;
+}
+.plan-card:hover{border-color:var(--accent);box-shadow:var(--sh2);}
+.plan-card.current{border-color:var(--accent);background:var(--accent-bg);}
+.plan-card.current::before{
+  content:'Current';position:absolute;top:-10px;left:50%;transform:translateX(-50%);
+  background:var(--accent);color:#fff;font-size:10.5px;font-weight:700;
+  padding:2px 10px;border-radius:10px;text-transform:uppercase;letter-spacing:.5px;
+}
+.plan-name{font-size:15px;font-weight:800;color:var(--text1);margin-bottom:4px;}
+.plan-price{font-size:28px;font-weight:800;color:var(--text1);font-family:var(--mono);}
+.plan-price span{font-size:14px;font-weight:500;color:var(--text2);}
+.plan-orders{font-size:13px;color:var(--text2);margin-bottom:14px;}
+.plan-rate{font-size:12px;color:var(--text3);margin-bottom:16px;}
+.plan-features{list-style:none;margin-bottom:18px;}
+.plan-features li{
+  font-size:13px;color:var(--text2);padding:4px 0;
+  display:flex;align-items:center;gap:8px;
+}
+.plan-features li::before{content:'✓';color:var(--ok);font-weight:700;}
+
+/* ── ORDER DETAIL PANEL ── */
+.order-detail{
+  background:var(--card);border-radius:var(--r2);border:1px solid var(--border);
+  padding:20px;margin-top:14px;
+}
+.order-timeline{display:flex;gap:0;margin:14px 0;}
+.timeline-step{flex:1;display:flex;flex-direction:column;align-items:center;position:relative;}
+.timeline-step::before{
+  content:'';position:absolute;top:13px;left:50%;right:-50%;
+  height:2px;background:var(--border);z-index:0;
+}
+.timeline-step:last-child::before{display:none;}
+.timeline-dot{
+  width:26px;height:26px;border-radius:50%;border:2px solid var(--border);
+  background:#fff;display:flex;align-items:center;justify-content:center;
+  font-size:10px;font-weight:700;z-index:1;position:relative;
+  transition:all .2s;
+}
+.timeline-dot.done{background:var(--ok);border-color:var(--ok);color:#fff;}
+.timeline-dot.active{background:var(--accent);border-color:var(--accent);color:#fff;}
+.timeline-step::before.done{background:var(--ok);}
+.timeline-label{font-size:10.5px;color:var(--text3);margin-top:6px;text-align:center;font-weight:500;}
+
+/* ── ADMIN SPECIFIC ── */
+.admin-sidebar{background:#080E1C;}
+.admin-sidebar .sidebar-logo-icon{background:#6366F1;}
+.admin-sidebar .nav-item.active{background:rgba(99,102,241,.2);}
+.admin-sidebar .nav-item.active::before{background:#6366F1;}
+.admin-sidebar .order-pill{background:rgba(99,102,241,.1);border-color:rgba(99,102,241,.3);}
+
+/* ── STAT CARDS ROW ── */
+.stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px;}
+
+/* ── CLIENT TABLE ACTIONS ── */
+.action-menu{
+  display:flex;gap:6px;align-items:center;
+}
+
+/* ── STEP WIZARD ── */
+.wizard-steps{display:flex;gap:0;margin-bottom:24px;}
+.wizard-step{
+  flex:1;display:flex;flex-direction:column;align-items:center;
+  position:relative;
+}
+.wizard-step:not(:last-child)::after{
+  content:'';position:absolute;top:16px;left:60%;width:80%;
+  height:2px;background:var(--border);
+}
+.wizard-step.done:not(:last-child)::after{background:var(--ok);}
+.wizard-num{
+  width:32px;height:32px;border-radius:50%;
+  border:2px solid var(--border);background:#fff;
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;font-weight:700;z-index:1;position:relative;
+  color:var(--text3);
+}
+.wizard-step.active .wizard-num{border-color:var(--accent);background:var(--accent);color:#fff;}
+.wizard-step.done .wizard-num{border-color:var(--ok);background:var(--ok);color:#fff;}
+.wizard-label{font-size:11.5px;color:var(--text3);margin-top:8px;font-weight:500;text-align:center;}
+.wizard-step.active .wizard-label{color:var(--accent);font-weight:700;}
+.wizard-step.done .wizard-label{color:var(--ok);}
+
+/* ── DISPUTE TYPE CARDS ── */
+.dispute-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px;}
+.dispute-card{
+  padding:14px;border-radius:10px;border:1.5px solid var(--border);
+  cursor:pointer;transition:all .15s;text-align:center;
+}
+.dispute-card:hover,.dispute-card.selected{border-color:var(--accent);background:var(--accent-bg);}
+.dispute-icon{font-size:22px;margin-bottom:6px;}
+.dispute-label{font-size:12.5px;font-weight:600;color:var(--text1);}
+
+/* ── LABEL FORMAT CARDS ── */
+.format-cards{display:flex;gap:10px;margin-bottom:20px;}
+.format-card{
+  padding:12px 18px;border-radius:10px;border:1.5px solid var(--border);
+  cursor:pointer;transition:all .15s;
+}
+.format-card.selected{border-color:var(--accent);background:var(--accent-bg);}
+.format-title{font-size:13px;font-weight:700;color:var(--text1);}
+.format-sub{font-size:11.5px;color:var(--text3);}
+
+/* ── HEALTH INDICATOR ── */
+.health-dot{width:10px;height:10px;border-radius:50%;display:inline-block;flex-shrink:0;}
+.health-ok{background:var(--ok);box-shadow:0 0 0 3px rgba(22,163,74,.15);}
+.health-warn{background:var(--warn);box-shadow:0 0 0 3px rgba(217,119,6,.15);}
+.health-err{background:var(--err);box-shadow:0 0 0 3px rgba(220,38,38,.15);}
+
+/* ── MODAL ── */
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;
+  display:flex;align-items:center;justify-content:center;padding:20px;
+}
+.modal{
+  background:#fff;border-radius:var(--r2);box-shadow:0 20px 60px rgba(0,0,0,.2);
+  width:100%;max-width:480px;max-height:90vh;overflow-y:auto;
+}
+.modal-header{
+  padding:20px 20px 0;display:flex;align-items:center;justify-content:space-between;
+}
+.modal-title{font-size:16px;font-weight:700;}
+.modal-close{
+  width:30px;height:30px;border-radius:6px;display:flex;align-items:center;justify-content:center;
+  cursor:pointer;color:var(--text3);font-size:18px;background:none;border:none;
+  transition:all .15s;
+}
+.modal-close:hover{background:#F1F5F9;color:var(--text1);}
+.modal-body{padding:20px;}
+.modal-footer{padding:14px 20px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end;}
+
+/* ── MISC ── */
+.mt4{margin-top:4px}.mt8{margin-top:8px}.mt12{margin-top:12px}.mt16{margin-top:16px}.mt20{margin-top:20px}.mt24{margin-top:24px}
+.mb8{margin-bottom:8px}.mb12{margin-bottom:12px}.mb16{margin-bottom:16px}.mb20{margin-bottom:20px}
+.flex{display:flex}.items-center{align-items:center}.justify-between{justify-content:space-between}.gap8{gap:8px}.gap12{gap:12px}.gap16{gap:16px}
+.text-sm{font-size:12.5px}.text-xs{font-size:11.5px}.text-muted{color:var(--text2)}.text-hint{color:var(--text3)}
+.font-mono{font-family:var(--mono)}.font-bold{font-weight:700}.font-600{font-weight:600}
+.w-full{width:100%}.text-center{text-align:center}
+.divider{height:1px;background:var(--border);margin:16px 0;}
+
+/* DROPDOWN */
+.order-pill-dropdown{
+  position:absolute;top:56px;right:200px;z-index:200;
+  background:#fff;border-radius:var(--r2);border:1px solid var(--border);
+  box-shadow:var(--sh2);width:300px;padding:16px;
+}
+
+/* RESPONSIVE tweaks */
+@media(max-width:1200px){
+  .metrics-grid{grid-template-columns:repeat(2,1fr);}
+  .stat-row{grid-template-columns:repeat(2,1fr);}
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════ LOGIN PAGE ══════════════════════════════════ -->
+<div id="login-page">
+  <div class="login-wrap">
+    <div class="login-brand">
+      <div class="login-logo">
+        <div class="login-logo-icon">S</div>
+        <div class="login-logo-name">Seller<span>OS</span></div>
+      </div>
+      <div class="login-tagline">One Platform. Every Marketplace.</div>
+    </div>
+    <div class="login-card">
+      <div class="login-title">Welcome back</div>
+      <div class="login-sub">Sign in to manage your orders across all platforms</div>
+      <div class="form-group">
+        <label class="form-label">Email address</label>
+        <input class="form-input" type="email" placeholder="you@example.com" value="rahul@example.com">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input class="form-input" type="password" placeholder="••••••••" value="••••••••">
+      </div>
+      <button class="btn btn-primary btn-full" style="margin-bottom:12px" onclick="loginAs('seller')">Sign in</button>
+      <div class="login-divider"><span>or try a demo account</span></div>
+      <div class="demo-btns">
+        <div class="demo-btn" onclick="loginAs('seller')">
+          <div class="demo-btn-icon">🛒</div>
+          <div class="demo-btn-label">Seller Dashboard</div>
+          <div class="demo-btn-sub">Rahul Sharma · Growth Plan</div>
+        </div>
+        <div class="demo-btn" onclick="loginAs('admin')">
+          <div class="demo-btn-icon">⚙️</div>
+          <div class="demo-btn-label">Super Admin</div>
+          <div class="demo-btn-sub">Full system control</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════ SELLER APP ══════════════════════════════════ -->
+<div id="seller-app" class="app hidden">
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <div class="sidebar-logo-icon">S</div>
+        <div class="sidebar-logo-text">Seller<span>OS</span></div>
+      </div>
+    </div>
+    <div class="sidebar-nav">
+      <div class="nav-item active" onclick="showSellerSection('dashboard')">
+        <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1" stroke-width="2"/><rect x="14" y="3" width="7" height="7" rx="1" stroke-width="2"/><rect x="3" y="14" width="7" height="7" rx="1" stroke-width="2"/><rect x="14" y="14" width="7" height="7" rx="1" stroke-width="2"/></svg>
+        Dashboard
+      </div>
+      <div class="nav-item" onclick="showSellerSection('orders')">
+        <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+        Orders
+        <span class="nav-badge">12</span>
+      </div>
+      <div class="nav-item" onclick="showSellerSection('labels')">
+        <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
+        Labels
+      </div>
+      <div class="nav-item" onclick="showSellerSection('invoices')">
+        <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+        Invoices
+      </div>
+      <div class="nav-item" onclick="showSellerSection('claims')">
+        <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+        Claims & Returns
+        <span class="nav-badge">3</span>
+      </div>
+      <div class="nav-section-title">Settings</div>
+      <div class="nav-item" onclick="showSellerSection('platforms')">
+        <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
+        Platforms
+      </div>
+      <div class="nav-item" onclick="showSellerSection('billing')">
+        <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2" stroke-width="2"/><path stroke-width="2" d="M2 10h20"/></svg>
+        Billing
+      </div>
+      <div class="nav-item" onclick="showSellerSection('settings')">
+        <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><circle cx="12" cy="12" r="3" stroke-width="2"/></svg>
+        Settings
+      </div>
+    </div>
+    <div class="sidebar-footer">
+      <div class="sidebar-user" style="flex:1">
+        <div class="sidebar-avatar">RS</div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name">Rahul Sharma</div>
+          <div class="sidebar-user-role">Growth Plan · 1,579 orders left</div>
+        </div>
+      </div>
+      <div class="sidebar-logout" onclick="logout()">↩ Logout</div>
+    </div>
+  </nav>
+
+  <!-- MAIN CONTENT -->
+  <div class="main">
+    <!-- TOPBAR -->
+    <div class="topbar">
+      <div class="topbar-title" id="seller-page-title">Dashboard</div>
+      <div class="topbar-search">
+        <svg width="14" height="14" fill="none" stroke="#94A3B8" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8" stroke-width="2"/><path d="m21 21-4.35-4.35" stroke-width="2"/></svg>
+        <input type="text" placeholder="Search orders, SKU, customer...">
+      </div>
+      <div class="order-pill" onclick="toggleOrderDropdown()">
+        <div class="p-dot ok"></div>
+        <span class="order-pill-text">1,579 orders remaining</span>
+        <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6" stroke-width="2" stroke-linecap="round"/></svg>
+      </div>
+      <div class="topbar-icon-btn" onclick="toggleNotif()">
+        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" stroke-width="1.5"/></svg>
+        <div class="notif-dot"></div>
+      </div>
+      <div class="topbar-icon-btn">
+        <div style="font-size:11px;font-weight:700;color:var(--accent);">RS</div>
+      </div>
+    </div>
+
+    <!-- ORDER PILL DROPDOWN -->
+    <div id="order-dropdown" class="order-pill-dropdown hidden">
+      <div style="font-size:14px;font-weight:700;margin-bottom:12px;">Order Usage</div>
+      <div style="font-size:12px;color:var(--text2);margin-bottom:6px;">Growth Plan — 5,000 orders</div>
+      <div class="progress-bar"><div class="progress-fill warn" style="width:68%"></div></div>
+      <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text2);margin-bottom:12px;margin-top:4px;">
+        <span>3,421 used</span><span style="font-weight:700;color:var(--accent-text)">1,579 remaining</span>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px;">
+        <div style="background:#F8FAFC;border-radius:8px;padding:8px;text-align:center">
+          <div style="font-size:10.5px;color:#9C1070;font-weight:600;margin-bottom:2px">Meesho</div>
+          <div style="font-size:15px;font-weight:700;font-family:var(--mono)">2,100</div>
+        </div>
+        <div style="background:#F8FAFC;border-radius:8px;padding:8px;text-align:center">
+          <div style="font-size:10.5px;color:#B45309;font-weight:600;margin-bottom:2px">Amazon</div>
+          <div style="font-size:15px;font-weight:700;font-family:var(--mono)">800</div>
+        </div>
+        <div style="background:#F8FAFC;border-radius:8px;padding:8px;text-align:center">
+          <div style="font-size:10.5px;color:#1D4ED8;font-weight:600;margin-bottom:2px">Flipkart</div>
+          <div style="font-size:15px;font-weight:700;font-family:var(--mono)">521</div>
+        </div>
+      </div>
+      <div style="font-size:11.5px;color:var(--text3);margin-bottom:10px">Expires: 31 Jan 2027</div>
+      <button class="btn btn-primary btn-full btn-sm" onclick="showSellerSection('billing')">Buy More Orders</button>
+    </div>
+
+    <!-- SELLER PAGE CONTENT -->
+    <div class="page-content">
+
+      <!-- ── DASHBOARD ── -->
+      <div id="s-dashboard" class="seller-section">
+        <div class="page-header">
+          <div><div class="page-title">Good morning, Rahul! 👋</div><div class="page-sub">Here's what's happening with your stores today</div></div>
+          <div class="page-actions">
+            <button class="btn btn-secondary btn-sm">↓ Export</button>
+            <button class="btn btn-primary btn-sm" onclick="showSellerSection('orders')">View All Orders</button>
+          </div>
+        </div>
+
+        <!-- Platform Status -->
+        <div class="platform-status-row">
+          <div class="platform-pill"><div class="p-dot ok"></div><div><div class="platform-pill-name">Meesho</div><div class="platform-pill-status">Connected · Synced 2m ago</div></div></div>
+          <div class="platform-pill"><div class="p-dot ok"></div><div><div class="platform-pill-name">Amazon</div><div class="platform-pill-status">Connected · Synced 5m ago</div></div></div>
+          <div class="platform-pill"><div class="p-dot warn"></div><div><div class="platform-pill-name">Flipkart</div><div class="platform-pill-status" style="color:var(--warn)">Session expiring soon</div></div></div>
+          <button class="btn btn-sm btn-secondary" onclick="showSellerSection('platforms')">Manage Platforms →</button>
+        </div>
+
+        <!-- Metrics -->
+        <div class="metrics-grid">
+          <div class="metric-card" style="--mc:#F97316;--mi-bg:#FFF7ED">
+            <div class="metric-label">Today's Orders</div>
+            <div class="metric-value">47</div>
+            <div class="metric-change up">↑ 12% vs yesterday</div>
+            <div class="metric-icon">📦</div>
+          </div>
+          <div class="metric-card" style="--mc:#EF4444;--mi-bg:#FEF2F2">
+            <div class="metric-label">Pending Dispatch</div>
+            <div class="metric-value">12</div>
+            <div class="metric-sub">3 urgent (under 4h)</div>
+            <div class="metric-icon">⏱️</div>
+          </div>
+          <div class="metric-card" style="--mc:#F59E0B;--mi-bg:#FFFBEB">
+            <div class="metric-label">Returns Today</div>
+            <div class="metric-value">3</div>
+            <div class="metric-change down">↑ 1 needs evidence</div>
+            <div class="metric-icon">↩️</div>
+          </div>
+          <div class="metric-card" style="--mc:#22C55E;--mi-bg:#F0FDF4">
+            <div class="metric-label">Today's Revenue</div>
+            <div class="metric-value">₹18.4k</div>
+            <div class="metric-change up">↑ 8% vs yesterday</div>
+            <div class="metric-icon">💰</div>
+          </div>
+        </div>
+
+        <!-- Usage Bar -->
+        <div class="usage-card">
+          <div class="usage-header">
+            <div>
+              <div class="usage-title">Order Usage — Unified Pool</div>
+              <div class="usage-meta">All platforms share one balance</div>
+            </div>
+            <div style="text-align:right">
+              <div class="usage-count">1,579</div>
+              <div class="usage-sub">orders remaining</div>
+            </div>
+          </div>
+          <div class="progress-bar"><div class="progress-fill warn" style="width:68%"></div></div>
+          <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text2);margin-top:4px">
+            <span>3,421 / 5,000 used (68%)</span>
+            <span>Growth Plan · expires 31 Jan 2027</span>
+          </div>
+          <div class="usage-breakdown">
+            <div class="breakdown-item">
+              <div class="breakdown-platform" style="color:#9C1070">Meesho</div>
+              <div class="breakdown-count">2,100</div>
+              <div class="breakdown-sub">61% of used orders</div>
+              <div class="breakdown-bar"><div class="breakdown-fill fill-meesho" style="width:61%"></div></div>
+            </div>
+            <div class="breakdown-item">
+              <div class="breakdown-platform" style="color:#B45309">Amazon</div>
+              <div class="breakdown-count">800</div>
+              <div class="breakdown-sub">23% of used orders</div>
+              <div class="breakdown-bar"><div class="breakdown-fill fill-amazon" style="width:23%"></div></div>
+            </div>
+            <div class="breakdown-item">
+              <div class="breakdown-platform" style="color:#1D4ED8">Flipkart</div>
+              <div class="breakdown-count">521</div>
+              <div class="breakdown-sub">15% of used orders</div>
+              <div class="breakdown-bar"><div class="breakdown-fill fill-flipkart" style="width:15%"></div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Two col: Recent Orders + Alerts -->
+        <div class="two-col" style="gap:16px">
+          <div>
+            <div class="section-header">Recent Orders</div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Order ID</th><th>Platform</th><th>Amount</th><th>Status</th><th>Deadline</th></tr></thead>
+                <tbody>
+                  <tr onclick="showSellerSection('orders')" style="cursor:pointer">
+                    <td class="font-mono" style="font-size:12px">#MSH-88421</td>
+                    <td><span class="badge badge-meesho">Meesho</span></td>
+                    <td class="font-bold">₹649</td>
+                    <td><span class="badge badge-warn">Pending</span></td>
+                    <td><span style="color:var(--err);font-weight:600">3h 12m</span></td>
+                  </tr>
+                  <tr onclick="showSellerSection('orders')" style="cursor:pointer">
+                    <td class="font-mono" style="font-size:12px">#AMZ-55190</td>
+                    <td><span class="badge badge-amazon">Amazon</span></td>
+                    <td class="font-bold">₹1,299</td>
+                    <td><span class="badge badge-info">Ready</span></td>
+                    <td><span style="color:var(--text2)">18h 40m</span></td>
+                  </tr>
+                  <tr onclick="showSellerSection('orders')" style="cursor:pointer">
+                    <td class="font-mono" style="font-size:12px">#FLP-22334</td>
+                    <td><span class="badge badge-flipkart">Flipkart</span></td>
+                    <td class="font-bold">₹449</td>
+                    <td><span class="badge badge-ok">Shipped</span></td>
+                    <td><span style="color:var(--text3)">—</span></td>
+                  </tr>
+                  <tr onclick="showSellerSection('orders')" style="cursor:pointer">
+                    <td class="font-mono" style="font-size:12px">#MSH-88419</td>
+                    <td><span class="badge badge-meesho">Meesho</span></td>
+                    <td class="font-bold">₹299</td>
+                    <td><span class="badge badge-warn">Pending</span></td>
+                    <td><span style="color:var(--warn);font-weight:600">6h 05m</span></td>
+                  </tr>
+                  <tr onclick="showSellerSection('orders')" style="cursor:pointer">
+                    <td class="font-mono" style="font-size:12px">#AMZ-55185</td>
+                    <td><span class="badge badge-amazon">Amazon</span></td>
+                    <td class="font-bold">₹2,199</td>
+                    <td><span class="badge badge-ok">Delivered</span></td>
+                    <td><span style="color:var(--text3)">—</span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div>
+            <div class="section-header">Alerts & Actions Needed</div>
+            <div class="alert alert-err">
+              <div class="alert-dot"></div>
+              <div><div class="alert-title">3 orders nearing dispatch deadline</div><div class="alert-sub">Meesho penalises late dispatch — ship within 4 hours</div></div>
+            </div>
+            <div class="alert alert-warn">
+              <div class="alert-dot"></div>
+              <div><div class="alert-title">Flipkart session expiring in 2 days</div><div class="alert-sub">Update credentials to avoid sync failure</div></div>
+            </div>
+            <div class="alert alert-warn">
+              <div class="alert-dot"></div>
+              <div><div class="alert-title">2 returns need evidence upload</div><div class="alert-sub">Claim window closes in 5 days for order #MSH-88120</div></div>
+            </div>
+            <div class="alert alert-info">
+              <div class="alert-dot"></div>
+              <div><div class="alert-title">1,579 orders remaining (32%)</div><div class="alert-sub">Consider topping up your order balance</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── ORDERS ── -->
+      <div id="s-orders" class="seller-section hidden">
+        <div class="page-header">
+          <div><div class="page-title">Orders</div><div class="page-sub">Manage all orders from Meesho, Amazon and Flipkart</div></div>
+          <div class="page-actions">
+            <button class="btn btn-secondary btn-sm">↓ Export CSV</button>
+            <button class="btn btn-primary btn-sm" onclick="showSellerSection('labels')">🖨 Print Labels</button>
+          </div>
+        </div>
+
+        <div class="tabs">
+          <button class="tab-btn active" onclick="switchTab(this,'orders-tab','all-orders')">All Orders <span style="font-size:11px;background:#F1F5F9;padding:1px 6px;border-radius:10px;margin-left:4px">47</span></button>
+          <button class="tab-btn" onclick="switchTab(this,'orders-tab','pending-orders')">Pending <span style="font-size:11px;background:var(--warn-bg);color:var(--warn);padding:1px 6px;border-radius:10px;margin-left:4px">12</span></button>
+          <button class="tab-btn" onclick="switchTab(this,'orders-tab','ready-orders')">Ready to Ship <span style="font-size:11px;background:var(--info-bg);color:var(--info);padding:1px 6px;border-radius:10px;margin-left:4px">8</span></button>
+          <button class="tab-btn" onclick="switchTab(this,'orders-tab','shipped-orders')">Shipped</button>
+          <button class="tab-btn" onclick="switchTab(this,'orders-tab','delivered-orders')">Delivered</button>
+          <button class="tab-btn" onclick="switchTab(this,'orders-tab','cancelled-orders')">Cancelled</button>
+          <button class="tab-btn" onclick="switchTab(this,'orders-tab','returns-orders')">Returns <span style="font-size:11px;background:var(--err-bg);color:var(--err);padding:1px 6px;border-radius:10px;margin-left:4px">3</span></button>
+        </div>
+
+        <div class="filters">
+          <select class="filter-select"><option>All Platforms</option><option>Meesho</option><option>Amazon</option><option>Flipkart</option></select>
+          <select class="filter-select"><option>Last 7 days</option><option>Today</option><option>Yesterday</option><option>Last 30 days</option></select>
+          <select class="filter-select"><option>All Payment Types</option><option>COD</option><option>Prepaid</option></select>
+          <input type="text" class="search-input" placeholder="Search order ID, customer, SKU...">
+          <div style="margin-left:auto;display:flex;gap:8px">
+            <button class="btn btn-secondary btn-sm">Clear Filters</button>
+          </div>
+        </div>
+
+        <div class="bulk-bar" id="bulk-bar">
+          <span class="bulk-count" id="bulk-count">0 orders selected</span>
+          <div class="bulk-divider"></div>
+          <button class="btn btn-sm" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.2)">🖨 Print Labels</button>
+          <button class="btn btn-sm" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.2)">📄 Download Invoices</button>
+          <button class="btn btn-sm" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.2)">✓ Mark as Packed</button>
+          <button class="btn btn-sm" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.2)">↓ Export</button>
+          <button class="btn btn-sm btn-ghost" style="color:rgba(255,255,255,.6);margin-left:auto" onclick="clearBulkSelect()">✕ Clear</button>
+        </div>
+
+        <div id="all-orders" class="orders-tab-content">
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th><input type="checkbox" class="table-check" onchange="toggleAllOrders(this)"></th>
+                  <th>Order ID</th><th>Platform</th><th>Product</th><th>SKU</th><th>Qty</th><th>Amount</th><th>Payment</th><th>City</th><th>Order Date</th><th>Deadline</th><th>Status</th><th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="orders-tbody">
+                <tr>
+                  <td><input type="checkbox" class="table-check order-check" onchange="updateBulkBar()"></td>
+                  <td class="font-mono" style="font-size:12px;color:var(--info)">#MSH-88421</td>
+                  <td><span class="badge badge-meesho">Meesho</span></td>
+                  <td style="max-width:140px;overflow:hidden;text-overflow:ellipsis">Red Kurta XL</td>
+                  <td class="font-mono text-xs">RK-XL-RED</td>
+                  <td>1</td>
+                  <td class="font-bold">₹649</td>
+                  <td><span class="badge badge-warn">COD</span></td>
+                  <td>Jaipur</td>
+                  <td class="text-sm text-muted">10 Apr, 9:12am</td>
+                  <td><span style="color:var(--err);font-weight:700;font-family:var(--mono)">3h 12m</span></td>
+                  <td><span class="badge badge-warn">Pending</span></td>
+                  <td><button class="btn btn-xs btn-secondary" onclick="showOrderDetail()">View</button></td>
+                </tr>
+                <tr>
+                  <td><input type="checkbox" class="table-check order-check" onchange="updateBulkBar()"></td>
+                  <td class="font-mono" style="font-size:12px;color:var(--info)">#AMZ-55190</td>
+                  <td><span class="badge badge-amazon">Amazon</span></td>
+                  <td style="max-width:140px;overflow:hidden;text-overflow:ellipsis">Wireless Earphones</td>
+                  <td class="font-mono text-xs">WE-BLK-01</td>
+                  <td>1</td>
+                  <td class="font-bold">₹1,299</td>
+                  <td><span class="badge badge-ok">Prepaid</span></td>
+                  <td>Mumbai</td>
+                  <td class="text-sm text-muted">10 Apr, 8:45am</td>
+                  <td style="color:var(--text2);font-family:var(--mono)">18h 40m</td>
+                  <td><span class="badge badge-info">Ready to Ship</span></td>
+                  <td><button class="btn btn-xs btn-secondary" onclick="showOrderDetail()">View</button></td>
+                </tr>
+                <tr>
+                  <td><input type="checkbox" class="table-check order-check" onchange="updateBulkBar()"></td>
+                  <td class="font-mono" style="font-size:12px;color:var(--info)">#FLP-22334</td>
+                  <td><span class="badge badge-flipkart">Flipkart</span></td>
+                  <td style="max-width:140px;overflow:hidden;text-overflow:ellipsis">Cotton Bedsheet Set</td>
+                  <td class="font-mono text-xs">CBS-WHT-KG</td>
+                  <td>2</td>
+                  <td class="font-bold">₹899</td>
+                  <td><span class="badge badge-warn">COD</span></td>
+                  <td>Delhi</td>
+                  <td class="text-sm text-muted">9 Apr, 3:20pm</td>
+                  <td style="color:var(--text3)">—</td>
+                  <td><span class="badge badge-ok">Shipped</span></td>
+                  <td><button class="btn btn-xs btn-secondary" onclick="showOrderDetail()">View</button></td>
+                </tr>
+                <tr>
+                  <td><input type="checkbox" class="table-check order-check" onchange="updateBulkBar()"></td>
+                  <td class="font-mono" style="font-size:12px;color:var(--info)">#MSH-88419</td>
+                  <td><span class="badge badge-meesho">Meesho</span></td>
+                  <td style="max-width:140px;overflow:hidden;text-overflow:ellipsis">Kids T-Shirt Pack 3</td>
+                  <td class="font-mono text-xs">KT-PKT3-MIX</td>
+                  <td>1</td>
+                  <td class="font-bold">₹299</td>
+                  <td><span class="badge badge-warn">COD</span></td>
+                  <td>Surat</td>
+                  <td class="text-sm text-muted">10 Apr, 7:55am</td>
+                  <td><span style="color:var(--warn);font-weight:700;font-family:var(--mono)">6h 05m</span></td>
+                  <td><span class="badge badge-warn">Pending</span></td>
+                  <td><button class="btn btn-xs btn-secondary" onclick="showOrderDetail()">View</button></td>
+                </tr>
+                <tr>
+                  <td><input type="checkbox" class="table-check order-check" onchange="updateBulkBar()"></td>
+                  <td class="font-mono" style="font-size:12px;color:var(--info)">#AMZ-55185</td>
+                  <td><span class="badge badge-amazon">Amazon</span></td>
+                  <td style="max-width:140px;overflow:hidden;text-overflow:ellipsis">Phone Case iPhone 15</td>
+                  <td class="font-mono text-xs">PC-IP15-CLR</td>
+                  <td>3</td>
+                  <td class="font-bold">₹2,199</td>
+                  <td><span class="badge badge-ok">Prepaid</span></td>
+                  <td>Bangalore</td>
+                  <td class="text-sm text-muted">8 Apr, 11:10am</td>
+                  <td style="color:var(--text3)">—</td>
+                  <td><span class="badge badge-ok">Delivered</span></td>
+                  <td><button class="btn btn-xs btn-secondary" onclick="showOrderDetail()">View</button></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Order Detail Panel -->
+        <div id="order-detail-panel" class="order-detail hidden">
+          <div class="flex justify-between items-center mb16">
+            <div style="font-size:15px;font-weight:700">Order #MSH-88421</div>
+            <div style="display:flex;gap:8px">
+              <button class="btn btn-sm btn-secondary">🖨 Print Label</button>
+              <button class="btn btn-sm btn-secondary">📄 Invoice</button>
+              <button class="btn btn-sm btn-primary">✓ Mark Packed</button>
+              <button class="btn btn-sm btn-ghost" onclick="hideOrderDetail()">✕</button>
+            </div>
+          </div>
+          <div class="two-col">
+            <div>
+              <div class="section-header">Order Info</div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+                <div><div class="text-xs text-hint">Platform</div><div class="mt4"><span class="badge badge-meesho">Meesho</span></div></div>
+                <div><div class="text-xs text-hint">Payment</div><div class="mt4"><span class="badge badge-warn">COD · ₹649</span></div></div>
+                <div><div class="text-xs text-hint">AWB Number</div><div class="mt4 font-mono text-sm">MSH7890123456</div></div>
+                <div><div class="text-xs text-hint">Dispatch Deadline</div><div class="mt4" style="color:var(--err);font-weight:700">3h 12m remaining</div></div>
+              </div>
+              <div class="divider"></div>
+              <div class="section-header">Customer</div>
+              <div class="text-sm"><strong>Anjali Mehta</strong></div>
+              <div class="text-sm text-muted mt4">12, Shyam Nagar, Jaipur, Rajasthan - 302019</div>
+            </div>
+            <div>
+              <div class="section-header">Items</div>
+              <div style="display:flex;gap:10px;padding:10px;background:#F8FAFC;border-radius:8px;border:1px solid var(--border)">
+                <div style="width:40px;height:40px;background:var(--accent-bg);border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0">👕</div>
+                <div>
+                  <div class="font-600 text-sm">Red Kurta XL</div>
+                  <div class="text-xs text-muted">SKU: RK-XL-RED · Qty: 1</div>
+                  <div class="font-bold mt4">₹649</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="section-header mt16">Order Timeline</div>
+          <div class="order-timeline">
+            <div class="timeline-step"><div class="timeline-dot done">✓</div><div class="timeline-label">Placed</div></div>
+            <div class="timeline-step"><div class="timeline-dot done">✓</div><div class="timeline-label">Accepted</div></div>
+            <div class="timeline-step"><div class="timeline-dot active">•</div><div class="timeline-label">Packed</div></div>
+            <div class="timeline-step"><div class="timeline-dot">4</div><div class="timeline-label">Shipped</div></div>
+            <div class="timeline-step"><div class="timeline-dot">5</div><div class="timeline-label">Delivered</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── LABELS ── -->
+      <div id="s-labels" class="seller-section hidden">
+        <div class="page-header">
+          <div><div class="page-title">Print Labels</div><div class="page-sub">Download and print shipping labels for your orders</div></div>
+          <div class="page-actions">
+            <button class="btn btn-primary btn-sm">🖨 Print Selected (0)</button>
+          </div>
+        </div>
+        <div class="card card-pad mb16">
+          <div style="font-size:13.5px;font-weight:700;margin-bottom:12px">Label Format</div>
+          <div class="format-cards">
+            <div class="format-card selected" onclick="selectFormat(this)">
+              <div class="format-title">A4 Standard</div>
+              <div class="format-sub">2 labels per page · any printer</div>
+            </div>
+            <div class="format-card" onclick="selectFormat(this)">
+              <div class="format-title">4×6 Thermal</div>
+              <div class="format-sub">Zebra / thermal printers</div>
+            </div>
+            <div class="format-card" onclick="selectFormat(this)">
+              <div class="format-title">4-up A4</div>
+              <div class="format-sub">4 labels per A4 · saves paper</div>
+            </div>
+          </div>
+          <div class="filters" style="margin-bottom:0">
+            <select class="filter-select"><option>All Platforms</option><option>Meesho</option><option>Amazon</option><option>Flipkart</option></select>
+            <select class="filter-select"><option>Today</option><option>Last 7 days</option></select>
+            <select class="filter-select"><option>Ready to Ship</option><option>All Pending</option></select>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th><input type="checkbox" class="table-check"></th><th>Order ID</th><th>Platform</th><th>Product</th><th>AWB Number</th><th>Payment</th><th>Status</th><th>Action</th></tr></thead>
+            <tbody>
+              <tr><td><input type="checkbox" class="table-check"></td><td class="font-mono text-xs">#AMZ-55190</td><td><span class="badge badge-amazon">Amazon</span></td><td>Wireless Earphones</td><td class="font-mono text-xs">AMZ408512345</td><td><span class="badge badge-ok">Prepaid</span></td><td><span class="badge badge-info">Ready to Ship</span></td><td><button class="btn btn-xs btn-secondary">⬇ Download</button></td></tr>
+              <tr><td><input type="checkbox" class="table-check"></td><td class="font-mono text-xs">#MSH-88421</td><td><span class="badge badge-meesho">Meesho</span></td><td>Red Kurta XL</td><td class="font-mono text-xs">MSH7890123456</td><td><span class="badge badge-warn">COD</span></td><td><span class="badge badge-warn">Pending</span></td><td><button class="btn btn-xs btn-secondary">⬇ Download</button></td></tr>
+              <tr><td><input type="checkbox" class="table-check"></td><td class="font-mono text-xs">#MSH-88419</td><td><span class="badge badge-meesho">Meesho</span></td><td>Kids T-Shirt Pack 3</td><td class="font-mono text-xs">MSH7890123457</td><td><span class="badge badge-warn">COD</span></td><td><span class="badge badge-warn">Pending</span></td><td><button class="btn btn-xs btn-secondary">⬇ Download</button></td></tr>
+              <tr><td><input type="checkbox" class="table-check"></td><td class="font-mono text-xs">#FLP-22335</td><td><span class="badge badge-flipkart">Flipkart</span></td><td>Steel Tiffin Box</td><td class="font-mono text-xs">FKMP20241234</td><td><span class="badge badge-ok">Prepaid</span></td><td><span class="badge badge-info">Ready to Ship</span></td><td><button class="btn btn-xs btn-secondary">⬇ Download</button></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ── INVOICES ── -->
+      <div id="s-invoices" class="seller-section hidden">
+        <div class="page-header">
+          <div><div class="page-title">Invoices</div><div class="page-sub">Generate GST invoices for all your orders</div></div>
+          <div class="page-actions"><button class="btn btn-primary btn-sm">⬇ Bulk Download</button></div>
+        </div>
+        <div class="tabs">
+          <button class="tab-btn active" onclick="switchTab(this,'invoice-tab','inv-generate')">Generate Invoices</button>
+          <button class="tab-btn" onclick="switchTab(this,'invoice-tab','inv-history')">Invoice History</button>
+        </div>
+        <div id="inv-generate" class="invoice-tab-content">
+          <div class="two-col" style="gap:16px">
+            <div class="card card-pad">
+              <div class="section-header">Select Orders</div>
+              <div class="filters" style="flex-wrap:nowrap">
+                <select class="filter-select" style="flex:1"><option>All Platforms</option></select>
+                <select class="filter-select" style="flex:1"><option>Last 7 days</option></select>
+              </div>
+              <div class="table-wrap" style="max-height:300px;overflow-y:auto">
+                <table>
+                  <thead><tr><th><input type="checkbox" class="table-check"></th><th>Order ID</th><th>Platform</th><th>Amount</th><th>GST</th></tr></thead>
+                  <tbody>
+                    <tr><td><input type="checkbox" class="table-check" checked></td><td class="font-mono text-xs">#AMZ-55190</td><td><span class="badge badge-amazon">Amazon</span></td><td class="font-bold">₹1,299</td><td class="text-xs text-muted">IGST 18%</td></tr>
+                    <tr><td><input type="checkbox" class="table-check" checked></td><td class="font-mono text-xs">#MSH-88421</td><td><span class="badge badge-meesho">Meesho</span></td><td class="font-bold">₹649</td><td class="text-xs text-muted">CGST+SGST</td></tr>
+                    <tr><td><input type="checkbox" class="table-check"></td><td class="font-mono text-xs">#FLP-22334</td><td><span class="badge badge-flipkart">Flipkart</span></td><td class="font-bold">₹899</td><td class="text-xs text-muted">IGST 18%</td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <div class="mt12">
+                <button class="btn btn-primary btn-sm">Generate 2 Invoices</button>
+              </div>
+            </div>
+            <div class="card card-pad">
+              <div class="section-header">Invoice Preview — #AMZ-55190</div>
+              <div style="background:#F8FAFC;border:1px solid var(--border);border-radius:8px;padding:16px;font-size:12px">
+                <div style="display:flex;justify-content:space-between;margin-bottom:10px">
+                  <div><strong style="font-size:14px">RS Traders</strong><br>GSTIN: 08AABCU9603R1ZX<br>Jaipur, Rajasthan</div>
+                  <div style="text-align:right"><strong>TAX INVOICE</strong><br>INV-2024-0891<br>Date: 10 Apr 2024</div>
+                </div>
+                <div style="border-top:1px dashed var(--border);padding-top:10px;margin-top:6px">
+                  <div style="display:flex;justify-content:space-between"><span>Wireless Earphones × 1</span><span>₹1,101</span></div>
+                  <div style="display:flex;justify-content:space-between;color:var(--text2)"><span>IGST 18%</span><span>₹198</span></div>
+                  <div style="display:flex;justify-content:space-between;font-weight:700;border-top:1px solid var(--border);margin-top:6px;padding-top:6px"><span>Total</span><span>₹1,299</span></div>
+                </div>
+              </div>
+              <div class="mt12 flex gap8">
+                <button class="btn btn-primary btn-sm">⬇ Download PDF</button>
+                <button class="btn btn-secondary btn-sm">🖨 Print</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div id="inv-history" class="invoice-tab-content hidden">
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Invoice No.</th><th>Order ID</th><th>Platform</th><th>Date</th><th>Amount</th><th>GST</th><th>Action</th></tr></thead>
+              <tbody>
+                <tr><td class="font-mono text-xs">INV-2024-0891</td><td class="font-mono text-xs">#AMZ-55190</td><td><span class="badge badge-amazon">Amazon</span></td><td class="text-sm text-muted">10 Apr 2024</td><td class="font-bold">₹1,299</td><td class="text-sm text-muted">IGST ₹198</td><td><button class="btn btn-xs btn-secondary">⬇ PDF</button></td></tr>
+                <tr><td class="font-mono text-xs">INV-2024-0890</td><td class="font-mono text-xs">#MSH-88419</td><td><span class="badge badge-meesho">Meesho</span></td><td class="text-sm text-muted">10 Apr 2024</td><td class="font-bold">₹299</td><td class="text-sm text-muted">CGST+SGST ₹45</td><td><button class="btn btn-xs btn-secondary">⬇ PDF</button></td></tr>
+                <tr><td class="font-mono text-xs">INV-2024-0889</td><td class="font-mono text-xs">#FLP-22334</td><td><span class="badge badge-flipkart">Flipkart</span></td><td class="text-sm text-muted">9 Apr 2024</td><td class="font-bold">₹899</td><td class="text-sm text-muted">IGST ₹137</td><td><button class="btn btn-xs btn-secondary">⬇ PDF</button></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── CLAIMS ── -->
+      <div id="s-claims" class="seller-section hidden">
+        <div class="page-header">
+          <div><div class="page-title">Claims & Returns</div><div class="page-sub">Manage return disputes and raise claims on marketplaces</div></div>
+        </div>
+        <div class="tabs">
+          <button class="tab-btn active" onclick="switchTab(this,'claims-tab','claims-active')">Active Returns <span style="font-size:11px;background:var(--err-bg);color:var(--err);padding:1px 6px;border-radius:10px;margin-left:4px">3</span></button>
+          <button class="tab-btn" onclick="switchTab(this,'claims-tab','claims-raise')">Raise a Claim</button>
+          <button class="tab-btn" onclick="switchTab(this,'claims-tab','claims-history')">Claim History</button>
+        </div>
+
+        <div id="claims-active" class="claims-tab-content">
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Order ID</th><th>Platform</th><th>Product</th><th>Return Reason</th><th>Return Date</th><th>Evidence</th><th>Claim Status</th><th>Deadline</th><th>Action</th></tr></thead>
+              <tbody>
+                <tr>
+                  <td class="font-mono text-xs" style="color:var(--info)">#MSH-88120</td>
+                  <td><span class="badge badge-meesho">Meesho</span></td>
+                  <td>Blue Saree Kota</td>
+                  <td style="color:var(--err);font-weight:600">Wrong item received</td>
+                  <td class="text-sm text-muted">6 Apr 2024</td>
+                  <td><span class="badge badge-ok">Captured ✓</span></td>
+                  <td><span class="badge badge-warn">Not raised</span></td>
+                  <td><span style="color:var(--err);font-weight:600">5 days left</span></td>
+                  <td><button class="btn btn-xs btn-primary" onclick="switchTab(document.querySelectorAll('#s-claims .tab-btn')[1],'claims-tab','claims-raise')">Raise Claim</button></td>
+                </tr>
+                <tr>
+                  <td class="font-mono text-xs" style="color:var(--info)">#AMZ-54900</td>
+                  <td><span class="badge badge-amazon">Amazon</span></td>
+                  <td>Wireless Earphones</td>
+                  <td style="color:var(--err);font-weight:600">Empty box returned</td>
+                  <td class="text-sm text-muted">7 Apr 2024</td>
+                  <td><span class="badge badge-err">No evidence</span></td>
+                  <td><span class="badge badge-warn">Not raised</span></td>
+                  <td><span style="color:var(--warn);font-weight:600">23 days left</span></td>
+                  <td><button class="btn btn-xs btn-secondary">Add Evidence</button></td>
+                </tr>
+                <tr>
+                  <td class="font-mono text-xs" style="color:var(--info)">#MSH-88010</td>
+                  <td><span class="badge badge-meesho">Meesho</span></td>
+                  <td>Men's Formal Shirt</td>
+                  <td style="color:var(--warn);font-weight:600">Damaged in return</td>
+                  <td class="text-sm text-muted">5 Apr 2024</td>
+                  <td><span class="badge badge-ok">Captured ✓</span></td>
+                  <td><span class="badge badge-info">Under review</span></td>
+                  <td><span class="text-muted text-sm">Raised 5 Apr</span></td>
+                  <td><button class="btn btn-xs btn-secondary">Track Status</button></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div id="claims-raise" class="claims-tab-content hidden">
+          <div class="card card-pad" style="max-width:700px">
+            <div class="wizard-steps mb20">
+              <div class="wizard-step done" id="ws1"><div class="wizard-num">✓</div><div class="wizard-label">Select order</div></div>
+              <div class="wizard-step active" id="ws2"><div class="wizard-num">2</div><div class="wizard-label">Dispute type</div></div>
+              <div class="wizard-step" id="ws3"><div class="wizard-num">3</div><div class="wizard-label">Attach evidence</div></div>
+              <div class="wizard-step" id="ws4"><div class="wizard-num">4</div><div class="wizard-label">Review & submit</div></div>
+            </div>
+
+            <div id="wizard-body">
+              <div style="font-size:14px;font-weight:700;margin-bottom:6px">Select dispute type for order #MSH-88120</div>
+              <div style="font-size:13px;color:var(--text2);margin-bottom:16px">Blue Saree Kota · Returned 6 Apr 2024 · Meesho</div>
+              <div class="dispute-grid">
+                <div class="dispute-card selected" onclick="selectDispute(this)"><div class="dispute-icon">📦</div><div class="dispute-label">Wrong item returned</div></div>
+                <div class="dispute-card" onclick="selectDispute(this)"><div class="dispute-icon">📭</div><div class="dispute-label">Empty box returned</div></div>
+                <div class="dispute-card" onclick="selectDispute(this)"><div class="dispute-icon">💔</div><div class="dispute-label">Damaged item</div></div>
+                <div class="dispute-card" onclick="selectDispute(this)"><div class="dispute-icon">❓</div><div class="dispute-label">Missing items</div></div>
+                <div class="dispute-card" onclick="selectDispute(this)"><div class="dispute-icon">👗</div><div class="dispute-label">Used item returned</div></div>
+                <div class="dispute-card" onclick="selectDispute(this)"><div class="dispute-icon">🚚</div><div class="dispute-label">Return not received</div></div>
+              </div>
+              <div style="display:flex;gap:8px">
+                <button class="btn btn-secondary btn-sm">← Back</button>
+                <button class="btn btn-primary btn-sm" onclick="advanceWizard()">Next: Attach Evidence →</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="claims-history" class="claims-tab-content hidden">
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Order ID</th><th>Platform</th><th>Dispute Type</th><th>Raised On</th><th>Status</th><th>Resolution</th><th>Amount Recovered</th></tr></thead>
+              <tbody>
+                <tr><td class="font-mono text-xs">#MSH-88010</td><td><span class="badge badge-meesho">Meesho</span></td><td>Damaged in return</td><td class="text-sm text-muted">5 Apr 2024</td><td><span class="badge badge-info">Under review</span></td><td class="text-muted text-sm">—</td><td class="text-muted">—</td></tr>
+                <tr><td class="font-mono text-xs">#MSH-87500</td><td><span class="badge badge-meesho">Meesho</span></td><td>Wrong item returned</td><td class="text-sm text-muted">22 Mar 2024</td><td><span class="badge badge-ok">Resolved</span></td><td><span style="color:var(--ok);font-weight:600">In your favour</span></td><td class="font-bold" style="color:var(--ok)">₹899 recovered</td></tr>
+                <tr><td class="font-mono text-xs">#AMZ-54200</td><td><span class="badge badge-amazon">Amazon</span></td><td>Empty box returned</td><td class="text-sm text-muted">15 Mar 2024</td><td><span class="badge badge-ok">Resolved</span></td><td><span style="color:var(--err);font-weight:600">Against seller</span></td><td class="text-muted">₹0</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── PLATFORMS ── -->
+      <div id="s-platforms" class="seller-section hidden">
+        <div class="page-header"><div><div class="page-title">Platform Settings</div><div class="page-sub">Manage your marketplace connections and sync preferences</div></div></div>
+        <div class="tabs">
+          <button class="tab-btn active" onclick="switchTab(this,'platform-tab','plat-meesho')">🛍️ Meesho</button>
+          <button class="tab-btn" onclick="switchTab(this,'platform-tab','plat-amazon')">📦 Amazon</button>
+          <button class="tab-btn" onclick="switchTab(this,'platform-tab','plat-flipkart')">🔵 Flipkart</button>
+        </div>
+
+        <div id="plat-meesho" class="platform-tab-content">
+          <div class="two-col" style="gap:14px">
+            <div class="card card-pad">
+              <div class="section-header">Connection</div>
+              <div class="flex items-center gap8 mb16">
+                <div class="health-dot health-ok"></div>
+                <span style="font-size:13.5px;font-weight:600">Connected · Session active</span>
+              </div>
+              <div class="settings-row">
+                <div><div class="settings-label">Meesho email</div></div>
+                <input class="settings-input" value="rahul.sharma@gmail.com" style="width:200px">
+              </div>
+              <div class="settings-row">
+                <div><div class="settings-label">Password</div></div>
+                <input class="settings-input" type="password" value="••••••••" style="width:200px">
+              </div>
+              <div class="settings-row">
+                <div><div class="settings-label">Last synced</div><div class="settings-sub">Orders and status</div></div>
+                <span class="text-sm text-muted">2 minutes ago</span>
+              </div>
+              <div class="mt12 flex gap8">
+                <button class="btn btn-secondary btn-sm">Test Connection</button>
+                <button class="btn btn-primary btn-sm">Save Credentials</button>
+              </div>
+            </div>
+            <div class="card card-pad">
+              <div class="section-header">Sync Settings</div>
+              <div class="settings-row">
+                <div><div class="settings-label">Order sync frequency</div></div>
+                <select class="filter-select"><option>Every 5 minutes</option><option>Every 10 minutes</option><option>Every 15 minutes</option></select>
+              </div>
+              <div class="settings-row">
+                <div><div class="settings-label">Auto-accept orders</div><div class="settings-sub">Accept new Meesho orders automatically</div></div>
+                <label class="toggle"><input type="checkbox" checked><span class="toggle-track"></span></label>
+              </div>
+              <div class="settings-row">
+                <div><div class="settings-label">Auto-generate labels</div><div class="settings-sub">On order acceptance</div></div>
+                <label class="toggle"><input type="checkbox"><span class="toggle-track"></span></label>
+              </div>
+              <div class="settings-row">
+                <div><div class="settings-label">Dispatch deadline alerts</div><div class="settings-sub">Alert when less than X hours remain</div></div>
+                <select class="filter-select"><option>6 hours</option><option>4 hours</option><option>3 hours</option></select>
+              </div>
+              <div class="settings-row">
+                <div><div class="settings-label">Sync return events</div></div>
+                <label class="toggle"><input type="checkbox" checked><span class="toggle-track"></span></label>
+              </div>
+              <div class="settings-row">
+                <div><div class="settings-label">Label format</div></div>
+                <select class="filter-select"><option>A4 (2 per page)</option><option>4×6 Thermal</option><option>4-up A4</option></select>
+              </div>
+              <div class="mt12">
+                <button class="btn btn-primary btn-sm">Save Settings</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="plat-amazon" class="platform-tab-content hidden">
+          <div class="two-col" style="gap:14px">
+            <div class="card card-pad">
+              <div class="section-header">API Connection</div>
+              <div class="flex items-center gap8 mb16">
+                <div class="health-dot health-ok"></div>
+                <span style="font-size:13.5px;font-weight:600">Connected · SP-API active</span>
+              </div>
+              <div class="settings-row"><div><div class="settings-label">Seller ID</div></div><input class="settings-input" value="A1BCDEF2345678" style="width:200px"></div>
+              <div class="settings-row"><div><div class="settings-label">SP-API Client ID</div></div><input class="settings-input" value="amzn1.application-oa2•••••" style="width:200px"></div>
+              <div class="settings-row"><div><div class="settings-label">Marketplace</div></div><select class="filter-select"><option>Amazon.in (India)</option></select></div>
+              <div class="settings-row"><div><div class="settings-label">Fulfillment type</div></div><select class="filter-select"><option>FBM (Self Ship)</option><option>FBA</option></select></div>
+              <div class="mt12"><button class="btn btn-secondary btn-sm">Test API Keys</button></div>
+            </div>
+            <div class="card card-pad">
+              <div class="section-header">Order & Shipping Settings</div>
+              <div class="settings-row"><div><div class="settings-label">Auto-confirm shipments</div><div class="settings-sub">Confirm within 24h of ship date</div></div><label class="toggle"><input type="checkbox" checked><span class="toggle-track"></span></label></div>
+              <div class="settings-row"><div><div class="settings-label">Default carrier</div></div><select class="filter-select"><option>Delhivery</option><option>BlueDart</option><option>Xpressbees</option><option>DTDC</option></select></div>
+              <div class="settings-row"><div><div class="settings-label">SAFE-T claim alerts</div><div class="settings-sub">Notify on new A-to-Z or SAFE-T claims</div></div><label class="toggle"><input type="checkbox" checked><span class="toggle-track"></span></label></div>
+              <div class="mt12"><button class="btn btn-primary btn-sm">Save Settings</button></div>
+            </div>
+          </div>
+        </div>
+
+        <div id="plat-flipkart" class="platform-tab-content hidden">
+          <div class="two-col" style="gap:14px">
+            <div class="card card-pad">
+              <div class="section-header">API Connection</div>
+              <div class="flex items-center gap8 mb16">
+                <div class="health-dot health-warn"></div>
+                <span style="font-size:13.5px;font-weight:600;color:var(--warn)">Session expiring in 2 days</span>
+              </div>
+              <div class="alert alert-warn mb16"><div class="alert-dot"></div><div><div class="alert-title">Flipkart OAuth token expires 12 Apr</div><div class="alert-sub">Reconnect now to avoid sync interruption</div></div></div>
+              <button class="btn btn-primary btn-sm">Reconnect Flipkart Account</button>
+            </div>
+            <div class="card card-pad">
+              <div class="section-header">Order Settings</div>
+              <div class="settings-row"><div><div class="settings-label">RTD marking</div><div class="settings-sub">Mark as Ready to Dispatch</div></div><select class="filter-select"><option>Manual</option><option>Auto on label print</option></select></div>
+              <div class="settings-row"><div><div class="settings-label">Auto-crop labels</div><div class="settings-sub">Crop A4 labels to 4×6 thermal size</div></div><label class="toggle"><input type="checkbox" checked><span class="toggle-track"></span></label></div>
+              <div class="settings-row"><div><div class="settings-label">RTD breach alert</div><div class="settings-sub">Alert when breach rate approaches 1%</div></div><label class="toggle"><input type="checkbox" checked><span class="toggle-track"></span></label></div>
+              <div class="mt12"><button class="btn btn-primary btn-sm">Save Settings</button></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── BILLING ── -->
+      <div id="s-billing" class="seller-section hidden">
+        <div class="page-header"><div><div class="page-title">Billing & Plans</div><div class="page-sub">Manage your order package and payments</div></div></div>
+
+        <!-- Current Plan -->
+        <div class="card card-pad mb16" style="border-color:var(--accent);background:var(--accent-bg)">
+          <div class="flex justify-between items-center mb12">
+            <div>
+              <div style="font-size:16px;font-weight:800">Growth Plan</div>
+              <div class="text-sm text-muted">5,000 orders · All platforms included</div>
+            </div>
+            <div style="text-align:right">
+              <div class="font-mono" style="font-size:24px;font-weight:800;color:var(--accent)">₹4,000</div>
+              <div class="text-xs text-muted">Expires: 31 Jan 2027</div>
+            </div>
+          </div>
+          <div class="progress-bar" style="height:10px"><div class="progress-fill warn" style="width:68%"></div></div>
+          <div class="flex justify-between mt8 mb16">
+            <span class="text-sm text-muted">3,421 orders used</span>
+            <span style="font-size:13.5px;font-weight:700;color:var(--accent-text)">1,579 remaining</span>
+          </div>
+          <div class="usage-breakdown">
+            <div class="breakdown-item"><div class="breakdown-platform" style="color:#9C1070">Meesho</div><div class="breakdown-count">2,100</div><div class="breakdown-sub">61% of usage</div><div class="breakdown-bar"><div class="breakdown-fill fill-meesho" style="width:61%"></div></div></div>
+            <div class="breakdown-item"><div class="breakdown-platform" style="color:#B45309">Amazon</div><div class="breakdown-count">800</div><div class="breakdown-sub">23% of usage</div><div class="breakdown-bar"><div class="breakdown-fill fill-amazon" style="width:23%"></div></div></div>
+            <div class="breakdown-item"><div class="breakdown-platform" style="color:#1D4ED8">Flipkart</div><div class="breakdown-count">521</div><div class="breakdown-sub">15% of usage</div><div class="breakdown-bar"><div class="breakdown-fill fill-flipkart" style="width:15%"></div></div></div>
+          </div>
+        </div>
+
+        <!-- Plans -->
+        <div class="section-header">Available Plans</div>
+        <div class="plan-cards">
+          <div class="plan-card">
+            <div class="plan-name">Starter</div>
+            <div class="plan-price">₹1,000 <span>/ pack</span></div>
+            <div class="plan-orders">1,000 orders included</div>
+            <div class="plan-rate">₹1.00 per order · All platforms</div>
+            <ul class="plan-features">
+              <li>Meesho, Amazon, Flipkart</li>
+              <li>Label printing</li>
+              <li>GST invoice generation</li>
+              <li>Basic claims support</li>
+            </ul>
+            <button class="btn btn-secondary btn-full btn-sm">Buy Starter</button>
+          </div>
+          <div class="plan-card current">
+            <div class="plan-name">Growth</div>
+            <div class="plan-price">₹4,000 <span>/ pack</span></div>
+            <div class="plan-orders">5,000 orders included</div>
+            <div class="plan-rate">₹0.80 per order · All platforms</div>
+            <ul class="plan-features">
+              <li>Everything in Starter</li>
+              <li>Evidence capture (photos + video)</li>
+              <li>Claim builder + auto-fill</li>
+              <li>Return analytics</li>
+              <li>Sub-user access (3 users)</li>
+            </ul>
+            <button class="btn btn-primary btn-full btn-sm" disabled style="opacity:.5;cursor:default">Current Plan</button>
+          </div>
+          <div class="plan-card">
+            <div class="plan-name">Pro</div>
+            <div class="plan-price">₹7,500 <span>/ pack</span></div>
+            <div class="plan-orders">10,000 orders included</div>
+            <div class="plan-rate">₹0.75 per order · All platforms</div>
+            <ul class="plan-features">
+              <li>Everything in Growth</li>
+              <li>Priority support</li>
+              <li>Unlimited sub-users</li>
+              <li>Advanced analytics</li>
+              <li>WhatsApp notifications</li>
+            </ul>
+            <button class="btn btn-secondary btn-full btn-sm">Upgrade to Pro</button>
+          </div>
+        </div>
+
+        <!-- Top-up -->
+        <div class="section-header">Quick Top-up (add to current plan)</div>
+        <div class="flex gap12 mb20 flex-wrap">
+          <div class="card card-pad" style="flex:1;min-width:120px;text-align:center;cursor:pointer" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
+            <div class="font-bold" style="font-size:15px">500</div>
+            <div class="text-xs text-muted">orders</div>
+            <div class="font-bold mt8" style="color:var(--accent)">₹600</div>
+          </div>
+          <div class="card card-pad" style="flex:1;min-width:120px;text-align:center;cursor:pointer;border-color:var(--accent);background:var(--accent-bg)" onmouseover="this.style.borderColor='var(--accent-dark)'" onmouseout="this.style.borderColor='var(--accent)'">
+            <div class="font-bold" style="font-size:15px">1,000</div>
+            <div class="text-xs text-muted">orders</div>
+            <div class="font-bold mt8" style="color:var(--accent)">₹1,100</div>
+            <div style="font-size:10px;background:var(--accent);color:#fff;padding:2px 6px;border-radius:10px;margin-top:4px;display:inline-block">Popular</div>
+          </div>
+          <div class="card card-pad" style="flex:1;min-width:120px;text-align:center;cursor:pointer" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
+            <div class="font-bold" style="font-size:15px">2,000</div>
+            <div class="text-xs text-muted">orders</div>
+            <div class="font-bold mt8" style="color:var(--accent)">₹2,000</div>
+          </div>
+        </div>
+
+        <!-- Payment History -->
+        <div class="section-header">Payment History</div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Date</th><th>Description</th><th>Orders</th><th>Amount</th><th>Payment ID</th><th>Status</th><th>Receipt</th></tr></thead>
+            <tbody>
+              <tr><td class="text-sm">1 Jan 2027</td><td>Growth Plan — 5,000 orders</td><td>5,000</td><td class="font-bold">₹4,000</td><td class="font-mono text-xs">RZP-9182736</td><td><span class="badge badge-ok">Paid</span></td><td><button class="btn btn-xs btn-secondary">⬇</button></td></tr>
+              <tr><td class="text-sm">5 Dec 2026</td><td>Top-up — 1,000 orders</td><td>1,000</td><td class="font-bold">₹1,100</td><td class="font-mono text-xs">RZP-8172635</td><td><span class="badge badge-ok">Paid</span></td><td><button class="btn btn-xs btn-secondary">⬇</button></td></tr>
+              <tr><td class="text-sm">1 Dec 2026</td><td>Growth Plan — 5,000 orders</td><td>5,000</td><td class="font-bold">₹4,000</td><td class="font-mono text-xs">RZP-7162534</td><td><span class="badge badge-ok">Paid</span></td><td><button class="btn btn-xs btn-secondary">⬇</button></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ── SETTINGS ── -->
+      <div id="s-settings" class="seller-section hidden">
+        <div class="page-header"><div><div class="page-title">Settings</div><div class="page-sub">Manage your account and preferences</div></div></div>
+        <div class="tabs">
+          <button class="tab-btn active" onclick="switchTab(this,'settings-tab','set-profile')">Profile</button>
+          <button class="tab-btn" onclick="switchTab(this,'settings-tab','set-business')">Business</button>
+          <button class="tab-btn" onclick="switchTab(this,'settings-tab','set-gst')">GST & Tax</button>
+          <button class="tab-btn" onclick="switchTab(this,'settings-tab','set-notif')">Notifications</button>
+          <button class="tab-btn" onclick="switchTab(this,'settings-tab','set-team')">Team</button>
+          <button class="tab-btn" onclick="switchTab(this,'settings-tab','set-security')">Security</button>
+        </div>
+
+        <div id="set-profile" class="settings-tab-content">
+          <div class="card card-pad" style="max-width:600px">
+            <div class="flex items-center gap12 mb20">
+              <div style="width:60px;height:60px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;color:#fff">RS</div>
+              <div><div style="font-size:16px;font-weight:700">Rahul Sharma</div><div class="text-sm text-muted">Growth Plan · Member since Jan 2024</div></div>
+              <button class="btn btn-secondary btn-sm" style="margin-left:auto">Change Photo</button>
+            </div>
+            <div class="settings-row"><div><div class="settings-label">Full name</div></div><input class="settings-input" value="Rahul Sharma"></div>
+            <div class="settings-row"><div><div class="settings-label">Email</div></div><input class="settings-input" type="email" value="rahul.sharma@gmail.com"></div>
+            <div class="settings-row"><div><div class="settings-label">Phone</div></div><input class="settings-input" value="+91 98765 43210"></div>
+            <div class="mt16"><button class="btn btn-primary btn-sm">Save Changes</button></div>
+          </div>
+        </div>
+
+        <div id="set-business" class="settings-tab-content hidden">
+          <div class="card card-pad" style="max-width:600px">
+            <div class="settings-row"><div><div class="settings-label">Business / Shop name</div></div><input class="settings-input" value="RS Traders"></div>
+            <div class="settings-row"><div><div class="settings-label">Legal entity type</div></div><select class="filter-select" style="width:260px"><option>Proprietorship</option><option>Partnership</option><option>Private Limited</option><option>Individual</option></select></div>
+            <div class="settings-row"><div><div class="settings-label">Business address</div></div><input class="settings-input" value="12 Industrial Area, Jaipur"></div>
+            <div class="settings-row"><div><div class="settings-label">State</div></div><select class="filter-select" style="width:260px"><option>Rajasthan</option><option>Maharashtra</option><option>Delhi</option></select></div>
+            <div class="settings-row"><div><div class="settings-label">Pincode</div></div><input class="settings-input" value="302001" style="width:120px"></div>
+            <div class="mt16"><button class="btn btn-primary btn-sm">Save Changes</button></div>
+          </div>
+        </div>
+
+        <div id="set-gst" class="settings-tab-content hidden">
+          <div class="card card-pad" style="max-width:600px">
+            <div class="settings-row"><div><div class="settings-label">GSTIN</div></div><input class="settings-input" value="08AABCU9603R1ZX"></div>
+            <div class="settings-row"><div><div class="settings-label">PAN Number</div></div><input class="settings-input" value="AABCU9603R"></div>
+            <div class="settings-row"><div><div class="settings-label">Invoice number prefix</div><div class="settings-sub">e.g. INV-2024-</div></div><input class="settings-input" value="INV-2024-" style="width:160px"></div>
+            <div class="settings-row"><div><div class="settings-label">Auto-generate invoices</div><div class="settings-sub">Trigger on order placed or shipped</div></div><select class="filter-select" style="width:200px"><option>On order placed</option><option>On order shipped</option><option>Manual only</option></select></div>
+            <div class="settings-row"><div><div class="settings-label">Include seller logo</div><div class="settings-sub">On generated invoices</div></div><label class="toggle"><input type="checkbox" checked><span class="toggle-track"></span></label></div>
+            <div class="mt16"><button class="btn btn-primary btn-sm">Save Settings</button></div>
+          </div>
+        </div>
+
+        <div id="set-notif" class="settings-tab-content hidden">
+          <div class="card card-pad" style="max-width:600px">
+            <div class="section-header">Notification Channels</div>
+            <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:10px;font-size:12.5px;font-weight:700;color:var(--text2);padding:8px 0;border-bottom:1px solid var(--border);margin-bottom:8px">
+              <div>Event</div><div style="text-align:center">In-app</div><div style="text-align:center">Email</div><div style="text-align:center">SMS</div>
+            </div>
+            <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid #F1F5F9">
+              <div><div class="settings-label">New order received</div></div>
+              <div style="text-align:center"><label class="toggle"><input type="checkbox" checked><span class="toggle-track"></span></label></div>
+              <div style="text-align:center"><label class="toggle"><input type="checkbox" checked><span class="toggle-track"></span></label></div>
+              <div style="text-align:center"><label class="toggle"><input type="checkbox"><span class="toggle-track"></span></label></div>
+            </div>
+            <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid #F1F5F9">
+              <div><div class="settings-label">Dispatch deadline approaching</div></div>
+              <div style="text-align:center"><label class="toggle"><input type="checkbox" checked><span class="toggle-track"></span></label></div>
+              <div style="text-align:center"><label class="toggle"><input type="checkbox" checked><span class="toggle-track"></span></label></div>
+              <div style="text-align:center"><label class="toggle"><input type="checkbox" checked><span class="toggle-track"></span></label></div>
+            </div>
+            <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid #F1F5F9">
+              <div><div class="settings-label">Return received</div></div>
+              <div style="text-align:center"><label class="toggle"><input type="checkbox" checked><span class="toggle-track"></span></label></div>
+              <div style="text-align:center"><label class="toggle"><input type="checkbox" checked><span class="toggle-track"></span></label></div>
+              <div style="text-align:center"><label class="toggle"><input type="checkbox"><span class="toggle-track"></span></label></div>
+            </div>
+            <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid #F1F5F9">
+              <div><div class="settings-label">Order balance low (&lt;500)</div></div>
+              <div style="text-align:center"><label class="toggle"><input type="checkbox" checked><span class="toggle-track"></span></label></div>
+              <div style="text-align:center"><label class="toggle"><input type="checkbox" checked><span class="toggle-track"></span></label></div>
+              <div style="text-align:center"><label class="toggle"><input type="checkbox" checked><span class="toggle-track"></span></label></div>
+            </div>
+            <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:10px;align-items:center;padding:10px 0">
+              <div><div class="settings-label">Platform session expired</div></div>
+              <div style="text-align:center"><label class="toggle"><input type="checkbox" checked><span class="toggle-track"></span></label></div>
+              <div style="text-align:center"><label class="toggle"><input type="checkbox" checked><span class="toggle-track"></span></label></div>
+              <div style="text-align:center"><label class="toggle"><input type="checkbox" checked><span class="toggle-track"></span></label></div>
+            </div>
+            <div class="mt16"><button class="btn btn-primary btn-sm">Save Preferences</button></div>
+          </div>
+        </div>
+
+        <div id="set-team" class="settings-tab-content hidden">
+          <div class="card card-pad" style="max-width:650px">
+            <div class="flex justify-between items-center mb16">
+              <div class="section-header" style="margin:0;border:none">Team Members</div>
+              <button class="btn btn-primary btn-sm">+ Invite Member</button>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Status</th><th>Action</th></tr></thead>
+                <tbody>
+                  <tr><td class="font-600">Rahul Sharma</td><td class="text-sm text-muted">rahul@gmail.com</td><td><span class="badge badge-accent">Admin</span></td><td><span class="badge badge-ok">Active (You)</span></td><td>—</td></tr>
+                  <tr><td class="font-600">Priya S.</td><td class="text-sm text-muted">priya@rs-traders.in</td><td><span class="badge badge-info">Order Manager</span></td><td><span class="badge badge-ok">Active</span></td><td><button class="btn btn-xs btn-danger">Remove</button></td></tr>
+                  <tr><td class="font-600">Rajan K.</td><td class="text-sm text-muted">rajan@rs-traders.in</td><td><span class="badge badge-gray">View Only</span></td><td><span class="badge badge-warn">Invite pending</span></td><td><button class="btn btn-xs btn-danger">Revoke</button></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div id="set-security" class="settings-tab-content hidden">
+          <div class="card card-pad" style="max-width:600px">
+            <div class="section-header">Password</div>
+            <div class="settings-row"><div><div class="settings-label">Current password</div></div><input type="password" class="settings-input" value="••••••••"></div>
+            <div class="settings-row"><div><div class="settings-label">New password</div></div><input type="password" class="settings-input" placeholder="Min 8 characters"></div>
+            <button class="btn btn-primary btn-sm mt12">Change Password</button>
+            <div class="divider"></div>
+            <div class="section-header">Active Sessions</div>
+            <div style="background:#F8FAFC;border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:8px">
+              <div class="flex justify-between items-center">
+                <div><div class="font-600 text-sm">Chrome on Windows · Jaipur, IN</div><div class="text-xs text-muted">Current session · Last active now</div></div>
+                <span class="badge badge-ok">Current</span>
+              </div>
+            </div>
+            <div style="background:#F8FAFC;border:1px solid var(--border);border-radius:8px;padding:14px">
+              <div class="flex justify-between items-center">
+                <div><div class="font-600 text-sm">Chrome on Android · Jaipur, IN</div><div class="text-xs text-muted">2 hours ago</div></div>
+                <button class="btn btn-xs btn-danger">Logout</button>
+              </div>
+            </div>
+            <div class="mt12"><button class="btn btn-danger btn-sm">Logout All Other Devices</button></div>
+          </div>
+        </div>
+
+      </div>
+
+    </div><!-- /page-content -->
+  </div><!-- /main -->
+</div><!-- /seller-app -->
+
+<!-- ══════════════════════════════════ ADMIN APP ══════════════════════════════════ -->
+<div id="admin-app" class="app hidden">
+  <nav class="sidebar admin-sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <div class="sidebar-logo-icon" style="background:#6366F1">S</div>
+        <div class="sidebar-logo-text">Seller<span style="color:#818CF8">OS</span> <span style="font-size:10px;background:rgba(99,102,241,.3);color:#A5B4FC;padding:2px 7px;border-radius:6px;margin-left:4px">Admin</span></div>
+      </div>
+    </div>
+    <div class="sidebar-nav">
+      <div class="nav-item active" onclick="showAdminSection('overview')">
+        <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1" stroke-width="2"/><rect x="14" y="3" width="7" height="7" rx="1" stroke-width="2"/><rect x="3" y="14" width="7" height="7" rx="1" stroke-width="2"/><rect x="14" y="14" width="7" height="7" rx="1" stroke-width="2"/></svg>
+        Overview
+      </div>
+      <div class="nav-item" onclick="showAdminSection('clients')">
+        <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4" stroke-width="2"/><path stroke-width="2" d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+        Clients
+        <span class="nav-badge" style="background:#6366F1">3</span>
+      </div>
+      <div class="nav-item" onclick="showAdminSection('plans')">
+        <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+        Plans & Pricing
+      </div>
+      <div class="nav-item" onclick="showAdminSection('health')">
+        <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        Platform Health
+        <span class="nav-badge">2</span>
+      </div>
+      <div class="nav-item" onclick="showAdminSection('revenue')">
+        <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        Revenue
+      </div>
+      <div class="nav-section-title">System</div>
+      <div class="nav-item" onclick="showAdminSection('admin-settings')">
+        <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><circle cx="12" cy="12" r="3" stroke-width="2"/></svg>
+        Settings & CMS
+      </div>
+    </div>
+    <div class="sidebar-footer">
+      <div class="sidebar-user" style="flex:1">
+        <div class="sidebar-avatar" style="background:#6366F1">SA</div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name">Super Admin</div>
+          <div class="sidebar-user-role">Full system access</div>
+        </div>
+      </div>
+      <div class="sidebar-logout" onclick="logout()">↩ Logout</div>
+    </div>
+  </nav>
+
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-title" id="admin-page-title">Admin Overview</div>
+      <div class="topbar-search">
+        <svg width="14" height="14" fill="none" stroke="#94A3B8" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8" stroke-width="2"/><path d="m21 21-4.35-4.35" stroke-width="2"/></svg>
+        <input type="text" placeholder="Search clients, orders...">
+      </div>
+      <div class="order-pill" style="background:rgba(99,102,241,.1);border-color:rgba(99,102,241,.3)">
+        <div class="p-dot ok" style="background:#6366F1"></div>
+        <span class="order-pill-text" style="color:#4338CA">3 active clients</span>
+      </div>
+      <div class="topbar-icon-btn"><div class="notif-dot"></div>
+        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" stroke-width="1.5"/></svg>
+      </div>
+    </div>
+
+    <div class="page-content">
+
+      <!-- ── ADMIN OVERVIEW ── -->
+      <div id="a-overview" class="admin-section">
+        <div class="page-header">
+          <div><div class="page-title">System Overview</div><div class="page-sub">April 10, 2026 · All systems operational</div></div>
+          <div class="page-actions">
+            <button class="btn btn-secondary btn-sm">↓ Export Report</button>
+            <button class="btn btn-primary btn-sm" style="background:#6366F1" onclick="showAdminSection('clients')">+ Add Client</button>
+          </div>
+        </div>
+        <div class="stat-row">
+          <div class="metric-card" style="--mc:#6366F1;--mi-bg:#EEF2FF">
+            <div class="metric-label">Total Clients</div>
+            <div class="metric-value">3</div>
+            <div class="metric-change up" style="color:#6366F1">↑ 1 new this month</div>
+            <div class="metric-icon">👥</div>
+          </div>
+          <div class="metric-card" style="--mc:#22C55E;--mi-bg:#F0FDF4">
+            <div class="metric-label">Revenue This Month</div>
+            <div class="metric-value">₹48.5k</div>
+            <div class="metric-change up">↑ 22% vs last month</div>
+            <div class="metric-icon">💰</div>
+          </div>
+          <div class="metric-card" style="--mc:#F59E0B;--mi-bg:#FFFBEB">
+            <div class="metric-label">Active Sessions</div>
+            <div class="metric-value">1/3</div>
+            <div class="metric-sub" style="color:var(--warn)">2 sessions need refresh</div>
+            <div class="metric-icon">🔗</div>
+          </div>
+          <div class="metric-card" style="--mc:#3B82F6;--mi-bg:#EFF6FF">
+            <div class="metric-label">Orders Processed</div>
+            <div class="metric-value">8,241</div>
+            <div class="metric-change up">↑ 18% this month</div>
+            <div class="metric-icon">📦</div>
+          </div>
+        </div>
+
+        <div class="two-col" style="gap:16px">
+          <div>
+            <div class="section-header">Recent Client Activity</div>
+            <div class="card card-pad">
+              <div style="display:flex;flex-direction:column;gap:12px">
+                <div class="flex items-center gap12">
+                  <div style="width:34px;height:34px;border-radius:50%;background:#EEF2FF;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#6366F1;flex-shrink:0">RS</div>
+                  <div style="flex:1"><div class="font-600 text-sm">Rahul Sharma joined plan Growth</div><div class="text-xs text-muted">Jan 1, 2027 · ₹4,000</div></div>
+                  <span class="badge badge-ok">Paid</span>
+                </div>
+                <div class="flex items-center gap12">
+                  <div style="width:34px;height:34px;border-radius:50%;background:#FEF3C7;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#92400E;flex-shrink:0">PE</div>
+                  <div style="flex:1"><div class="font-600 text-sm">Priya Electronics — session expired</div><div class="text-xs text-muted" style="color:var(--err)">Apr 8, 2027 · Meesho session</div></div>
+                  <span class="badge badge-err">Alert</span>
+                </div>
+                <div class="flex items-center gap12">
+                  <div style="width:34px;height:34px;border-radius:50%;background:#F0FDF4;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#166534;flex-shrink:0">MF</div>
+                  <div style="flex:1"><div class="font-600 text-sm">Mumbai Fashion Hub bought top-up</div><div class="text-xs text-muted">Apr 7, 2027 · 1,000 orders · ₹1,100</div></div>
+                  <span class="badge badge-ok">Paid</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div>
+            <div class="section-header">System Alerts</div>
+            <div class="alert alert-err"><div class="alert-dot"></div><div><div class="alert-title">2 client sessions expired</div><div class="alert-sub">Priya Electronics · Mumbai Fashion Hub</div></div></div>
+            <div class="alert alert-warn"><div class="alert-dot"></div><div><div class="alert-title">Mumbai Fashion Hub — 89 orders remaining</div><div class="alert-sub">Below 10% threshold — send renewal reminder</div></div></div>
+            <div class="alert alert-info"><div class="alert-dot"></div><div><div class="alert-title">3 renewal reminders scheduled</div><div class="alert-sub">Plans expiring in next 7 days</div></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── ADMIN CLIENTS ── -->
+      <div id="a-clients" class="admin-section hidden">
+        <div class="page-header">
+          <div><div class="page-title">Clients</div><div class="page-sub">All registered sellers on SellerOS</div></div>
+          <div class="page-actions">
+            <input type="text" class="search-input" placeholder="Search clients...">
+            <button class="btn btn-primary btn-sm" style="background:#6366F1">+ Add Client</button>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Client</th><th>Plan</th><th>Orders Used / Total</th><th>Platforms</th><th>Status</th><th>Joined</th><th>Actions</th></tr></thead>
+            <tbody>
+              <tr>
+                <td>
+                  <div class="flex items-center gap8">
+                    <div style="width:32px;height:32px;border-radius:50%;background:#EEF2FF;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#6366F1;flex-shrink:0">RS</div>
+                    <div><div class="font-600">Rahul Sharma</div><div class="text-xs text-muted">rahul@gmail.com</div></div>
+                  </div>
+                </td>
+                <td><span class="badge badge-accent">Growth</span></td>
+                <td>
+                  <div style="font-size:12.5px;font-family:var(--mono);font-weight:600">3,421 / 5,000</div>
+                  <div class="progress-bar" style="height:4px;width:100px;margin-top:4px"><div class="progress-fill warn" style="width:68%"></div></div>
+                </td>
+                <td>
+                  <div style="display:flex;gap:4px">
+                    <div style="width:8px;height:8px;border-radius:50%;background:var(--ok)"></div>
+                    <div style="width:8px;height:8px;border-radius:50%;background:var(--ok)"></div>
+                    <div style="width:8px;height:8px;border-radius:50%;background:var(--warn)"></div>
+                  </div>
+                </td>
+                <td><span class="badge badge-ok">Active</span></td>
+                <td class="text-sm text-muted">Jan 2024</td>
+                <td>
+                  <div class="action-menu">
+                    <button class="btn btn-xs btn-secondary" onclick="showClientModal('rs')">View</button>
+                    <button class="btn btn-xs btn-secondary">+ Orders</button>
+                    <button class="btn btn-xs btn-danger">Suspend</button>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <div class="flex items-center gap8">
+                    <div style="width:32px;height:32px;border-radius:50%;background:#FEF3C7;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#92400E;flex-shrink:0">PE</div>
+                    <div><div class="font-600">Priya Electronics</div><div class="text-xs text-muted">priya@pe-store.in</div></div>
+                  </div>
+                </td>
+                <td><span class="badge badge-info">Pro</span></td>
+                <td>
+                  <div style="font-size:12.5px;font-family:var(--mono);font-weight:600">9,210 / 10,000</div>
+                  <div class="progress-bar" style="height:4px;width:100px;margin-top:4px"><div class="progress-fill err" style="width:92%"></div></div>
+                </td>
+                <td>
+                  <div style="display:flex;gap:4px">
+                    <div style="width:8px;height:8px;border-radius:50%;background:var(--err)"></div>
+                    <div style="width:8px;height:8px;border-radius:50%;background:var(--ok)"></div>
+                    <div style="width:8px;height:8px;border-radius:50%;background:var(--ok)"></div>
+                  </div>
+                </td>
+                <td><span class="badge badge-warn">Session issue</span></td>
+                <td class="text-sm text-muted">Nov 2023</td>
+                <td>
+                  <div class="action-menu">
+                    <button class="btn btn-xs btn-secondary" onclick="showClientModal('pe')">View</button>
+                    <button class="btn btn-xs btn-secondary">+ Orders</button>
+                    <button class="btn btn-xs" style="background:#EFF6FF;color:#2563EB;font-size:12px;padding:5px 10px;border-radius:6px;border:none;cursor:pointer">Fix Session</button>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <div class="flex items-center gap8">
+                    <div style="width:32px;height:32px;border-radius:50%;background:#F0FDF4;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#166534;flex-shrink:0">MF</div>
+                    <div><div class="font-600">Mumbai Fashion Hub</div><div class="text-xs text-muted">ops@mfhub.com</div></div>
+                  </div>
+                </td>
+                <td><span class="badge badge-gray">Starter</span></td>
+                <td>
+                  <div style="font-size:12.5px;font-family:var(--mono);font-weight:600">911 / 1,000</div>
+                  <div class="progress-bar" style="height:4px;width:100px;margin-top:4px"><div class="progress-fill err" style="width:91%"></div></div>
+                </td>
+                <td>
+                  <div style="display:flex;gap:4px">
+                    <div style="width:8px;height:8px;border-radius:50%;background:var(--ok)"></div>
+                    <div style="width:8px;height:8px;border-radius:50%;background:var(--text3)"></div>
+                    <div style="width:8px;height:8px;border-radius:50%;background:var(--text3)"></div>
+                  </div>
+                </td>
+                <td><span class="badge badge-ok">Active</span></td>
+                <td class="text-sm text-muted">Mar 2024</td>
+                <td>
+                  <div class="action-menu">
+                    <button class="btn btn-xs btn-secondary" onclick="showClientModal('mf')">View</button>
+                    <button class="btn btn-xs btn-secondary">+ Orders</button>
+                    <button class="btn btn-xs btn-danger">Suspend</button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div style="font-size:12px;color:var(--text3);margin-top:8px">Platform dots: 🟢 Meesho · 🟢 Amazon · 🟢 Flipkart (grey = not connected, orange = issue)</div>
+      </div>
+
+      <!-- ── ADMIN PLANS ── -->
+      <div id="a-plans" class="admin-section hidden">
+        <div class="page-header">
+          <div><div class="page-title">Plans & Pricing</div><div class="page-sub">Manage order packages sold to sellers</div></div>
+          <div class="page-actions"><button class="btn btn-primary btn-sm" style="background:#6366F1">+ Create Plan</button></div>
+        </div>
+        <div class="plan-cards">
+          <div class="plan-card">
+            <div class="flex justify-between items-center mb12">
+              <div class="plan-name">Starter</div>
+              <span class="badge badge-ok">Active</span>
+            </div>
+            <div class="plan-price">₹1,000 <span>/ pack</span></div>
+            <div class="plan-orders">1,000 orders · ₹1.00/order</div>
+            <div class="divider"></div>
+            <div class="settings-row" style="padding:8px 0"><div><div class="settings-label" style="font-size:12px">Clients on this plan</div></div><span class="font-bold">1</span></div>
+            <div class="settings-row" style="padding:8px 0"><div><div class="settings-label" style="font-size:12px">Revenue this month</div></div><span class="font-bold" style="color:var(--ok)">₹1,000</span></div>
+            <div class="mt12 flex gap8">
+              <button class="btn btn-secondary btn-sm">Edit Plan</button>
+              <button class="btn btn-danger btn-sm">Hide</button>
+            </div>
+          </div>
+          <div class="plan-card current">
+            <div class="flex justify-between items-center mb12">
+              <div class="plan-name">Growth</div>
+              <span class="badge badge-ok">Active</span>
+            </div>
+            <div class="plan-price">₹4,000 <span>/ pack</span></div>
+            <div class="plan-orders">5,000 orders · ₹0.80/order</div>
+            <div class="divider"></div>
+            <div class="settings-row" style="padding:8px 0"><div><div class="settings-label" style="font-size:12px">Clients on this plan</div></div><span class="font-bold">1</span></div>
+            <div class="settings-row" style="padding:8px 0"><div><div class="settings-label" style="font-size:12px">Revenue this month</div></div><span class="font-bold" style="color:var(--ok)">₹4,000</span></div>
+            <div class="mt12 flex gap8">
+              <button class="btn btn-secondary btn-sm">Edit Plan</button>
+              <button class="btn btn-danger btn-sm">Hide</button>
+            </div>
+          </div>
+          <div class="plan-card">
+            <div class="flex justify-between items-center mb12">
+              <div class="plan-name">Pro</div>
+              <span class="badge badge-ok">Active</span>
+            </div>
+            <div class="plan-price">₹7,500 <span>/ pack</span></div>
+            <div class="plan-orders">10,000 orders · ₹0.75/order</div>
+            <div class="divider"></div>
+            <div class="settings-row" style="padding:8px 0"><div><div class="settings-label" style="font-size:12px">Clients on this plan</div></div><span class="font-bold">1</span></div>
+            <div class="settings-row" style="padding:8px 0"><div><div class="settings-label" style="font-size:12px">Revenue this month</div></div><span class="font-bold" style="color:var(--ok)">₹43,500</span></div>
+            <div class="mt12 flex gap8">
+              <button class="btn btn-secondary btn-sm">Edit Plan</button>
+              <button class="btn btn-danger btn-sm">Hide</button>
+            </div>
+          </div>
+        </div>
+        <div class="section-header">Billing Configuration</div>
+        <div class="card card-pad" style="max-width:600px">
+          <div class="settings-row"><div><div class="settings-label">Grace orders (beyond zero)</div><div class="settings-sub">Allow X extra orders before hard block</div></div><input class="settings-input" value="50" style="width:80px"></div>
+          <div class="settings-row"><div><div class="settings-label">Grace order rate</div><div class="settings-sub">Per-order cost during grace period</div></div><input class="settings-input" value="₹1.50" style="width:80px"></div>
+          <div class="settings-row"><div><div class="settings-label">Low balance warning threshold</div><div class="settings-sub">Send alert when below X% remaining</div></div><input class="settings-input" value="20%" style="width:80px"></div>
+          <div class="settings-row"><div><div class="settings-label">Rollover unused orders</div><div class="settings-sub">Carry unused orders to next plan</div></div><label class="toggle"><input type="checkbox"><span class="toggle-track"></span></label></div>
+          <div class="mt12"><button class="btn btn-primary btn-sm" style="background:#6366F1">Save Config</button></div>
+        </div>
+      </div>
+
+      <!-- ── ADMIN HEALTH ── -->
+      <div id="a-health" class="admin-section hidden">
+        <div class="page-header">
+          <div><div class="page-title">Platform Health</div><div class="page-sub">Session status and sync health for all clients</div></div>
+          <div class="page-actions">
+            <button class="btn btn-secondary btn-sm">↻ Refresh All</button>
+          </div>
+        </div>
+        <div class="stat-row" style="grid-template-columns:repeat(3,1fr)">
+          <div class="metric-card" style="--mc:#22C55E"><div class="metric-label">Healthy Sessions</div><div class="metric-value">4</div><div class="metric-sub">Across all clients & platforms</div></div>
+          <div class="metric-card" style="--mc:#EF4444"><div class="metric-label">Expired Sessions</div><div class="metric-value">2</div><div class="metric-sub" style="color:var(--err)">Needs immediate attention</div></div>
+          <div class="metric-card" style="--mc:#F59E0B"><div class="metric-label">Last System Sync</div><div class="metric-value">2m</div><div class="metric-sub">Cron ran at 10:42:06 AM</div></div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Client</th><th>Meesho</th><th>Amazon</th><th>Flipkart</th><th>Last Sync</th><th>Errors (24h)</th><th>Action</th></tr></thead>
+            <tbody>
+              <tr>
+                <td class="font-600">Rahul Sharma</td>
+                <td><div class="flex items-center gap8"><div class="health-dot health-ok"></div><span class="text-sm">Active</span></div></td>
+                <td><div class="flex items-center gap8"><div class="health-dot health-ok"></div><span class="text-sm">Active</span></div></td>
+                <td><div class="flex items-center gap8"><div class="health-dot health-warn"></div><span class="text-sm" style="color:var(--warn)">Expiring soon</span></div></td>
+                <td class="text-sm text-muted">2 min ago</td>
+                <td class="text-sm text-muted">0 errors</td>
+                <td><button class="btn btn-xs btn-secondary">Ping Sessions</button></td>
+              </tr>
+              <tr>
+                <td class="font-600">Priya Electronics</td>
+                <td><div class="flex items-center gap8"><div class="health-dot health-err"></div><span class="text-sm" style="color:var(--err)">Expired</span></div></td>
+                <td><div class="flex items-center gap8"><div class="health-dot health-ok"></div><span class="text-sm">Active</span></div></td>
+                <td><div class="flex items-center gap8"><div class="health-dot health-ok"></div><span class="text-sm">Active</span></div></td>
+                <td class="text-sm text-muted">2 days ago</td>
+                <td style="color:var(--err);font-weight:600">14 errors</td>
+                <td><button class="btn btn-xs" style="background:var(--err-bg);color:var(--err);border:1px solid var(--err-b);font-size:12px;padding:5px 10px;border-radius:6px;cursor:pointer">Force Re-login</button></td>
+              </tr>
+              <tr>
+                <td class="font-600">Mumbai Fashion Hub</td>
+                <td><div class="flex items-center gap8"><div class="health-dot health-ok"></div><span class="text-sm">Active</span></div></td>
+                <td><div class="flex items-center gap8"><div class="health-dot health-ok" style="background:var(--text3)"></div><span class="text-sm text-muted">Not connected</span></div></td>
+                <td><div class="flex items-center gap8"><div class="health-dot health-ok" style="background:var(--text3)"></div><span class="text-sm text-muted">Not connected</span></div></td>
+                <td class="text-sm text-muted">5 min ago</td>
+                <td class="text-sm text-muted">0 errors</td>
+                <td><button class="btn btn-xs btn-secondary">Ping Sessions</button></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="section-header mt20">Cron Job Status</div>
+        <div class="card card-pad">
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px">
+            <div style="padding:14px;background:#F8FAFC;border-radius:8px;border:1px solid var(--border)">
+              <div class="flex items-center gap8 mb8"><div class="health-dot health-ok"></div><div class="font-600 text-sm">Order sync cron</div></div>
+              <div class="text-xs text-muted">Runs every 5 min · Last: 10:42:06</div>
+              <div class="text-xs text-muted">9 clients processed · 0 failures</div>
+            </div>
+            <div style="padding:14px;background:#F8FAFC;border-radius:8px;border:1px solid var(--border)">
+              <div class="flex items-center gap8 mb8"><div class="health-dot health-ok"></div><div class="font-600 text-sm">Session health check</div></div>
+              <div class="text-xs text-muted">Runs every 6h · Last: 8:00 AM</div>
+              <div class="text-xs text-muted">2 sessions flagged</div>
+            </div>
+            <div style="padding:14px;background:#F8FAFC;border-radius:8px;border:1px solid var(--border)">
+              <div class="flex items-center gap8 mb8"><div class="health-dot health-ok"></div><div class="font-600 text-sm">Billing alert cron</div></div>
+              <div class="text-xs text-muted">Runs daily · Last: 9:00 AM</div>
+              <div class="text-xs text-muted">1 low-balance alert sent</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── ADMIN REVENUE ── -->
+      <div id="a-revenue" class="admin-section hidden">
+        <div class="page-header">
+          <div><div class="page-title">Revenue</div><div class="page-sub">Financial overview and payment tracking</div></div>
+          <div class="page-actions">
+            <select class="filter-select"><option>April 2026</option><option>March 2026</option><option>Feb 2026</option></select>
+            <button class="btn btn-secondary btn-sm">↓ Export</button>
+          </div>
+        </div>
+        <div class="stat-row">
+          <div class="metric-card" style="--mc:#6366F1"><div class="metric-label">Monthly Revenue</div><div class="metric-value">₹48.5k</div><div class="metric-change up">↑ 22% vs Mar</div></div>
+          <div class="metric-card" style="--mc:#22C55E"><div class="metric-label">Successful Payments</div><div class="metric-value">12</div><div class="metric-sub">100% success rate</div></div>
+          <div class="metric-card" style="--mc:#F59E0B"><div class="metric-label">Renewals Due (7d)</div><div class="metric-value">2</div><div class="metric-sub">₹11,500 expected</div></div>
+          <div class="metric-card" style="--mc:#EF4444"><div class="metric-label">Failed Payments</div><div class="metric-value">0</div><div class="metric-sub">This month</div></div>
+        </div>
+        <div class="section-header">Revenue by Plan</div>
+        <div class="three-col mb20">
+          <div class="card card-pad" style="text-align:center">
+            <div class="text-sm text-muted mb8">Starter Plan</div>
+            <div style="font-size:22px;font-weight:800;font-family:var(--mono)">₹1,000</div>
+            <div class="text-xs text-muted mt4">1 client · 1 transaction</div>
+          </div>
+          <div class="card card-pad" style="text-align:center">
+            <div class="text-sm text-muted mb8">Growth Plan</div>
+            <div style="font-size:22px;font-weight:800;font-family:var(--mono)">₹4,000</div>
+            <div class="text-xs text-muted mt4">1 client · 1 transaction</div>
+          </div>
+          <div class="card card-pad" style="text-align:center">
+            <div class="text-sm text-muted mb8">Pro Plan</div>
+            <div style="font-size:22px;font-weight:800;font-family:var(--mono)">₹43,500</div>
+            <div class="text-xs text-muted mt4">1 client · 4 transactions</div>
+          </div>
+        </div>
+        <div class="section-header">All Transactions</div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Date</th><th>Client</th><th>Plan</th><th>Type</th><th>Amount</th><th>Payment ID</th><th>Status</th></tr></thead>
+            <tbody>
+              <tr><td class="text-sm">Apr 1, 2026</td><td class="font-600">Priya Electronics</td><td><span class="badge badge-info">Pro</span></td><td class="text-sm">Plan purchase</td><td class="font-bold">₹7,500</td><td class="font-mono text-xs">RZP-9192837</td><td><span class="badge badge-ok">Paid</span></td></tr>
+              <tr><td class="text-sm">Apr 7, 2026</td><td class="font-600">Mumbai Fashion Hub</td><td><span class="badge badge-gray">Starter</span></td><td class="text-sm">Top-up 1,000</td><td class="font-bold">₹1,100</td><td class="font-mono text-xs">RZP-9182736</td><td><span class="badge badge-ok">Paid</span></td></tr>
+              <tr><td class="text-sm">Jan 1, 2026</td><td class="font-600">Rahul Sharma</td><td><span class="badge badge-accent">Growth</span></td><td class="text-sm">Plan purchase</td><td class="font-bold">₹4,000</td><td class="font-mono text-xs">RZP-9172635</td><td><span class="badge badge-ok">Paid</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ── ADMIN SETTINGS ── -->
+      <div id="a-admin-settings" class="admin-section hidden">
+        <div class="page-header"><div><div class="page-title">Settings & CMS</div><div class="page-sub">System configuration and frontend content</div></div></div>
+        <div class="tabs">
+          <button class="tab-btn active" onclick="switchTab(this,'asettings-tab','as-company')">Company</button>
+          <button class="tab-btn" onclick="switchTab(this,'asettings-tab','as-billing')">Billing Config</button>
+          <button class="tab-btn" onclick="switchTab(this,'asettings-tab','as-cms')">Frontend CMS</button>
+          <button class="tab-btn" onclick="switchTab(this,'asettings-tab','as-notif')">Notifications</button>
+        </div>
+        <div id="as-company" class="asettings-tab-content">
+          <div class="card card-pad" style="max-width:600px">
+            <div class="settings-row"><div><div class="settings-label">Platform name</div></div><input class="settings-input" value="SellerOS"></div>
+            <div class="settings-row"><div><div class="settings-label">Support email</div></div><input class="settings-input" value="support@selleros.in"></div>
+            <div class="settings-row"><div><div class="settings-label">Support phone</div></div><input class="settings-input" value="+91 90000 00000"></div>
+            <div class="settings-row"><div><div class="settings-label">Your GSTIN</div><div class="settings-sub">For invoices raised to sellers</div></div><input class="settings-input" value="27AABCS1429B1ZP"></div>
+            <div class="settings-row"><div><div class="settings-label">Razorpay Key ID</div></div><input class="settings-input" value="rzp_live_••••••••••••" type="password"></div>
+            <div class="settings-row"><div><div class="settings-label">Free trial orders</div><div class="settings-sub">Given to new signups automatically</div></div><input class="settings-input" value="50" style="width:80px"></div>
+            <div class="mt12"><button class="btn btn-primary btn-sm" style="background:#6366F1">Save Settings</button></div>
+          </div>
+        </div>
+        <div id="as-billing" class="asettings-tab-content hidden">
+          <div class="card card-pad" style="max-width:600px">
+            <div class="settings-row"><div><div class="settings-label">GST on subscription</div></div><input class="settings-input" value="18%" style="width:80px"></div>
+            <div class="settings-row"><div><div class="settings-label">Invoice prefix</div></div><input class="settings-input" value="SOS-INV-" style="width:140px"></div>
+            <div class="settings-row"><div><div class="settings-label">Default plan (new signup)</div></div><select class="filter-select"><option>Starter</option><option>Growth</option></select></div>
+            <div class="settings-row"><div><div class="settings-label">Auto-suspend on zero balance</div><div class="settings-sub">Stop order sync when plan exhausted</div></div><label class="toggle"><input type="checkbox" checked><span class="toggle-track"></span></label></div>
+            <div class="mt12"><button class="btn btn-primary btn-sm" style="background:#6366F1">Save</button></div>
+          </div>
+        </div>
+        <div id="as-cms" class="asettings-tab-content hidden">
+          <div class="card card-pad" style="max-width:600px">
+            <div class="section-header">Editable Frontend Text</div>
+            <div class="settings-row">
+              <div><div class="settings-label">Dashboard welcome message</div></div>
+              <input class="settings-input" value="Good morning, {name}! 👋">
+            </div>
+            <div class="settings-row">
+              <div><div class="settings-label">Login page tagline</div></div>
+              <input class="settings-input" value="One Platform. Every Marketplace.">
+            </div>
+            <div class="settings-row">
+              <div><div class="settings-label">Low balance alert text</div></div>
+              <input class="settings-input" value="You have {count} orders remaining — top up now">
+            </div>
+            <div class="settings-row">
+              <div><div class="settings-label">Plan page CTA button</div></div>
+              <input class="settings-input" value="Buy More Orders">
+            </div>
+            <div class="settings-row">
+              <div><div class="settings-label">Announcement banner</div><div class="settings-sub">Shown to all users if not empty</div></div>
+              <input class="settings-input" placeholder="Leave blank to hide..." value="">
+            </div>
+            <div class="mt12"><button class="btn btn-primary btn-sm" style="background:#6366F1">Save Text</button></div>
+          </div>
+        </div>
+        <div id="as-notif" class="asettings-tab-content hidden">
+          <div class="card card-pad" style="max-width:600px">
+            <div class="section-header">Automated Notifications to Sellers</div>
+            <div class="settings-row"><div><div class="settings-label">SMTP email host</div></div><input class="settings-input" value="smtp.resend.com"></div>
+            <div class="settings-row"><div><div class="settings-label">Plan expiry reminder</div><div class="settings-sub">Days before expiry</div></div><input class="settings-input" value="7 days before" style="width:140px"></div>
+            <div class="settings-row"><div><div class="settings-label">Session expired alert</div></div><label class="toggle"><input type="checkbox" checked><span class="toggle-track"></span></label></div>
+            <div class="settings-row"><div><div class="settings-label">Low balance alert (20%)</div></div><label class="toggle"><input type="checkbox" checked><span class="toggle-track"></span></label></div>
+            <div class="mt12"><button class="btn btn-primary btn-sm" style="background:#6366F1">Save Config</button></div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /page-content -->
+  </div><!-- /main -->
+</div><!-- /admin-app -->
+
+<!-- CLIENT MODAL -->
+<div id="client-modal" class="modal-overlay hidden" onclick="if(event.target===this)this.classList.add('hidden')">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Client: Rahul Sharma</div>
+      <button class="modal-close" onclick="document.getElementById('client-modal').classList.add('hidden')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="two-col mb16">
+        <div><div class="text-xs text-hint mb4">Business</div><div class="font-600">RS Traders</div></div>
+        <div><div class="text-xs text-hint mb4">Plan</div><span class="badge badge-accent">Growth · 5,000 orders</span></div>
+        <div><div class="text-xs text-hint mb4">Orders used</div><div class="font-600 font-mono">3,421 / 5,000</div></div>
+        <div><div class="text-xs text-hint mb4">Joined</div><div class="text-sm">January 2024</div></div>
+      </div>
+      <div class="section-header">Manual Adjustments</div>
+      <div class="flex gap8 mt8">
+        <input type="number" class="form-input" placeholder="Orders to add" style="width:140px;padding:8px 12px">
+        <button class="btn btn-primary btn-sm" style="background:#6366F1">+ Add Orders</button>
+      </div>
+      <div class="divider"></div>
+      <div class="flex gap8">
+        <button class="btn btn-secondary btn-sm">Change Plan</button>
+        <button class="btn btn-secondary btn-sm">Reset Session</button>
+        <button class="btn btn-danger btn-sm" style="margin-left:auto">Suspend Account</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── STATE ──
+var currentRole = null;
+
+// ── AUTH ──
+function loginAs(role) {
+  document.getElementById('login-page').classList.add('hidden');
+  if (role === 'seller') {
+    document.getElementById('seller-app').classList.remove('hidden');
+    showSellerSection('dashboard');
+  } else {
+    document.getElementById('admin-app').classList.remove('hidden');
+    showAdminSection('overview');
+  }
+  currentRole = role;
+}
+
+function logout() {
+  document.getElementById('seller-app').classList.add('hidden');
+  document.getElementById('admin-app').classList.add('hidden');
+  document.getElementById('login-page').classList.remove('hidden');
+  currentRole = null;
+}
+
+// ── SELLER NAVIGATION ──
+var sellerSections = ['dashboard','orders','labels','invoices','claims','platforms','billing','settings'];
+var sellerTitles = {
+  dashboard:'Dashboard', orders:'Orders', labels:'Print Labels',
+  invoices:'Invoices', claims:'Claims & Returns', platforms:'Platform Settings',
+  billing:'Billing & Plans', settings:'Settings'
+};
+
+function showSellerSection(name) {
+  sellerSections.forEach(s => {
+    var el = document.getElementById('s-' + s);
+    if (el) el.classList.add('hidden');
+  });
+  var target = document.getElementById('s-' + name);
+  if (target) target.classList.remove('hidden');
+  document.getElementById('seller-page-title').textContent = sellerTitles[name] || name;
+
+  var items = document.querySelectorAll('#seller-app .nav-item');
+  items.forEach(function(item) { item.classList.remove('active'); });
+  var idx = sellerSections.indexOf(name);
+  if (idx >= 0 && items[idx]) items[idx].classList.add('active');
+  document.getElementById('order-dropdown').classList.add('hidden');
+  window.scrollTo(0,0);
+}
+
+// ── ADMIN NAVIGATION ──
+var adminSections = ['overview','clients','plans','health','revenue','admin-settings'];
+var adminTitles = {
+  overview:'Admin Overview', clients:'Clients', plans:'Plans & Pricing',
+  health:'Platform Health', revenue:'Revenue', 'admin-settings':'Settings & CMS'
+};
+
+function showAdminSection(name) {
+  adminSections.forEach(s => {
+    var el = document.getElementById('a-' + s.replace('-','s-').replace('admin-settings','admin-settings'));
+    if (s === 'admin-settings') {
+      var el2 = document.getElementById('a-admin-settings');
+      if (el2) el2.classList.add('hidden');
+    } else {
+      var el2 = document.getElementById('a-' + s);
+      if (el2) el2.classList.add('hidden');
+    }
+  });
+  var targetId = 'a-' + (name === 'admin-settings' ? 'admin-settings' : name);
+  var target = document.getElementById(targetId);
+  if (target) target.classList.remove('hidden');
+  document.getElementById('admin-page-title').textContent = adminTitles[name] || name;
+
+  var items = document.querySelectorAll('#admin-app .nav-item');
+  items.forEach(function(item) { item.classList.remove('active'); });
+  var idx = adminSections.indexOf(name);
+  if (idx >= 0 && items[idx]) items[idx].classList.add('active');
+  window.scrollTo(0,0);
+}
+
+// ── TABS ──
+function switchTab(btn, groupClass, targetId) {
+  var parent = btn.closest('.seller-section, .admin-section, .page-content') || document.body;
+  var tabBtns = btn.parentElement.querySelectorAll('.tab-btn');
+  tabBtns.forEach(function(b) { b.classList.remove('active'); });
+  btn.classList.add('active');
+
+  var contents = parent.querySelectorAll('.' + groupClass + '-content');
+  contents.forEach(function(c) { c.classList.add('hidden'); });
+  var target = document.getElementById(targetId);
+  if (target) target.classList.remove('hidden');
+}
+
+// ── ORDER DETAIL ──
+function showOrderDetail() {
+  var panel = document.getElementById('order-detail-panel');
+  panel.classList.remove('hidden');
+  panel.scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+function hideOrderDetail() {
+  document.getElementById('order-detail-panel').classList.add('hidden');
+}
+
+// ── BULK SELECT ──
+function toggleAllOrders(master) {
+  document.querySelectorAll('.order-check').forEach(function(cb) {
+    cb.checked = master.checked;
+  });
+  updateBulkBar();
+}
+function updateBulkBar() {
+  var checked = document.querySelectorAll('.order-check:checked').length;
+  var bar = document.getElementById('bulk-bar');
+  var count = document.getElementById('bulk-count');
+  if (checked > 0) {
+    bar.classList.add('show');
+    count.textContent = checked + ' order' + (checked > 1 ? 's' : '') + ' selected';
+  } else {
+    bar.classList.remove('show');
+  }
+}
+function clearBulkSelect() {
+  document.querySelectorAll('.order-check, .table-check').forEach(function(cb) { cb.checked = false; });
+  updateBulkBar();
+}
+
+// ── ORDER PILL DROPDOWN ──
+function toggleOrderDropdown() {
+  document.getElementById('order-dropdown').classList.toggle('hidden');
+}
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.order-pill') && !e.target.closest('#order-dropdown')) {
+    var dd = document.getElementById('order-dropdown');
+    if (dd) dd.classList.add('hidden');
+  }
+});
+
+// ── FORMAT SELECT ──
+function selectFormat(el) {
+  document.querySelectorAll('.format-card').forEach(function(c) { c.classList.remove('selected'); });
+  el.classList.add('selected');
+}
+
+// ── DISPUTE SELECT ──
+function selectDispute(el) {
+  document.querySelectorAll('.dispute-card').forEach(function(c) { c.classList.remove('selected'); });
+  el.classList.add('selected');
+}
+
+// ── WIZARD ──
+var wizardStep = 2;
+function advanceWizard() {
+  wizardStep++;
+  if (wizardStep > 4) wizardStep = 4;
+  updateWizard();
+}
+function updateWizard() {
+  for (var i = 1; i <= 4; i++) {
+    var ws = document.getElementById('ws' + i);
+    if (!ws) continue;
+    ws.classList.remove('active','done');
+    if (i < wizardStep) ws.classList.add('done');
+    else if (i === wizardStep) ws.classList.add('active');
+    var num = ws.querySelector('.wizard-num');
+    if (num) num.textContent = i < wizardStep ? '✓' : i;
+  }
+  var body = document.getElementById('wizard-body');
+  if (!body) return;
+  if (wizardStep === 3) {
+    body.innerHTML = '<div style="font-size:14px;font-weight:700;margin-bottom:6px">Attach evidence for order #MSH-88120</div><div style="font-size:13px;color:var(--text2);margin-bottom:16px">Photos and video recorded at packing time</div><div style="background:var(--ok-bg);border:1px solid var(--ok-b);border-radius:8px;padding:14px;margin-bottom:14px"><div style="font-size:13px;font-weight:700;color:var(--ok);margin-bottom:4px">✓ 4 photos captured — 10 Apr 2024, 10:22 AM</div><div style="font-size:12px;color:var(--text2)">Blue Saree Kota · SKU: BS-KOT-BLU · Packing confirmed</div></div><div style="background:#F8FAFC;border:2px dashed var(--border);border-radius:8px;padding:20px;text-align:center;cursor:pointer;margin-bottom:14px"><div style="font-size:22px;margin-bottom:6px">📹</div><div style="font-size:13px;font-weight:600">Add packing video (optional)</div><div style="font-size:12px;color:var(--text3)">Max 100MB · Saves to your device</div></div><div style="display:flex;gap:8px"><button class="btn btn-secondary btn-sm" onclick="wizardStep=2;updateWizard()">← Back</button><button class="btn btn-primary btn-sm" onclick="advanceWizard()">Next: Review & Submit →</button></div>';
+  } else if (wizardStep === 4) {
+    body.innerHTML = '<div style="font-size:14px;font-weight:700;margin-bottom:14px">Review your claim for #MSH-88120</div><div style="background:#F8FAFC;border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:14px;font-size:13px"><div><strong>Order:</strong> #MSH-88120 · Blue Saree Kota · ₹1,299</div><div style="margin-top:4px"><strong>Dispute:</strong> Wrong item returned by customer</div><div style="margin-top:4px"><strong>Evidence:</strong> 4 photos attached · Packing video available</div><div style="margin-top:8px;padding:10px;background:#fff;border-radius:6px;border:1px solid var(--border);font-size:12px;color:var(--text2)">Dear Meesho Team, I am raising a dispute for order #MSH-88120. The customer returned a different item. I have photo evidence of the original item packed and dispatched. Please review and process a refund of ₹1,299.</div></div><div class="alert alert-info mb16"><div class="alert-dot"></div><div><div class="alert-title">Next: Open Meesho claims page</div><div class="alert-sub">Your claim text is ready to paste. Evidence photos are downloaded.</div></div></div><div style="display:flex;gap:8px"><button class="btn btn-secondary btn-sm" onclick="wizardStep=3;updateWizard()">← Back</button><button class="btn btn-primary btn-sm" onclick="alert(\'Meesho claims page opened in new tab! Evidence downloaded.\')">Open Meesho Claim Form ↗</button><button class="btn btn-secondary btn-sm" onclick="alert(\'Claim text and evidence downloaded!\')">⬇ Download Evidence</button></div>';
+  }
+}
+
+// ── CLIENT MODAL ──
+function showClientModal(id) {
+  document.getElementById('client-modal').classList.remove('hidden');
+}
+
+// ── NOTIF PANEL ──
+function toggleNotif() {
+  alert('Alerts:\n• 3 orders nearing dispatch deadline\n• Flipkart session expiring\n• 2 returns need evidence\n• 1,579 orders remaining');
+}
+
+// Init: ensure all seller sections except dashboard hidden
+sellerSections.forEach(function(s) {
+  var el = document.getElementById('s-' + s);
+  if (el && s !== 'dashboard') el.classList.add('hidden');
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,2312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agencyfic OMS — Super Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --sb:#0D0F1A;--sb2:#12152A;--sb-hover:#1A1E35;--sb-active:#1E2440;
+  --sb-text:#7A85B0;--sb-text-active:#ffffff;
+  --accent:#F97316;--accent2:#FB923C;--accent-bg:#FFF7ED;--accent-text:#9A3412;
+  --admin:#7C3AED;--admin-bg:#F5F3FF;--admin-b:#DDD6FE;--admin-text:#5B21B6;
+  --indigo:#6366F1;
+  --page:#F0F4F9;--card:#ffffff;--border:#E2E8F0;--border2:#CBD5E1;
+  --text1:#0F172A;--text2:#475569;--text3:#94A3B8;
+  --ok:#16A34A;--ok-bg:#F0FDF4;--ok-b:#BBF7D0;
+  --warn:#D97706;--warn-bg:#FFFBEB;--warn-b:#FDE68A;
+  --err:#DC2626;--err-bg:#FEF2F2;--err-b:#FECACA;
+  --info:#2563EB;--info-bg:#EFF6FF;--info-b:#BFDBFE;
+  --r:10px;--r2:14px;
+  --sh:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.04);
+  --sh2:0 4px 12px rgba(0,0,0,.1),0 2px 4px rgba(0,0,0,.05);
+  --f:'Plus Jakarta Sans',sans-serif;--mono:'JetBrains Mono',monospace;
+  --sb-w:240px;--top-h:60px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--f);background:var(--page);color:var(--text1);font-size:13.5px;line-height:1.5}
+a{text-decoration:none;color:inherit}
+button{font-family:var(--f);cursor:pointer;border:none;outline:none}
+input,select,textarea{font-family:var(--f);font-size:13.5px;outline:none}
+.hidden{display:none!important}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:3px}
+
+/* ══ LOGIN ══ */
+#login-page{
+  min-height:100vh;
+  background:linear-gradient(135deg,#080A14 0%,#0D1028 45%,#130828 100%);
+  display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;
+}
+#login-page::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse 70% 50% at 55% 45%,rgba(124,58,237,.2),transparent);
+}
+#login-page::after{
+  content:'';position:absolute;inset:0;
+  background-image:radial-gradient(circle,rgba(255,255,255,.035) 1px,transparent 1px);
+  background-size:30px 30px;
+}
+.login-wrap{position:relative;z-index:1;width:100%;max-width:420px;padding:20px;}
+.login-brand{text-align:center;margin-bottom:28px;}
+.admin-badge-top{
+  display:inline-flex;align-items:center;gap:6px;
+  background:rgba(124,58,237,.2);border:1px solid rgba(124,58,237,.4);
+  border-radius:20px;padding:5px 14px;margin-bottom:16px;
+  font-size:11.5px;font-weight:700;color:#A78BFA;letter-spacing:.8px;text-transform:uppercase;
+}
+.login-logo{display:inline-flex;align-items:center;gap:10px;margin-bottom:8px;}
+.login-logo-icon{
+  width:44px;height:44px;background:var(--admin);border-radius:12px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:20px;font-weight:800;color:#fff;
+}
+.login-logo-name{font-size:26px;font-weight:800;color:#fff;letter-spacing:-.5px;}
+.login-logo-name span{color:var(--accent);}
+.login-tagline{color:#7A85B0;font-size:12.5px;}
+.login-card{
+  background:rgba(255,255,255,.97);border-radius:var(--r2);
+  padding:32px;box-shadow:0 24px 64px rgba(0,0,0,.35);
+}
+.login-title{font-size:20px;font-weight:800;color:var(--text1);margin-bottom:4px;}
+.login-sub{font-size:13px;color:var(--text2);margin-bottom:24px;}
+.admin-warn{
+  display:flex;align-items:center;gap:8px;
+  background:#F5F3FF;border:1px solid var(--admin-b);
+  border-radius:8px;padding:10px 12px;margin-bottom:20px;
+}
+.admin-warn-icon{font-size:16px;}
+.admin-warn-text{font-size:12.5px;color:var(--admin-text);font-weight:500;}
+.form-group{margin-bottom:16px;}
+.form-label{display:block;font-size:12px;font-weight:700;color:var(--text2);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px;}
+.form-input{width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:8px;font-size:13.5px;color:var(--text1);background:#fff;transition:border-color .2s,box-shadow .2s;}
+.form-input:focus{border-color:var(--admin);box-shadow:0 0 0 3px rgba(124,58,237,.1);}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:10px 18px;border-radius:8px;font-size:13.5px;font-weight:600;transition:all .2s;cursor:pointer;}
+.btn-admin{background:var(--admin);color:#fff;}
+.btn-admin:hover{background:#6D28D9;transform:translateY(-1px);box-shadow:0 4px 14px rgba(124,58,237,.35);}
+.btn-primary{background:var(--accent);color:#fff;}
+.btn-primary:hover{background:var(--accent2);transform:translateY(-1px);box-shadow:0 4px 12px rgba(249,115,22,.3);}
+.btn-secondary{background:#F1F5F9;color:var(--text2);border:1px solid var(--border);}
+.btn-secondary:hover{background:var(--border);color:var(--text1);}
+.btn-ghost{background:transparent;color:var(--text2);}
+.btn-ghost:hover{background:#F1F5F9;}
+.btn-danger{background:#FEF2F2;color:var(--err);border:1px solid var(--err-b);}
+.btn-danger:hover{background:var(--err);color:#fff;}
+.btn-warn{background:var(--warn-bg);color:var(--warn);border:1px solid var(--warn-b);}
+.btn-warn:hover{background:var(--warn);color:#fff;}
+.btn-ok{background:var(--ok-bg);color:var(--ok);border:1px solid var(--ok-b);}
+.btn-ok:hover{background:var(--ok);color:#fff;}
+.btn-sm{padding:7px 13px;font-size:12.5px;}
+.btn-xs{padding:5px 10px;font-size:12px;}
+.btn-full{width:100%;}
+
+/* ══ APP LAYOUT ══ */
+.app{display:flex;min-height:100vh;}
+.sidebar{
+  width:var(--sb-w);min-height:100vh;background:var(--sb);
+  position:fixed;top:0;left:0;bottom:0;
+  display:flex;flex-direction:column;z-index:100;
+  border-right:1px solid rgba(255,255,255,.04);
+}
+.sidebar-header{padding:18px 14px 14px;border-bottom:1px solid rgba(255,255,255,.05);flex-shrink:0;}
+.sidebar-logo{display:flex;align-items:center;gap:10px;}
+.sidebar-logo-icon{
+  width:34px;height:34px;background:var(--admin);border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:15px;font-weight:800;color:#fff;flex-shrink:0;
+}
+.sidebar-logo-text{font-size:15.5px;font-weight:800;color:#fff;letter-spacing:-.3px;}
+.sidebar-logo-text span{color:var(--accent);}
+.admin-chip{
+  margin-left:auto;background:rgba(124,58,237,.25);
+  border:1px solid rgba(124,58,237,.4);border-radius:6px;
+  font-size:9.5px;font-weight:800;color:#A78BFA;padding:2px 7px;
+  letter-spacing:.8px;text-transform:uppercase;flex-shrink:0;
+}
+.sidebar-nav{flex:1;padding:10px 8px;overflow-y:auto;}
+.nav-section-title{
+  font-size:10px;font-weight:700;color:rgba(122,133,176,.45);
+  text-transform:uppercase;letter-spacing:1px;padding:14px 8px 5px;
+}
+.nav-item{
+  display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:8px;
+  cursor:pointer;margin-bottom:1px;transition:all .15s;color:var(--sb-text);
+  font-weight:500;font-size:13px;position:relative;
+}
+.nav-item:hover{background:var(--sb-hover);color:#fff;}
+.nav-item.active{background:var(--sb-active);color:#fff;}
+.nav-item.active::before{
+  content:'';position:absolute;left:0;top:50%;transform:translateY(-50%);
+  width:3px;height:55%;background:var(--admin);border-radius:0 2px 2px 0;
+}
+.nav-icon{font-size:16px;width:20px;text-align:center;flex-shrink:0;}
+.nav-badge{
+  margin-left:auto;background:var(--err);color:#fff;
+  font-size:9.5px;font-weight:700;padding:2px 6px;border-radius:10px;
+}
+.nav-badge-warn{background:var(--warn);}
+.sub-nav{padding-left:30px;}
+.sub-nav .nav-item{font-size:12.5px;padding:6px 10px;}
+.sidebar-footer{padding:12px 8px;border-top:1px solid rgba(255,255,255,.05);flex-shrink:0;}
+.sidebar-user{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:8px;cursor:pointer;}
+.sidebar-user:hover{background:var(--sb-hover);}
+.sidebar-avatar{
+  width:32px;height:32px;border-radius:50%;background:var(--admin);
+  display:flex;align-items:center;justify-content:center;
+  font-size:12px;font-weight:700;color:#fff;flex-shrink:0;
+}
+.sidebar-user-info{flex:1;min-width:0;}
+.sidebar-user-name{font-size:12.5px;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.sidebar-user-role{font-size:11px;color:#A78BFA;}
+
+/* ══ MAIN ══ */
+.main{margin-left:var(--sb-w);flex:1;display:flex;flex-direction:column;min-height:100vh;}
+.topbar{
+  height:var(--top-h);background:#fff;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;padding:0 24px;gap:14px;
+  position:sticky;top:0;z-index:50;
+}
+.topbar-title{font-size:16px;font-weight:700;color:var(--text1);flex:1;}
+.topbar-title small{font-size:12px;font-weight:500;color:var(--text2);margin-left:8px;}
+.topbar-search{
+  display:flex;align-items:center;gap:8px;
+  background:#F8FAFC;border:1px solid var(--border);border-radius:8px;
+  padding:7px 12px;width:200px;
+}
+.topbar-search input{background:none;border:none;font-size:13px;color:var(--text1);width:100%;}
+.topbar-search input::placeholder{color:var(--text3);}
+.topbar-icon-btn{
+  width:36px;height:36px;border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  background:#F8FAFC;border:1px solid var(--border);cursor:pointer;
+  transition:all .15s;position:relative;color:var(--text2);font-size:16px;
+}
+.topbar-icon-btn:hover{background:var(--border);}
+.notif-dot{position:absolute;top:6px;right:6px;width:7px;height:7px;background:var(--err);border-radius:50%;border:1.5px solid #fff;}
+.admin-topbar-badge{
+  display:flex;align-items:center;gap:5px;
+  background:#F5F3FF;border:1px solid var(--admin-b);
+  border-radius:20px;padding:5px 12px;
+  font-size:12px;font-weight:700;color:var(--admin-text);
+}
+
+/* ══ PAGE ══ */
+.page-content{padding:24px;flex:1;}
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px;gap:16px;}
+.page-title{font-size:18px;font-weight:800;color:var(--text1);}
+.page-sub{font-size:13px;color:var(--text2);margin-top:3px;}
+.page-actions{display:flex;gap:8px;align-items:center;flex-shrink:0;}
+
+/* ══ CARDS ══ */
+.card{background:var(--card);border-radius:var(--r2);border:1px solid var(--border);box-shadow:var(--sh);}
+.card-pad{padding:20px;}
+.card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+.card-title{font-size:14px;font-weight:700;color:var(--text1);}
+.card-sub{font-size:12px;color:var(--text2);margin-top:2px;}
+
+/* ══ METRICS ══ */
+.metrics-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px;}
+.metrics-grid-2{grid-template-columns:repeat(4,1fr);}
+.metric-card{
+  background:var(--card);border-radius:var(--r2);border:1px solid var(--border);
+  padding:18px 20px;position:relative;overflow:hidden;
+}
+.metric-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--mc,var(--admin));}
+.metric-label{font-size:11.5px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;}
+.metric-value{font-size:24px;font-weight:800;color:var(--text1);font-family:var(--mono);letter-spacing:-1px;}
+.metric-sub{font-size:12px;color:var(--text3);margin-top:4px;}
+.metric-icon{
+  position:absolute;right:16px;top:50%;transform:translateY(-50%);
+  width:40px;height:40px;border-radius:10px;background:var(--mi-bg,#F5F3FF);
+  display:flex;align-items:center;justify-content:center;font-size:18px;
+}
+.metric-change{display:inline-flex;align-items:center;gap:3px;font-size:11.5px;font-weight:600;margin-top:4px;}
+.metric-change.up{color:var(--ok);}
+.metric-change.down{color:var(--err);}
+.metric-change.warn{color:var(--warn);}
+
+/* ══ HEALTH BAR ══ */
+.health-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:18px;}
+.health-item{
+  display:flex;align-items:center;gap:10px;
+  padding:10px 14px;background:var(--card);border-radius:10px;
+  border:1px solid var(--border);
+}
+.health-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+.health-dot.ok{background:var(--ok);box-shadow:0 0 0 2px rgba(22,163,74,.2);}
+.health-dot.warn{background:var(--warn);box-shadow:0 0 0 2px rgba(217,119,6,.2);}
+.health-dot.err{background:var(--err);box-shadow:0 0 0 2px rgba(220,38,38,.2);}
+.health-name{font-size:13px;font-weight:600;color:var(--text1);flex:1;}
+.health-meta{font-size:11.5px;color:var(--text2);}
+.health-status{font-size:11.5px;font-weight:600;}
+.health-status.ok{color:var(--ok);}
+.health-status.warn{color:var(--warn);}
+.health-status.err{color:var(--err);}
+
+/* ══ ACTIVITY FEED ══ */
+.activity-feed{display:flex;flex-direction:column;gap:0;}
+.activity-item{
+  display:flex;align-items:flex-start;gap:12px;
+  padding:12px 0;border-bottom:1px solid #F8FAFC;
+}
+.activity-item:last-child{border-bottom:none;}
+.activity-dot{
+  width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:5px;
+}
+.activity-text{font-size:13px;color:var(--text1);flex:1;}
+.activity-text strong{font-weight:600;}
+.activity-time{font-size:11.5px;color:var(--text3);flex-shrink:0;margin-top:1px;}
+
+/* ══ CHARTS PLACEHOLDER ══ */
+.chart-box{
+  height:160px;background:linear-gradient(to bottom,#F8FAFC,#F0F4F9);
+  border-radius:8px;border:1px solid var(--border);
+  display:flex;align-items:flex-end;padding:16px 12px 0;gap:4px;overflow:hidden;
+}
+.chart-bar{
+  flex:1;border-radius:4px 4px 0 0;min-width:0;
+  transition:opacity .2s;cursor:pointer;
+}
+.chart-bar:hover{opacity:.8;}
+.mini-chart{height:80px;}
+.donut-wrap{display:flex;align-items:center;gap:20px;}
+.donut-placeholder{
+  width:100px;height:100px;border-radius:50%;flex-shrink:0;
+  background:conic-gradient(#E91E8C 0% 52%,#FF9900 52% 72%,#2874F0 72% 100%);
+  position:relative;
+}
+.donut-placeholder::after{
+  content:'';position:absolute;inset:18px;background:var(--card);border-radius:50%;
+}
+.donut-legend{display:flex;flex-direction:column;gap:8px;}
+.donut-item{display:flex;align-items:center;gap:8px;font-size:12.5px;}
+.donut-color{width:10px;height:10px;border-radius:2px;flex-shrink:0;}
+
+/* ══ TABLES ══ */
+.table-wrap{overflow-x:auto;border-radius:var(--r2);border:1px solid var(--border);}
+table{width:100%;border-collapse:collapse;background:var(--card);}
+thead{background:#F8FAFC;border-bottom:1px solid var(--border);}
+th{padding:10px 14px;font-size:11px;font-weight:700;color:var(--text2);text-align:left;text-transform:uppercase;letter-spacing:.5px;white-space:nowrap;}
+td{padding:11px 14px;font-size:13px;color:var(--text1);border-bottom:1px solid #F5F7FA;white-space:nowrap;}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:#FAFBFD;}
+
+/* ══ BADGES ══ */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:11.5px;font-weight:600;}
+.badge-ok{background:var(--ok-bg);color:var(--ok);border:1px solid var(--ok-b);}
+.badge-warn{background:var(--warn-bg);color:var(--warn);border:1px solid var(--warn-b);}
+.badge-err{background:var(--err-bg);color:var(--err);border:1px solid var(--err-b);}
+.badge-info{background:var(--info-bg);color:var(--info);border:1px solid var(--info-b);}
+.badge-gray{background:#F1F5F9;color:var(--text2);border:1px solid var(--border);}
+.badge-accent{background:var(--accent-bg);color:var(--accent-text);border:1px solid #FED7AA;}
+.badge-admin{background:#F5F3FF;color:var(--admin-text);border:1px solid var(--admin-b);}
+.badge-meesho{background:#FCE4F3;color:#9C1070;border:1px solid #F9A8D4;}
+.badge-amazon{background:#FFF3E0;color:#B45309;border:1px solid #FCD34D;}
+.badge-flipkart{background:#EFF6FF;color:#1D4ED8;border:1px solid #93C5FD;}
+
+/* ══ TABS ══ */
+.tabs{display:flex;gap:2px;background:#F1F5F9;border-radius:10px;padding:3px;margin-bottom:18px;flex-wrap:wrap;}
+.tab-btn{padding:7px 14px;border-radius:8px;font-size:13px;font-weight:500;color:var(--text2);cursor:pointer;transition:all .15s;border:none;background:none;white-space:nowrap;}
+.tab-btn.active{background:#fff;color:var(--text1);font-weight:700;box-shadow:var(--sh);}
+
+/* ══ FILTERS ══ */
+.filters{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;align-items:center;}
+.filter-select{padding:7px 12px;border:1px solid var(--border);border-radius:8px;background:#fff;color:var(--text1);font-size:13px;cursor:pointer;}
+.search-input{
+  padding:7px 12px 7px 32px;border:1px solid var(--border);border-radius:8px;
+  background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2394A3B8' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='8'%3E%3C/circle%3E%3Cpath d='m21 21-4.35-4.35'%3E%3C/path%3E%3C/svg%3E") no-repeat 10px center;
+  color:var(--text1);font-size:13px;width:200px;
+}
+.search-input:focus{border-color:var(--admin);outline:none;}
+
+/* ══ TOGGLE ══ */
+.toggle{position:relative;width:38px;height:21px;display:inline-block;flex-shrink:0;}
+.toggle input{opacity:0;width:0;height:0;}
+.toggle-track{position:absolute;inset:0;background:#CBD5E1;border-radius:11px;cursor:pointer;transition:background .2s;}
+.toggle-track::after{content:'';position:absolute;left:2px;top:2px;width:17px;height:17px;background:#fff;border-radius:50%;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.2);}
+.toggle input:checked+.toggle-track{background:var(--accent);}
+.toggle input:checked+.toggle-track::after{transform:translateX(17px);}
+
+/* ══ SETTINGS ROWS ══ */
+.settings-row{display:flex;align-items:flex-start;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--border);gap:24px;}
+.settings-row:last-child{border-bottom:none;}
+.settings-label{font-size:13.5px;font-weight:600;color:var(--text1);}
+.settings-sub{font-size:12px;color:var(--text2);margin-top:2px;}
+.settings-input{padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13.5px;width:240px;transition:border-color .2s;}
+.settings-input:focus{border-color:var(--admin);box-shadow:0 0 0 3px rgba(124,58,237,.1);outline:none;}
+
+/* ══ SECTION HEADER ══ */
+.section-header{font-size:12px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border);}
+
+/* ══ QUEUE CARDS ══ */
+.queue-grid{display:grid;grid-template-columns:repeat(1,1fr);gap:10px;}
+.queue-card{
+  background:var(--card);border-radius:10px;border:1px solid var(--border);
+  padding:14px 18px;display:grid;grid-template-columns:1fr auto auto auto auto;
+  align-items:center;gap:20px;
+}
+.queue-name{font-size:13px;font-weight:700;color:var(--text1);font-family:var(--mono);}
+.queue-stat{text-align:center;}
+.queue-stat-val{font-size:16px;font-weight:700;font-family:var(--mono);color:var(--text1);}
+.queue-stat-lbl{font-size:10.5px;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;}
+
+/* ══ STATUS DOTS ══ */
+.status-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:5px;}
+.status-dot.ok{background:var(--ok);}
+.status-dot.warn{background:var(--warn);}
+.status-dot.err{background:var(--err);}
+.status-dot.gray{background:var(--text3);}
+
+/* ══ API KEY ROW ══ */
+.api-key-row{
+  display:grid;grid-template-columns:200px 1fr 120px auto;
+  align-items:center;gap:14px;padding:13px 0;border-bottom:1px solid var(--border);
+}
+.api-key-row:last-child{border-bottom:none;}
+.api-service{font-size:13.5px;font-weight:600;color:var(--text1);}
+.api-masked{font-family:var(--mono);font-size:12.5px;color:var(--text2);}
+.api-tested{font-size:12px;color:var(--text3);}
+
+/* ══ PLAN CARDS ══ */
+.plan-admin-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px;}
+.plan-admin-card{
+  background:var(--card);border:1.5px solid var(--border);border-radius:var(--r2);
+  padding:20px;position:relative;transition:all .2s;
+}
+.plan-admin-card:hover{border-color:var(--admin);box-shadow:var(--sh2);}
+.plan-tag{
+  position:absolute;top:-10px;right:16px;
+  background:var(--admin);color:#fff;font-size:10px;font-weight:800;
+  padding:3px 10px;border-radius:10px;letter-spacing:.5px;
+}
+.plan-name{font-size:16px;font-weight:800;color:var(--text1);margin-bottom:4px;}
+.plan-price{font-size:26px;font-weight:800;color:var(--admin);font-family:var(--mono);}
+.plan-price-sub{font-size:12px;color:var(--text2);margin-bottom:14px;}
+.plan-stat{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px;}
+.plan-stat:last-child{border-bottom:none;}
+.plan-stat-lbl{color:var(--text2);}
+.plan-stat-val{font-weight:600;color:var(--text1);font-family:var(--mono);}
+
+/* ══ AI MODEL CARDS ══ */
+.ai-model-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;}
+.ai-model-card{
+  background:var(--card);border:1.5px solid var(--border);border-radius:var(--r2);padding:20px;
+}
+.ai-model-card.active-model{border-color:var(--ok);background:var(--ok-bg);}
+.ai-model-task{font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px;}
+.ai-model-name{font-size:15px;font-weight:700;color:var(--text1);margin-bottom:4px;}
+.ai-model-cost{font-size:12.5px;color:var(--text2);}
+.ai-model-actions{display:flex;gap:8px;margin-top:14px;}
+
+/* ══ NOTIF COMPOSER ══ */
+.notif-target-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px;}
+.notif-target-btn{
+  border:1.5px solid var(--border);border-radius:8px;padding:10px 14px;
+  cursor:pointer;text-align:left;background:var(--card);transition:all .2s;
+}
+.notif-target-btn.selected{border-color:var(--admin);background:#F5F3FF;}
+.notif-target-label{font-size:13px;font-weight:600;color:var(--text1);}
+.notif-target-sub{font-size:11.5px;color:var(--text2);}
+.channel-checks{display:flex;gap:16px;flex-wrap:wrap;}
+.channel-check{display:flex;align-items:center;gap:7px;cursor:pointer;font-size:13px;font-weight:500;}
+.channel-check input{width:15px;height:15px;accent-color:var(--admin);}
+
+/* ══ LOG ══ */
+.log-row{
+  display:grid;grid-template-columns:140px 130px 100px 1fr auto;
+  align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #F5F7FA;font-size:12.5px;
+}
+.log-row:last-child{border-bottom:none;}
+.log-time{color:var(--text3);font-family:var(--mono);}
+.log-admin{color:var(--text2);}
+.log-action{font-weight:600;}
+.log-detail{color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+
+/* ══ PROGRESS / USAGE ══ */
+.progress-bar{height:8px;background:#F1F5F9;border-radius:4px;overflow:hidden;margin:4px 0;}
+.progress-fill{height:100%;border-radius:4px;transition:width .6s ease;}
+.progress-admin{background:var(--admin);}
+.progress-ok{background:var(--ok);}
+.progress-warn{background:var(--warn);}
+.progress-err{background:var(--err);}
+.progress-accent{background:var(--accent);}
+
+/* ══ CLIENT PROFILE ══ */
+.client-header-card{
+  background:linear-gradient(135deg,var(--sb) 0%,#1a1050 100%);
+  border-radius:var(--r2);padding:24px 28px;margin-bottom:18px;
+  display:flex;align-items:center;gap:20px;
+}
+.client-avatar-lg{
+  width:60px;height:60px;border-radius:16px;background:var(--admin);
+  display:flex;align-items:center;justify-content:center;
+  font-size:24px;font-weight:800;color:#fff;flex-shrink:0;
+}
+.client-name{font-size:20px;font-weight:800;color:#fff;}
+.client-email{font-size:13px;color:#7A85B0;margin-top:2px;}
+.client-meta{display:flex;gap:12px;margin-top:8px;flex-wrap:wrap;}
+.client-meta-item{font-size:12px;color:#9CA3AF;}
+.client-actions-header{display:flex;gap:8px;margin-left:auto;flex-wrap:wrap;}
+
+/* ══ MISC ══ */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;}
+.gap-14{gap:14px;}
+.mb-14{margin-bottom:14px;}
+.mb-18{margin-bottom:18px;}
+.text-mono{font-family:var(--mono);}
+.text-sm{font-size:12.5px;}
+.text-xs{font-size:11.5px;}
+.text-muted{color:var(--text2);}
+.fw-600{font-weight:600;}
+.fw-700{font-weight:700;}
+.separator{height:1px;background:var(--border);margin:18px 0;}
+.empty-state{text-align:center;padding:40px 20px;color:var(--text3);}
+.empty-state-icon{font-size:36px;margin-bottom:10px;}
+.tag{
+  display:inline-flex;padding:2px 8px;border-radius:6px;
+  font-size:11px;font-weight:600;background:#F1F5F9;color:var(--text2);
+  border:1px solid var(--border);
+}
+.section-spacer{height:20px;}
+
+/* ══ IMPERSONATE BANNER ══ */
+.impersonate-bar{
+  background:linear-gradient(90deg,#7C3AED,#5B21B6);
+  color:#fff;padding:10px 24px;
+  display:flex;align-items:center;justify-content:space-between;
+  font-size:13px;font-weight:600;
+}
+/* ══ CHART LINES FAKE ══ */
+.line-chart{height:130px;background:#F8FAFC;border-radius:8px;border:1px solid var(--border);overflow:hidden;position:relative;display:flex;align-items:flex-end;padding:10px;}
+.line-chart svg{position:absolute;inset:0;width:100%;height:100%;}
+
+/* ══ MODAL ══ */
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;
+  display:flex;align-items:center;justify-content:center;
+  backdrop-filter:blur(2px);
+}
+.modal{
+  background:#fff;border-radius:var(--r2);padding:28px;
+  width:100%;max-width:480px;box-shadow:0 20px 60px rgba(0,0,0,.25);
+}
+.modal-title{font-size:17px;font-weight:800;color:var(--text1);margin-bottom:16px;}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════
+     LOGIN PAGE
+══════════════════════════════════ -->
+<div id="login-page">
+  <div class="login-wrap">
+    <div class="login-brand">
+      <div class="admin-badge-top">🔐 Super Admin Access</div>
+      <div class="login-logo">
+        <div class="login-logo-icon">🛡</div>
+        <div class="login-logo-name">Agencyfic <span>OMS</span></div>
+      </div>
+      <div class="login-tagline">One Dashboard. All Platforms. Zero Chaos.</div>
+    </div>
+    <div class="login-card">
+      <div class="login-title">Admin Sign In</div>
+      <div class="login-sub">Restricted access — authorised personnel only</div>
+      <div class="admin-warn">
+        <div class="admin-warn-icon">⚠️</div>
+        <div class="admin-warn-text">This panel has full control over all client accounts, billing, and system settings.</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Admin Email</label>
+        <input class="form-input" type="email" placeholder="admin@agencyfic.com" value="admin@agencyfic.com">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input class="form-input" type="password" placeholder="••••••••••••" value="supersecret">
+      </div>
+      <div class="form-group">
+        <label class="form-label">2FA Code</label>
+        <input class="form-input" type="text" placeholder="6-digit code" value="482910">
+      </div>
+      <button class="btn btn-admin btn-full" onclick="showApp()" style="margin-top:4px;">🔓 Sign In to Admin Panel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════
+     APP SHELL
+══════════════════════════════════ -->
+<div id="app-shell" class="app hidden">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <div class="sidebar-logo-icon">🛡</div>
+        <div class="sidebar-logo-text">Agencyfic <span>OMS</span></div>
+        <div class="admin-chip">ADMIN</div>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-item active" onclick="showPage('overview')">
+        <span class="nav-icon">📊</span> Overview
+      </div>
+      <div class="nav-section-title">Clients</div>
+      <div class="nav-item" onclick="showPage('clients')">
+        <span class="nav-icon">👥</span> All Clients
+        <span class="nav-badge">247</span>
+      </div>
+      <div class="nav-item" onclick="showPage('client-profile')">
+        <span class="nav-icon">👤</span> Client Profile
+      </div>
+      <div class="nav-item" onclick="showPage('clients')">
+        <span class="nav-icon">🚫</span> Suspended
+        <span class="nav-badge">3</span>
+      </div>
+      <div class="nav-section-title">Billing</div>
+      <div class="nav-item" onclick="showPage('plans')">
+        <span class="nav-icon">💳</span> Plans & Revenue
+      </div>
+      <div class="nav-item" onclick="showPage('plans')">
+        <span class="nav-icon">📋</span> All Transactions
+      </div>
+      <div class="nav-section-title">Infrastructure</div>
+      <div class="nav-item" onclick="showPage('platform-health')">
+        <span class="nav-icon">🔌</span> Platform Health
+        <span class="nav-badge nav-badge-warn">2</span>
+      </div>
+      <div class="nav-item" onclick="showPage('ai-settings')">
+        <span class="nav-icon">🤖</span> AI Settings
+      </div>
+      <div class="nav-section-title">Content</div>
+      <div class="nav-item" onclick="showPage('website-settings')">
+        <span class="nav-icon">🌐</span> Website Settings
+      </div>
+      <div class="nav-item" onclick="showPage('notifications')">
+        <span class="nav-icon">🔔</span> Notifications
+      </div>
+      <div class="nav-section-title">System</div>
+      <div class="nav-item" onclick="showPage('system-settings')">
+        <span class="nav-icon">⚙️</span> System Settings
+      </div>
+      <div class="nav-item" onclick="showPage('activity-log')">
+        <span class="nav-icon">📜</span> Activity Log
+      </div>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="sidebar-avatar">SA</div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name">Superadmin</div>
+          <div class="sidebar-user-role">🔐 Full Control</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="main">
+
+    <!-- TOPBAR -->
+    <div class="topbar">
+      <div class="topbar-title" id="page-title">Overview <small>Dashboard</small></div>
+      <div class="topbar-search">
+        <svg width="14" height="14" fill="none" stroke="#94A3B8" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input placeholder="Search clients, orders...">
+      </div>
+      <div class="admin-topbar-badge">🛡 Admin Session</div>
+      <div class="topbar-icon-btn" title="Notifications">🔔<span class="notif-dot"></span></div>
+      <div class="topbar-icon-btn" title="Settings" onclick="showPage('system-settings')">⚙️</div>
+      <div class="topbar-icon-btn" title="Logout" onclick="showLogin()" style="color:#DC2626;">🚪</div>
+    </div>
+
+    <!-- ════ PAGE: OVERVIEW ════ -->
+    <div id="page-overview" class="page-content">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Admin Overview</div>
+          <div class="page-sub">Real-time platform health and business metrics · Last updated 2 min ago</div>
+        </div>
+        <div class="page-actions">
+          <button class="btn btn-secondary btn-sm">📥 Export Report</button>
+          <button class="btn btn-admin btn-sm">📢 Send Announcement</button>
+        </div>
+      </div>
+
+      <!-- Metrics Row 1 -->
+      <div class="metrics-grid">
+        <div class="metric-card" style="--mc:var(--admin);--mi-bg:#F5F3FF;">
+          <div class="metric-label">Total Active Clients</div>
+          <div class="metric-value">247</div>
+          <div class="metric-change up">▲ 12 this week</div>
+          <div class="metric-icon">👥</div>
+        </div>
+        <div class="metric-card" style="--mc:var(--ok);--mi-bg:var(--ok-bg);">
+          <div class="metric-label">New Signups Today</div>
+          <div class="metric-value">8</div>
+          <div class="metric-change up">▲ 3 vs yesterday</div>
+          <div class="metric-icon">🆕</div>
+        </div>
+        <div class="metric-card" style="--mc:var(--accent);--mi-bg:var(--accent-bg);">
+          <div class="metric-label">Orders Processed Today</div>
+          <div class="metric-value">4,821</div>
+          <div class="metric-change up">▲ 7.2% vs yesterday</div>
+          <div class="metric-icon">📦</div>
+        </div>
+        <div class="metric-card" style="--mc:#10B981;--mi-bg:#ECFDF5;">
+          <div class="metric-label">Revenue This Month</div>
+          <div class="metric-value">₹1.84L</div>
+          <div class="metric-change up">▲ 23% vs last month</div>
+          <div class="metric-icon">💰</div>
+        </div>
+      </div>
+
+      <!-- Metrics Row 2 -->
+      <div class="metrics-grid mb-18">
+        <div class="metric-card" style="--mc:var(--err);--mi-bg:var(--err-bg);">
+          <div class="metric-label">Session Errors Now</div>
+          <div class="metric-value">3</div>
+          <div class="metric-change warn">⚠ needs attention</div>
+          <div class="metric-icon">🔴</div>
+        </div>
+        <div class="metric-card" style="--mc:var(--info);--mi-bg:var(--info-bg);">
+          <div class="metric-label">Queue Depth</div>
+          <div class="metric-value">54</div>
+          <div class="metric-change up">Normal load</div>
+          <div class="metric-icon">🔄</div>
+        </div>
+        <div class="metric-card" style="--mc:var(--warn);--mi-bg:var(--warn-bg);">
+          <div class="metric-label">Failed Jobs (24h)</div>
+          <div class="metric-value">18</div>
+          <div class="metric-change down">▲ 4 vs yesterday</div>
+          <div class="metric-icon">❌</div>
+        </div>
+        <div class="metric-card" style="--mc:#6366F1;--mi-bg:#EEF2FF;">
+          <div class="metric-label">Server Load</div>
+          <div class="metric-value">38%</div>
+          <div class="metric-change up">✓ Normal</div>
+          <div class="metric-icon">🖥</div>
+        </div>
+      </div>
+
+      <!-- System Health -->
+      <div class="card card-pad mb-18">
+        <div class="card-header">
+          <div>
+            <div class="card-title">🩺 System Health</div>
+            <div class="card-sub">Live status of all platform components</div>
+          </div>
+          <button class="btn btn-secondary btn-sm" onclick="showPage('platform-health')">View Details →</button>
+        </div>
+        <div class="health-grid">
+          <div class="health-item"><div class="health-dot ok"></div><div class="health-name">Meesho Sync</div><div class="health-meta">Last run 3 min ago</div><div class="health-status ok">OK</div></div>
+          <div class="health-item"><div class="health-dot ok"></div><div class="health-name">Amazon SP-API</div><div class="health-meta">Webhooks active</div><div class="health-status ok">OK</div></div>
+          <div class="health-item"><div class="health-dot warn"></div><div class="health-name">Flipkart Webhooks</div><div class="health-meta">2 failures in last hour</div><div class="health-status warn">⚠ Warning</div></div>
+          <div class="health-item"><div class="health-dot ok"></div><div class="health-name">Bull Queue</div><div class="health-meta">Depth: 54 jobs</div><div class="health-status ok">OK</div></div>
+          <div class="health-item"><div class="health-dot ok"></div><div class="health-name">PostgreSQL</div><div class="health-meta">23/100 connections</div><div class="health-status ok">OK</div></div>
+          <div class="health-item"><div class="health-dot ok"></div><div class="health-name">Redis</div><div class="health-meta">412MB / 2GB</div><div class="health-status ok">OK</div></div>
+          <div class="health-item"><div class="health-dot ok"></div><div class="health-name">Playwright Pool</div><div class="health-meta">0/3 instances active</div><div class="health-status ok">Idle</div></div>
+          <div class="health-item"><div class="health-dot ok"></div><div class="health-name">Cloudflare R2</div><div class="health-meta">Storage 2.4GB used</div><div class="health-status ok">OK</div></div>
+        </div>
+      </div>
+
+      <!-- Charts Row -->
+      <div class="two-col mb-18">
+        <div class="card card-pad">
+          <div class="card-header">
+            <div class="card-title">📈 Orders Processed (Last 30 Days)</div>
+          </div>
+          <div class="chart-box" style="height:140px;">
+            <div class="chart-bar" style="height:45%;background:#7C3AED33;border:1px solid #7C3AED55;"></div>
+            <div class="chart-bar" style="height:55%;background:#7C3AED44;border:1px solid #7C3AED55;"></div>
+            <div class="chart-bar" style="height:50%;background:#7C3AED44;"></div>
+            <div class="chart-bar" style="height:65%;background:#7C3AED55;"></div>
+            <div class="chart-bar" style="height:60%;background:#7C3AED55;"></div>
+            <div class="chart-bar" style="height:70%;background:#7C3AED66;"></div>
+            <div class="chart-bar" style="height:80%;background:#7C3AED77;"></div>
+            <div class="chart-bar" style="height:75%;background:#7C3AED77;"></div>
+            <div class="chart-bar" style="height:85%;background:#7C3AED88;"></div>
+            <div class="chart-bar" style="height:72%;background:#7C3AED77;"></div>
+            <div class="chart-bar" style="height:90%;background:#7C3AED99;"></div>
+            <div class="chart-bar" style="height:88%;background:#7C3AED99;"></div>
+            <div class="chart-bar" style="height:95%;background:#7C3AEDaa;"></div>
+            <div class="chart-bar" style="height:82%;background:#7C3AED99;"></div>
+            <div class="chart-bar" style="height:100%;background:#7C3AED;"></div>
+          </div>
+        </div>
+        <div class="card card-pad">
+          <div class="card-header">
+            <div class="card-title">🥧 Platform Distribution</div>
+          </div>
+          <div class="donut-wrap" style="padding:10px 0;">
+            <div class="donut-placeholder"></div>
+            <div class="donut-legend">
+              <div class="donut-item"><div class="donut-color" style="background:#E91E8C;"></div><span style="font-weight:600;">Meesho</span>&nbsp;<span class="text-muted">52% · 2,510 orders</span></div>
+              <div class="donut-item"><div class="donut-color" style="background:#FF9900;"></div><span style="font-weight:600;">Amazon</span>&nbsp;<span class="text-muted">20% · 960 orders</span></div>
+              <div class="donut-item"><div class="donut-color" style="background:#2874F0;"></div><span style="font-weight:600;">Flipkart</span>&nbsp;<span class="text-muted">28% · 1,351 orders</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Revenue + Signups -->
+      <div class="two-col mb-18">
+        <div class="card card-pad">
+          <div class="card-header"><div class="card-title">💰 Revenue per Day (₹ thousands)</div></div>
+          <div class="chart-box" style="height:120px;">
+            <div class="chart-bar" style="height:30%;background:#10B98133;"></div>
+            <div class="chart-bar" style="height:45%;background:#10B98144;"></div>
+            <div class="chart-bar" style="height:55%;background:#10B98155;"></div>
+            <div class="chart-bar" style="height:40%;background:#10B98144;"></div>
+            <div class="chart-bar" style="height:60%;background:#10B98166;"></div>
+            <div class="chart-bar" style="height:70%;background:#10B98177;"></div>
+            <div class="chart-bar" style="height:65%;background:#10B98177;"></div>
+            <div class="chart-bar" style="height:80%;background:#10B98188;"></div>
+            <div class="chart-bar" style="height:75%;background:#10B98177;"></div>
+            <div class="chart-bar" style="height:90%;background:#10B98199;"></div>
+            <div class="chart-bar" style="height:85%;background:#10B98199;"></div>
+            <div class="chart-bar" style="height:100%;background:#10B981;"></div>
+          </div>
+        </div>
+        <div class="card card-pad">
+          <div class="card-header"><div class="card-title">📅 New Signups per Week</div></div>
+          <div class="chart-box" style="height:120px;gap:8px;">
+            <div class="chart-bar" style="height:40%;background:#F9731633;border-radius:6px 6px 0 0;flex:2;"></div>
+            <div class="chart-bar" style="height:55%;background:#F9731655;border-radius:6px 6px 0 0;flex:2;"></div>
+            <div class="chart-bar" style="height:70%;background:#F9731677;border-radius:6px 6px 0 0;flex:2;"></div>
+            <div class="chart-bar" style="height:85%;background:#F97316;border-radius:6px 6px 0 0;flex:2;"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Activity Feed -->
+      <div class="card card-pad">
+        <div class="card-header">
+          <div class="card-title">📡 Recent Activity</div>
+          <button class="btn btn-secondary btn-sm">View All →</button>
+        </div>
+        <div class="activity-feed">
+          <div class="activity-item">
+            <div class="activity-dot" style="background:var(--ok);"></div>
+            <div class="activity-text"><strong>New signup:</strong> rahul@techkart.in — Growth Plan ₹4,000 purchased</div>
+            <div class="activity-time">2 min ago</div>
+          </div>
+          <div class="activity-item">
+            <div class="activity-dot" style="background:var(--warn);"></div>
+            <div class="activity-text"><strong>Session expired:</strong> "Company B Meesho" for pk@example.com — re-login queued</div>
+            <div class="activity-time">5 min ago</div>
+          </div>
+          <div class="activity-item">
+            <div class="activity-dot" style="background:var(--ok);"></div>
+            <div class="activity-text"><strong>Claim won:</strong> ₹450 recovered via Meesho claim for amit@gmail.com</div>
+            <div class="activity-time">12 min ago</div>
+          </div>
+          <div class="activity-item">
+            <div class="activity-dot" style="background:var(--indigo);"></div>
+            <div class="activity-text"><strong>AI batch complete:</strong> 23 images generated for priya@fashionstore.in</div>
+            <div class="activity-time">1 hour ago</div>
+          </div>
+          <div class="activity-item">
+            <div class="activity-dot" style="background:var(--err);"></div>
+            <div class="activity-text"><strong>Payment failed:</strong> ₹4,000 Growth Plan attempt by ritu@example.com — Razorpay timeout</div>
+            <div class="activity-time">2 hours ago</div>
+          </div>
+          <div class="activity-item">
+            <div class="activity-dot" style="background:var(--ok);"></div>
+            <div class="activity-text"><strong>Flipkart webhook restored:</strong> 2 webhook failures resolved automatically</div>
+            <div class="activity-time">3 hours ago</div>
+          </div>
+        </div>
+      </div>
+    </div><!-- /overview -->
+
+    <!-- ════ PAGE: CLIENTS ════ -->
+    <div id="page-clients" class="page-content hidden">
+      <div class="page-header">
+        <div>
+          <div class="page-title">All Clients</div>
+          <div class="page-sub">247 total accounts · 231 active · 3 suspended · 13 unverified</div>
+        </div>
+        <div class="page-actions">
+          <button class="btn btn-secondary btn-sm">📥 Export CSV</button>
+          <button class="btn btn-admin btn-sm">➕ Add Client</button>
+        </div>
+      </div>
+      <div class="filters">
+        <select class="filter-select">
+          <option>All Plans</option>
+          <option>Starter</option>
+          <option>Growth</option>
+          <option>Pro</option>
+          <option>Expired</option>
+          <option>Free Trial</option>
+        </select>
+        <select class="filter-select">
+          <option>All Status</option>
+          <option>Active</option>
+          <option>Suspended</option>
+          <option>Unverified</option>
+        </select>
+        <select class="filter-select">
+          <option>All Platforms</option>
+          <option>Has Meesho</option>
+          <option>Has Amazon</option>
+          <option>Has Flipkart</option>
+        </select>
+        <select class="filter-select">
+          <option>Sort: Joined ↓</option>
+          <option>Sort: Credits Used</option>
+          <option>Sort: Revenue</option>
+          <option>Sort: Last Active</option>
+        </select>
+        <input class="search-input" placeholder="Search name, email, phone...">
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th><input type="checkbox" class="table-check"></th>
+              <th>Client</th>
+              <th>Plan</th>
+              <th>Credits</th>
+              <th>Platforms</th>
+              <th>Orders Today</th>
+              <th>Last Active</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><input type="checkbox" class="table-check"></td>
+              <td>
+                <div style="font-weight:600;">Rahul Sharma</div>
+                <div class="text-xs text-muted">rahul@techkart.in · Jaipur</div>
+              </td>
+              <td><span class="badge badge-admin">Growth</span></td>
+              <td>
+                <div class="text-mono fw-600">3,421 / 5,000</div>
+                <div class="progress-bar" style="width:100px;"><div class="progress-fill progress-admin" style="width:68%;"></div></div>
+              </td>
+              <td>
+                <span class="badge badge-meesho">M</span>&nbsp;
+                <span class="badge badge-amazon">A</span>&nbsp;
+                <span class="badge badge-flipkart">F</span>
+              </td>
+              <td class="text-mono fw-600">142</td>
+              <td class="text-muted">2 min ago</td>
+              <td><span class="badge badge-ok">● Active</span></td>
+              <td>
+                <div style="display:flex;gap:5px;">
+                  <button class="btn btn-secondary btn-xs" onclick="showPage('client-profile')">View</button>
+                  <button class="btn btn-warn btn-xs">⚡ Add Credits</button>
+                  <button class="btn btn-danger btn-xs">Suspend</button>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td><input type="checkbox" class="table-check"></td>
+              <td>
+                <div style="font-weight:600;">Priya Kapoor</div>
+                <div class="text-xs text-muted">priya@fashionstore.in · Mumbai</div>
+              </td>
+              <td><span class="badge badge-accent">Pro</span></td>
+              <td>
+                <div class="text-mono fw-600">7,203 / 10,000</div>
+                <div class="progress-bar" style="width:100px;"><div class="progress-fill progress-warn" style="width:72%;"></div></div>
+              </td>
+              <td>
+                <span class="badge badge-meesho">M</span>&nbsp;
+                <span class="badge badge-flipkart">F</span>
+              </td>
+              <td class="text-mono fw-600">381</td>
+              <td class="text-muted">8 min ago</td>
+              <td><span class="badge badge-ok">● Active</span></td>
+              <td>
+                <div style="display:flex;gap:5px;">
+                  <button class="btn btn-secondary btn-xs">View</button>
+                  <button class="btn btn-warn btn-xs">⚡ Add Credits</button>
+                  <button class="btn btn-danger btn-xs">Suspend</button>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td><input type="checkbox" class="table-check"></td>
+              <td>
+                <div style="font-weight:600;">Amit Kumar</div>
+                <div class="text-xs text-muted">amit@gadgetwala.com · Delhi</div>
+              </td>
+              <td><span class="badge badge-gray">Starter</span></td>
+              <td>
+                <div class="text-mono fw-600">892 / 1,000</div>
+                <div class="progress-bar" style="width:100px;"><div class="progress-fill progress-err" style="width:89%;"></div></div>
+              </td>
+              <td>
+                <span class="badge badge-meesho">M</span>&nbsp;
+                <span class="badge badge-amazon">A</span>
+              </td>
+              <td class="text-mono fw-600">56</td>
+              <td class="text-muted">1 hour ago</td>
+              <td><span class="badge badge-warn">⚠ Low Credits</span></td>
+              <td>
+                <div style="display:flex;gap:5px;">
+                  <button class="btn btn-secondary btn-xs">View</button>
+                  <button class="btn btn-warn btn-xs">⚡ Add Credits</button>
+                  <button class="btn btn-danger btn-xs">Suspend</button>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td><input type="checkbox" class="table-check"></td>
+              <td>
+                <div style="font-weight:600;">Ritu Gupta</div>
+                <div class="text-xs text-muted">ritu@kurtistudio.in · Surat</div>
+              </td>
+              <td><span class="badge badge-err">Expired</span></td>
+              <td>
+                <div class="text-mono fw-600">5,000 / 5,000</div>
+                <div class="progress-bar" style="width:100px;"><div class="progress-fill progress-err" style="width:100%;"></div></div>
+              </td>
+              <td>
+                <span class="badge badge-meesho">M</span>
+              </td>
+              <td class="text-mono fw-600">0</td>
+              <td class="text-muted">3 days ago</td>
+              <td><span class="badge badge-err">● Expired</span></td>
+              <td>
+                <div style="display:flex;gap:5px;">
+                  <button class="btn btn-secondary btn-xs">View</button>
+                  <button class="btn btn-ok btn-xs">📧 Remind</button>
+                  <button class="btn btn-danger btn-xs">Delete</button>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td><input type="checkbox" class="table-check"></td>
+              <td>
+                <div style="font-weight:600;">Sunita Devi</div>
+                <div class="text-xs text-muted">sunita@sarikart.com · Kolkata</div>
+              </td>
+              <td><span class="badge badge-gray">Free Trial</span></td>
+              <td>
+                <div class="text-mono fw-600">23 / 50</div>
+                <div class="progress-bar" style="width:100px;"><div class="progress-fill progress-ok" style="width:46%;"></div></div>
+              </td>
+              <td>
+                <span class="badge badge-meesho">M</span>
+              </td>
+              <td class="text-mono fw-600">12</td>
+              <td class="text-muted">30 min ago</td>
+              <td><span class="badge badge-info">⏳ Unverified</span></td>
+              <td>
+                <div style="display:flex;gap:5px;">
+                  <button class="btn btn-secondary btn-xs">View</button>
+                  <button class="btn btn-ok btn-xs">✓ Verify</button>
+                  <button class="btn btn-danger btn-xs">Delete</button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:14px;font-size:12.5px;color:var(--text2);">
+        Showing 5 of 247 clients
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-secondary btn-xs">← Prev</button>
+          <button class="btn btn-secondary btn-xs" style="background:var(--admin);color:#fff;border-color:var(--admin);">1</button>
+          <button class="btn btn-secondary btn-xs">2</button>
+          <button class="btn btn-secondary btn-xs">3</button>
+          <button class="btn btn-secondary btn-xs">Next →</button>
+        </div>
+      </div>
+    </div><!-- /clients -->
+
+    <!-- ════ PAGE: CLIENT PROFILE ════ -->
+    <div id="page-client-profile" class="page-content hidden">
+      <div class="client-header-card">
+        <div class="client-avatar-lg">RS</div>
+        <div style="flex:1;">
+          <div class="client-name">Rahul Sharma</div>
+          <div class="client-email">rahul@techkart.in · +91 98765 43210 · TechKart Pvt Ltd</div>
+          <div class="client-meta">
+            <span class="client-meta-item">📅 Joined 15 Mar 2026</span>
+            <span class="client-meta-item">📍 Jaipur, Rajasthan</span>
+            <span class="client-meta-item">🔐 GSTIN: 08AABCT1332L1ZS</span>
+            <span class="client-meta-item">🆔 ID: usr_4f3a8b2c</span>
+          </div>
+        </div>
+        <div class="client-actions-header">
+          <button class="btn btn-secondary btn-sm">📧 Send Message</button>
+          <button class="btn btn-sm" style="background:#7C3AED;color:#fff;">👁 Impersonate</button>
+          <button class="btn btn-danger btn-sm">🚫 Suspend</button>
+        </div>
+      </div>
+
+      <!-- Summary Metrics -->
+      <div class="metrics-grid mb-18" style="grid-template-columns:repeat(4,1fr);">
+        <div class="metric-card" style="--mc:var(--admin);--mi-bg:#F5F3FF;">
+          <div class="metric-label">Total Orders</div>
+          <div class="metric-value">3,421</div>
+          <div class="metric-sub">All platforms combined</div>
+          <div class="metric-icon">📦</div>
+        </div>
+        <div class="metric-card" style="--mc:var(--warn);--mi-bg:var(--warn-bg);">
+          <div class="metric-label">Credits Left</div>
+          <div class="metric-value">1,579</div>
+          <div class="metric-sub">of 5,000 Growth Plan</div>
+          <div class="metric-icon">🔋</div>
+        </div>
+        <div class="metric-card" style="--mc:var(--ok);--mi-bg:var(--ok-bg);">
+          <div class="metric-label">Total Paid</div>
+          <div class="metric-value">₹8,000</div>
+          <div class="metric-sub">2 Growth plan purchases</div>
+          <div class="metric-icon">💳</div>
+        </div>
+        <div class="metric-card" style="--mc:#6366F1;--mi-bg:#EEF2FF;">
+          <div class="metric-label">Active Since</div>
+          <div class="metric-value">27d</div>
+          <div class="metric-sub">Last active 2 min ago</div>
+          <div class="metric-icon">⏱</div>
+        </div>
+      </div>
+
+      <div class="two-col mb-18">
+        <!-- Platform Status -->
+        <div class="card card-pad">
+          <div class="card-header"><div class="card-title">🔌 Connected Platforms</div></div>
+          <div style="display:flex;flex-direction:column;gap:10px;">
+            <div style="padding:12px;background:#FCE4F3;border-radius:8px;border:1px solid #F9A8D4;">
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <span style="font-weight:700;color:#9C1070;">🛍 Meesho</span>
+                <div style="display:flex;gap:6px;">
+                  <span class="badge badge-ok">● Active</span>
+                  <span class="badge badge-warn">1 Expired</span>
+                </div>
+              </div>
+              <div class="text-xs text-muted" style="margin-top:4px;">3 accounts · Last sync 3 min ago</div>
+              <div style="display:flex;gap:6px;margin-top:8px;">
+                <button class="btn btn-secondary btn-xs">Force Sync</button>
+                <button class="btn btn-warn btn-xs">Force Re-login</button>
+              </div>
+            </div>
+            <div style="padding:12px;background:#FFF3E0;border-radius:8px;border:1px solid #FCD34D;">
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <span style="font-weight:700;color:#B45309;">📦 Amazon India</span>
+                <span class="badge badge-ok">● Active</span>
+              </div>
+              <div class="text-xs text-muted" style="margin-top:4px;">1 account · SP-API · Token auto-refreshing</div>
+            </div>
+            <div style="padding:12px;background:#EFF6FF;border-radius:8px;border:1px solid #93C5FD;">
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <span style="font-weight:700;color:#1D4ED8;">🛒 Flipkart</span>
+                <span class="badge badge-ok">● Active</span>
+              </div>
+              <div class="text-xs text-muted" style="margin-top:4px;">2 accounts · Webhook active</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Billing History -->
+        <div class="card card-pad">
+          <div class="card-header">
+            <div class="card-title">💳 Billing History</div>
+            <button class="btn btn-admin btn-xs">⚡ Add Bonus Credits</button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Date</th><th>Plan</th><th>Orders</th><th>Amount</th><th>Status</th></tr></thead>
+              <tbody>
+                <tr>
+                  <td class="text-xs">15 Mar 2026</td>
+                  <td><span class="badge badge-admin">Growth</span></td>
+                  <td class="text-mono">5,000</td>
+                  <td class="text-mono fw-600">₹4,000</td>
+                  <td><span class="badge badge-ok">Paid</span></td>
+                </tr>
+                <tr>
+                  <td class="text-xs">01 Mar 2026</td>
+                  <td><span class="badge badge-admin">Growth</span></td>
+                  <td class="text-mono">5,000</td>
+                  <td class="text-mono fw-600">₹4,000</td>
+                  <td><span class="badge badge-ok">Paid</span></td>
+                </tr>
+                <tr>
+                  <td class="text-xs">20 Feb 2026</td>
+                  <td><span class="badge badge-gray">Starter</span></td>
+                  <td class="text-mono">1,000</td>
+                  <td class="text-mono fw-600">₹1,000</td>
+                  <td><span class="badge badge-ok">Paid</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- AI Usage + Admin Actions -->
+      <div class="two-col mb-18">
+        <div class="card card-pad">
+          <div class="card-header"><div class="card-title">🤖 AI Usage This Month</div></div>
+          <div class="settings-row">
+            <div><div class="settings-label">Listing Optimizations</div></div>
+            <div class="text-mono fw-600">23 calls</div>
+          </div>
+          <div class="settings-row">
+            <div><div class="settings-label">AI Images Generated</div></div>
+            <div class="text-mono fw-600">47 images</div>
+          </div>
+          <div class="settings-row">
+            <div><div class="settings-label">Background Removals</div></div>
+            <div class="text-mono fw-600">31 images</div>
+          </div>
+          <div class="settings-row">
+            <div><div class="settings-label">Total AI Cost (Your Cost)</div></div>
+            <div class="text-mono fw-600" style="color:var(--err);">₹180.50</div>
+          </div>
+        </div>
+        <div class="card card-pad">
+          <div class="card-header"><div class="card-title">⚡ Admin Actions</div></div>
+          <div style="display:flex;flex-direction:column;gap:10px;">
+            <button class="btn btn-secondary btn-full" style="justify-content:flex-start;gap:10px;">📧 Send Email to User</button>
+            <button class="btn btn-secondary btn-full" style="justify-content:flex-start;gap:10px;color:var(--admin);border-color:var(--admin-b);">👁 Impersonate User <span class="text-xs" style="margin-left:auto;color:var(--text3);">Logged in activity log</span></button>
+            <button class="btn btn-secondary btn-full" style="justify-content:flex-start;gap:10px;">🔄 Change Plan</button>
+            <button class="btn btn-secondary btn-full" style="justify-content:flex-start;gap:10px;">📤 Download User Data (JSON)</button>
+            <button class="btn btn-danger btn-full" style="justify-content:flex-start;gap:10px;">🗑 Delete Account</button>
+            <div style="padding:10px 12px;background:#F8FAFC;border-radius:8px;border:1px solid var(--border);">
+              <div class="text-xs fw-600 text-muted" style="margin-bottom:6px;">ADMIN NOTES (Internal)</div>
+              <textarea style="width:100%;border:none;background:transparent;font-size:13px;resize:none;" rows="2" placeholder="Internal notes about this client...">User requested credits extension on 10 Apr — confirmed via WhatsApp.</textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div><!-- /client-profile -->
+
+    <!-- ════ PAGE: PLANS & BILLING ════ -->
+    <div id="page-plans" class="page-content hidden">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Plans & Revenue</div>
+          <div class="page-sub">Manage subscription plans, pricing, and billing configuration</div>
+        </div>
+        <div class="page-actions">
+          <button class="btn btn-secondary btn-sm">📥 Export Revenue CSV</button>
+          <button class="btn btn-admin btn-sm">➕ Create New Plan</button>
+        </div>
+      </div>
+
+      <!-- Plan Cards -->
+      <div class="plan-admin-grid mb-18">
+        <div class="plan-admin-card">
+          <div class="plan-name">🌱 Starter</div>
+          <div class="plan-price">₹1,000</div>
+          <div class="plan-price-sub">per purchase · 1,000 orders</div>
+          <div class="plan-stat"><span class="plan-stat-lbl">Active Users</span><span class="plan-stat-val">89</span></div>
+          <div class="plan-stat"><span class="plan-stat-lbl">Revenue This Month</span><span class="plan-stat-val">₹31,000</span></div>
+          <div class="plan-stat"><span class="plan-stat-lbl">Per Order Rate</span><span class="plan-stat-val">₹1.00</span></div>
+          <div class="plan-stat"><span class="plan-stat-lbl">Grace Orders</span><span class="plan-stat-val">50 @ ₹1.50</span></div>
+          <div style="display:flex;gap:8px;margin-top:14px;">
+            <button class="btn btn-secondary btn-sm btn-full">✏️ Edit Plan</button>
+            <button class="btn btn-ghost btn-sm">👁 Preview</button>
+          </div>
+        </div>
+        <div class="plan-admin-card" style="border-color:var(--admin);">
+          <div class="plan-tag">Most Popular</div>
+          <div class="plan-name">🚀 Growth</div>
+          <div class="plan-price">₹4,000</div>
+          <div class="plan-price-sub">per purchase · 5,000 orders</div>
+          <div class="plan-stat"><span class="plan-stat-lbl">Active Users</span><span class="plan-stat-val">131</span></div>
+          <div class="plan-stat"><span class="plan-stat-lbl">Revenue This Month</span><span class="plan-stat-val">₹1,04,000</span></div>
+          <div class="plan-stat"><span class="plan-stat-lbl">Per Order Rate</span><span class="plan-stat-val">₹0.80</span></div>
+          <div class="plan-stat"><span class="plan-stat-lbl">Grace Orders</span><span class="plan-stat-val">50 @ ₹1.50</span></div>
+          <div style="display:flex;gap:8px;margin-top:14px;">
+            <button class="btn btn-admin btn-sm btn-full">✏️ Edit Plan</button>
+            <button class="btn btn-ghost btn-sm">👁 Preview</button>
+          </div>
+        </div>
+        <div class="plan-admin-card">
+          <div class="plan-name">💎 Pro</div>
+          <div class="plan-price">₹7,500</div>
+          <div class="plan-price-sub">per purchase · 10,000 orders</div>
+          <div class="plan-stat"><span class="plan-stat-lbl">Active Users</span><span class="plan-stat-val">27</span></div>
+          <div class="plan-stat"><span class="plan-stat-lbl">Revenue This Month</span><span class="plan-stat-val">₹45,000</span></div>
+          <div class="plan-stat"><span class="plan-stat-lbl">Per Order Rate</span><span class="plan-stat-val">₹0.75</span></div>
+          <div class="plan-stat"><span class="plan-stat-lbl">AI Images</span><span class="plan-stat-val">Unlimited</span></div>
+          <div style="display:flex;gap:8px;margin-top:14px;">
+            <button class="btn btn-secondary btn-sm btn-full">✏️ Edit Plan</button>
+            <button class="btn btn-ghost btn-sm">👁 Preview</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Revenue Analytics -->
+      <div class="two-col mb-18">
+        <div class="card card-pad">
+          <div class="card-header"><div class="card-title">📊 Revenue Analytics (April 2026)</div></div>
+          <div class="metrics-grid" style="grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:0;">
+            <div style="padding:12px;background:#F5F3FF;border-radius:10px;border:1px solid var(--admin-b);">
+              <div class="metric-label">Total Revenue</div>
+              <div class="metric-value" style="font-size:20px;">₹1,84,000</div>
+            </div>
+            <div style="padding:12px;background:#F0FDF4;border-radius:10px;border:1px solid var(--ok-b);">
+              <div class="metric-label">Transactions</div>
+              <div class="metric-value" style="font-size:20px;">247</div>
+            </div>
+            <div style="padding:12px;background:#FFFBEB;border-radius:10px;border:1px solid var(--warn-b);">
+              <div class="metric-label">Avg Transaction</div>
+              <div class="metric-value" style="font-size:20px;">₹745</div>
+            </div>
+            <div style="padding:12px;background:#FEF2F2;border-radius:10px;border:1px solid var(--err-b);">
+              <div class="metric-label">Refunds</div>
+              <div class="metric-value" style="font-size:20px;">₹2,000</div>
+            </div>
+          </div>
+        </div>
+        <div class="card card-pad">
+          <div class="card-header"><div class="card-title">📉 Churn Risk</div></div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Client</th><th>Plan Expired</th><th>Amount</th><th>Action</th></tr></thead>
+              <tbody>
+                <tr>
+                  <td><div class="fw-600">Ritu Gupta</div><div class="text-xs text-muted">Growth</div></td>
+                  <td class="text-xs">3 days ago</td>
+                  <td class="text-mono">₹4,000</td>
+                  <td><button class="btn btn-ok btn-xs">📧 Remind</button></td>
+                </tr>
+                <tr>
+                  <td><div class="fw-600">Mohan Lal</div><div class="text-xs text-muted">Starter</div></td>
+                  <td class="text-xs">7 days ago</td>
+                  <td class="text-mono">₹1,000</td>
+                  <td><button class="btn btn-ok btn-xs">📧 Remind</button></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Billing Settings -->
+      <div class="card card-pad">
+        <div class="card-header"><div class="card-title">⚙️ Billing Settings</div></div>
+        <div class="settings-row">
+          <div><div class="settings-label">Free Trial Orders (new accounts)</div><div class="settings-sub">Number of free orders given on first signup</div></div>
+          <input class="settings-input" value="50" style="width:100px;">
+        </div>
+        <div class="settings-row">
+          <div><div class="settings-label">Grace Orders Enabled</div><div class="settings-sub">Allow sellers to process extra orders beyond their pool</div></div>
+          <label class="toggle"><input type="checkbox" checked><div class="toggle-track"></div></label>
+        </div>
+        <div class="settings-row">
+          <div><div class="settings-label">Grace Order Rate (paise per order)</div><div class="settings-sub">Charged for each order beyond the plan limit</div></div>
+          <input class="settings-input" value="150" style="width:100px;">
+        </div>
+        <div class="settings-row">
+          <div><div class="settings-label">Low Balance Alert (Yellow)</div><div class="settings-sub">Show warning when credits drop below this %</div></div>
+          <input class="settings-input" value="20%" style="width:100px;">
+        </div>
+        <div class="settings-row">
+          <div><div class="settings-label">Hard Block at Zero Credits</div><div class="settings-sub">Stop order sync & actions when credits exhausted</div></div>
+          <label class="toggle"><input type="checkbox" checked><div class="toggle-track"></div></label>
+        </div>
+        <div class="settings-row">
+          <div><div class="settings-label">Your GSTIN (for seller invoices)</div></div>
+          <input class="settings-input" value="29AABCT1332L1ZS">
+        </div>
+        <div class="settings-row">
+          <div><div class="settings-label">Invoice Number Prefix</div></div>
+          <input class="settings-input" value="AGF-INV-" style="width:140px;">
+        </div>
+        <div class="settings-row">
+          <div>
+            <div class="settings-label">Razorpay Keys</div>
+            <div class="settings-sub">Live payment credentials</div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <input class="settings-input" value="rzp_live_xxxxxxxxxx" style="width:240px;">
+            <input class="settings-input" type="password" value="secret_key_here" style="width:240px;">
+            <div style="display:flex;gap:8px;">
+              <button class="btn btn-secondary btn-xs">🔑 Update Secret</button>
+              <button class="btn btn-ok btn-xs">✓ Test Connection</button>
+            </div>
+          </div>
+        </div>
+        <div style="margin-top:16px;display:flex;gap:8px;">
+          <button class="btn btn-admin">💾 Save Billing Settings</button>
+          <button class="btn btn-secondary">Reset to Defaults</button>
+        </div>
+      </div>
+    </div><!-- /plans -->
+
+    <!-- ════ PAGE: PLATFORM HEALTH ════ -->
+    <div id="page-platform-health" class="page-content hidden">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Platform Health</div>
+          <div class="page-sub">Session monitor, sync jobs, and error logs</div>
+        </div>
+        <div class="page-actions">
+          <button class="btn btn-danger btn-sm">⏸ Pause All Queues</button>
+          <button class="btn btn-ok btn-sm">▶ Resume All</button>
+          <button class="btn btn-warn btn-sm">🗑 Clear Failed Jobs</button>
+        </div>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'tab-sessions')">🟢 Session Monitor</button>
+        <button class="tab-btn" onclick="switchTab(this,'tab-jobs')">🔄 Sync Jobs</button>
+        <button class="tab-btn" onclick="switchTab(this,'tab-errors')">⛔ Error Logs</button>
+      </div>
+
+      <!-- Session Monitor Tab -->
+      <div id="tab-sessions">
+        <div class="metrics-grid mb-18" style="grid-template-columns:repeat(4,1fr);">
+          <div class="metric-card" style="--mc:var(--ok);--mi-bg:var(--ok-bg);">
+            <div class="metric-label">Meesho Active</div>
+            <div class="metric-value">341</div>
+            <div class="metric-icon">🟢</div>
+          </div>
+          <div class="metric-card" style="--mc:var(--err);--mi-bg:var(--err-bg);">
+            <div class="metric-label">Meesho Expired</div>
+            <div class="metric-value">3</div>
+            <div class="metric-icon">🔴</div>
+          </div>
+          <div class="metric-card" style="--mc:var(--ok);--mi-bg:var(--ok-bg);">
+            <div class="metric-label">Amazon Tokens Valid</div>
+            <div class="metric-value">89</div>
+            <div class="metric-icon">✅</div>
+          </div>
+          <div class="metric-card" style="--mc:var(--warn);--mi-bg:var(--warn-bg);">
+            <div class="metric-label">Flipkart Webhook Fails</div>
+            <div class="metric-value">2</div>
+            <div class="metric-icon">⚠️</div>
+          </div>
+        </div>
+        <div class="filters">
+          <select class="filter-select"><option>All Status</option><option>Active</option><option>Expired</option><option>Error</option><option>Stale</option></select>
+          <input class="search-input" placeholder="Search user or account...">
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>User</th><th>Account Nickname</th><th>Platform</th><th>Phone / ID</th><th>Last Sync</th><th>Status</th><th>Last Error</th><th>Actions</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><div class="fw-600">Rahul Sharma</div><div class="text-xs text-muted">rahul@techkart.in</div></td>
+                <td>TechKart Main</td>
+                <td><span class="badge badge-meesho">Meesho</span></td>
+                <td class="text-mono">9876543210</td>
+                <td class="text-xs">3 min ago</td>
+                <td><span class="badge badge-ok">🟢 Active</span></td>
+                <td class="text-muted text-xs">—</td>
+                <td><div style="display:flex;gap:5px;"><button class="btn btn-secondary btn-xs">Force Sync</button><button class="btn btn-secondary btn-xs">View Logs</button></div></td>
+              </tr>
+              <tr>
+                <td><div class="fw-600">Priya Kapoor</div><div class="text-xs text-muted">priya@fashionstore.in</div></td>
+                <td>Fashion Main</td>
+                <td><span class="badge badge-meesho">Meesho</span></td>
+                <td class="text-mono">9123456789</td>
+                <td class="text-xs">22 min ago</td>
+                <td><span class="badge badge-warn">🟡 Stale</span></td>
+                <td class="text-muted text-xs">Slow response</td>
+                <td><div style="display:flex;gap:5px;"><button class="btn btn-warn btn-xs">Force Sync</button><button class="btn btn-secondary btn-xs">View Logs</button></div></td>
+              </tr>
+              <tr>
+                <td><div class="fw-600">Pankaj Kumar</div><div class="text-xs text-muted">pk@example.com</div></td>
+                <td>Company B</td>
+                <td><span class="badge badge-meesho">Meesho</span></td>
+                <td class="text-mono">9012345678</td>
+                <td class="text-xs">2 hours ago</td>
+                <td><span class="badge badge-err">🔴 Expired</span></td>
+                <td class="text-xs" style="color:var(--err);">401 Session expired</td>
+                <td><div style="display:flex;gap:5px;"><button class="btn btn-danger btn-xs">Force Re-login</button><button class="btn btn-secondary btn-xs">View Logs</button></div></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Jobs Tab -->
+      <div id="tab-jobs" class="hidden">
+        <div class="queue-grid">
+          <div class="queue-card">
+            <div><div class="queue-name">order_sync_queue</div><div class="text-xs text-muted">5 concurrent workers · Every 5 min per account</div></div>
+            <div class="queue-stat"><div class="queue-stat-val" style="color:var(--warn);">34</div><div class="queue-stat-lbl">Waiting</div></div>
+            <div class="queue-stat"><div class="queue-stat-val" style="color:var(--ok);">5</div><div class="queue-stat-lbl">Active</div></div>
+            <div class="queue-stat"><div class="queue-stat-val">4,821</div><div class="queue-stat-lbl">Completed</div></div>
+            <div class="queue-stat"><div class="queue-stat-val" style="color:var(--err);">2</div><div class="queue-stat-lbl">Failed</div></div>
+          </div>
+          <div class="queue-card">
+            <div><div class="queue-name">action_queue</div><div class="text-xs text-muted">3 concurrent workers · Accept / Pack / Ship</div></div>
+            <div class="queue-stat"><div class="queue-stat-val">2</div><div class="queue-stat-lbl">Waiting</div></div>
+            <div class="queue-stat"><div class="queue-stat-val" style="color:var(--ok);">1</div><div class="queue-stat-lbl">Active</div></div>
+            <div class="queue-stat"><div class="queue-stat-val">382</div><div class="queue-stat-lbl">Completed</div></div>
+            <div class="queue-stat"><div class="queue-stat-val" style="color:var(--ok);">0</div><div class="queue-stat-lbl">Failed</div></div>
+          </div>
+          <div class="queue-card">
+            <div><div class="queue-name">label_queue</div><div class="text-xs text-muted">3 concurrent workers · PDF labels</div></div>
+            <div class="queue-stat"><div class="queue-stat-val">0</div><div class="queue-stat-lbl">Waiting</div></div>
+            <div class="queue-stat"><div class="queue-stat-val">0</div><div class="queue-stat-lbl">Active</div></div>
+            <div class="queue-stat"><div class="queue-stat-val">1,294</div><div class="queue-stat-lbl">Completed</div></div>
+            <div class="queue-stat"><div class="queue-stat-val" style="color:var(--warn);">1</div><div class="queue-stat-lbl">Failed</div></div>
+          </div>
+          <div class="queue-card">
+            <div><div class="queue-name">ai_queue</div><div class="text-xs text-muted">2 concurrent workers · Listing + Image AI</div></div>
+            <div class="queue-stat"><div class="queue-stat-val">3</div><div class="queue-stat-lbl">Waiting</div></div>
+            <div class="queue-stat"><div class="queue-stat-val" style="color:var(--ok);">1</div><div class="queue-stat-lbl">Active</div></div>
+            <div class="queue-stat"><div class="queue-stat-val">491</div><div class="queue-stat-lbl">Completed</div></div>
+            <div class="queue-stat"><div class="queue-stat-val" style="color:var(--err);">3</div><div class="queue-stat-lbl">Failed</div></div>
+          </div>
+          <div class="queue-card">
+            <div><div class="queue-name">notification_queue</div><div class="text-xs text-muted">2 concurrent workers · Email / SMS / WhatsApp</div></div>
+            <div class="queue-stat"><div class="queue-stat-val">1</div><div class="queue-stat-lbl">Waiting</div></div>
+            <div class="queue-stat"><div class="queue-stat-val">0</div><div class="queue-stat-lbl">Active</div></div>
+            <div class="queue-stat"><div class="queue-stat-val">8,432</div><div class="queue-stat-lbl">Completed</div></div>
+            <div class="queue-stat"><div class="queue-stat-val" style="color:var(--warn);">12</div><div class="queue-stat-lbl">Failed</div></div>
+          </div>
+        </div>
+        <div class="separator"></div>
+        <div class="section-header">Failed Jobs (Last 24h)</div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Job ID</th><th>Queue</th><th>Type</th><th>User</th><th>Error</th><th>Time</th><th>Actions</th></tr></thead>
+            <tbody>
+              <tr>
+                <td class="text-mono text-xs">job_4a8f2b</td>
+                <td><span class="tag">ai_queue</span></td>
+                <td>image_gen</td>
+                <td class="text-xs">priya@fashionstore.in</td>
+                <td class="text-xs" style="color:var(--err);">Stability AI timeout (30s)</td>
+                <td class="text-xs text-muted">2h ago</td>
+                <td><div style="display:flex;gap:5px;"><button class="btn btn-ok btn-xs">↻ Retry</button><button class="btn btn-danger btn-xs">Delete</button></div></td>
+              </tr>
+              <tr>
+                <td class="text-mono text-xs">job_9c3d1a</td>
+                <td><span class="tag">order_sync_queue</span></td>
+                <td>meesho_sync</td>
+                <td class="text-xs">pk@example.com</td>
+                <td class="text-xs" style="color:var(--err);">401 Unauthorized — session expired</td>
+                <td class="text-xs text-muted">5h ago</td>
+                <td><div style="display:flex;gap:5px;"><button class="btn btn-ok btn-xs">↻ Retry</button><button class="btn btn-danger btn-xs">Delete</button></div></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Error Logs Tab -->
+      <div id="tab-errors" class="hidden">
+        <div class="filters">
+          <select class="filter-select"><option>Last 24h</option><option>Last 7 days</option><option>Last 30 days</option></select>
+          <select class="filter-select"><option>All Levels</option><option>Critical</option><option>Error</option><option>Warning</option><option>Info</option></select>
+          <input class="search-input" placeholder="Search error message...">
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Timestamp</th><th>Level</th><th>Type</th><th>User / Account</th><th>Message</th><th></th></tr></thead>
+            <tbody>
+              <tr>
+                <td class="text-mono text-xs">10 Apr 14:32:11</td>
+                <td><span class="badge badge-warn">WARNING</span></td>
+                <td class="text-xs">flipkart_webhook</td>
+                <td class="text-xs text-muted">System</td>
+                <td class="text-xs">Flipkart webhook delivery failed — retrying (attempt 2/3)</td>
+                <td><button class="btn btn-ghost btn-xs">Details</button></td>
+              </tr>
+              <tr>
+                <td class="text-mono text-xs">10 Apr 12:15:44</td>
+                <td><span class="badge badge-err">ERROR</span></td>
+                <td class="text-xs">meesho_session</td>
+                <td class="text-xs text-muted">pk@example.com · Company B</td>
+                <td class="text-xs">Session cookie rejected — 401 from Meesho API</td>
+                <td><button class="btn btn-ghost btn-xs">Details</button></td>
+              </tr>
+              <tr>
+                <td class="text-mono text-xs">10 Apr 09:50:22</td>
+                <td><span class="badge badge-info">INFO</span></td>
+                <td class="text-xs">ai_queue</td>
+                <td class="text-xs text-muted">priya@fashionstore.in</td>
+                <td class="text-xs">AI image generation timeout — queued for retry</td>
+                <td><button class="btn btn-ghost btn-xs">Details</button></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div><!-- /platform-health -->
+
+    <!-- ════ PAGE: AI SETTINGS ════ -->
+    <div id="page-ai-settings" class="page-content hidden">
+      <div class="page-header">
+        <div>
+          <div class="page-title">AI Settings</div>
+          <div class="page-sub">Configure AI models, API keys, and usage limits</div>
+        </div>
+        <div class="page-actions">
+          <button class="btn btn-secondary btn-sm">📥 Export AI Usage Report</button>
+        </div>
+      </div>
+
+      <!-- Usage Summary -->
+      <div class="metrics-grid mb-18">
+        <div class="metric-card" style="--mc:var(--admin);">
+          <div class="metric-label">Total AI Calls (Month)</div>
+          <div class="metric-value">1,847</div>
+          <div class="metric-icon">🤖</div>
+        </div>
+        <div class="metric-card" style="--mc:var(--err);">
+          <div class="metric-label">Total AI Cost (Month)</div>
+          <div class="metric-value">₹6,420</div>
+          <div class="metric-icon">💸</div>
+        </div>
+        <div class="metric-card" style="--mc:var(--ok);">
+          <div class="metric-label">Listing Optimizations</div>
+          <div class="metric-value">628</div>
+          <div class="metric-sub">34% of total calls</div>
+          <div class="metric-icon">📝</div>
+        </div>
+        <div class="metric-card" style="--mc:var(--accent);">
+          <div class="metric-label">Images Generated</div>
+          <div class="metric-value">941</div>
+          <div class="metric-sub">51% of total calls</div>
+          <div class="metric-icon">🖼</div>
+        </div>
+      </div>
+
+      <!-- Model Configuration -->
+      <div class="section-header" style="margin-bottom:14px;">AI Model Configuration</div>
+      <div class="ai-model-grid mb-18">
+        <div class="ai-model-card active-model">
+          <div class="ai-model-task">Task 1 · Listing Optimization</div>
+          <div class="ai-model-name">Claude Sonnet (Anthropic)</div>
+          <div class="ai-model-cost">~₹3.50 per call · Model: claude-sonnet-4-5</div>
+          <div style="margin-top:10px;">
+            <select class="settings-input" style="width:100%;border:1px solid var(--border);">
+              <option selected>claude-sonnet-4-5</option>
+              <option>claude-opus-4-5</option>
+              <option>gpt-4o</option>
+              <option>gpt-4-turbo</option>
+              <option>gemini-1.5-pro</option>
+            </select>
+          </div>
+          <div style="margin-top:8px;">
+            <input class="settings-input" type="password" value="sk-ant-api03-secret-key" style="width:100%;font-family:monospace;">
+          </div>
+          <div class="ai-model-actions">
+            <button class="btn btn-ok btn-xs">✓ Test Call</button>
+            <button class="btn btn-secondary btn-xs">🔑 Update Key</button>
+            <button class="btn btn-secondary btn-xs">📊 View Usage</button>
+          </div>
+        </div>
+        <div class="ai-model-card">
+          <div class="ai-model-task">Task 2 · Image Generation</div>
+          <div class="ai-model-name">Stability AI SDXL</div>
+          <div class="ai-model-cost">~₹4.00 per call · Model: stable-diffusion-xl-1024-v1-0</div>
+          <div style="margin-top:10px;">
+            <select class="settings-input" style="width:100%;border:1px solid var(--border);">
+              <option selected>stable-diffusion-xl-1024-v1-0</option>
+              <option>stable-diffusion-3</option>
+              <option>dall-e-3</option>
+              <option>ideogram-v2</option>
+            </select>
+          </div>
+          <div style="margin-top:8px;">
+            <input class="settings-input" type="password" value="sk-stability-secret" style="width:100%;font-family:monospace;">
+          </div>
+          <div class="ai-model-actions">
+            <button class="btn btn-ok btn-xs">✓ Test Call</button>
+            <button class="btn btn-secondary btn-xs">🔑 Update Key</button>
+            <button class="btn btn-secondary btn-xs">📊 View Usage</button>
+          </div>
+        </div>
+        <div class="ai-model-card">
+          <div class="ai-model-task">Task 3 · Background Removal</div>
+          <div class="ai-model-name">Clipdrop (Stability AI)</div>
+          <div class="ai-model-cost">~₹0.60 per call</div>
+          <div style="margin-top:10px;">
+            <select class="settings-input" style="width:100%;border:1px solid var(--border);">
+              <option selected>clipdrop-api</option>
+              <option>remove-bg-api</option>
+            </select>
+          </div>
+          <div style="margin-top:8px;">
+            <input class="settings-input" type="password" value="clipdrop-key-secret" style="width:100%;font-family:monospace;">
+          </div>
+          <div class="ai-model-actions">
+            <button class="btn btn-ok btn-xs">✓ Test Call</button>
+            <button class="btn btn-secondary btn-xs">🔑 Update Key</button>
+          </div>
+        </div>
+        <div class="ai-model-card" style="border-style:dashed;opacity:.7;">
+          <div class="ai-model-task">Task 4 · Customer Support AI</div>
+          <div class="ai-model-name">Not Configured</div>
+          <div class="ai-model-cost">Phase 3 feature — AI chatbot for seller support</div>
+          <div class="ai-model-actions" style="margin-top:24px;">
+            <button class="btn btn-admin btn-sm">⚙️ Configure Model</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Budget / Limits -->
+      <div class="card card-pad">
+        <div class="card-header"><div class="card-title">💰 AI Cost Budgets & Alerts</div></div>
+        <div class="settings-row">
+          <div><div class="settings-label">Monthly AI Cost Budget</div><div class="settings-sub">Send admin alert if this threshold is exceeded</div></div>
+          <input class="settings-input" value="₹50,000" style="width:140px;">
+        </div>
+        <div class="settings-row">
+          <div><div class="settings-label">Per-User AI Cost Cap (Monthly)</div><div class="settings-sub">Throttle AI features if a single user exceeds this cost</div></div>
+          <input class="settings-input" value="₹2,000" style="width:140px;">
+        </div>
+        <div style="margin-top:16px;"><button class="btn btn-admin">💾 Save AI Settings</button></div>
+      </div>
+    </div><!-- /ai-settings -->
+
+    <!-- ════ PAGE: WEBSITE SETTINGS ════ -->
+    <div id="page-website-settings" class="page-content hidden">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Website Settings</div>
+          <div class="page-sub">Branding, CMS content, email templates, and legal pages</div>
+        </div>
+        <div class="page-actions">
+          <button class="btn btn-secondary btn-sm">👁 Preview Changes</button>
+          <button class="btn btn-admin btn-sm">💾 Save All</button>
+        </div>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'tab-branding')">🎨 Branding</button>
+        <button class="tab-btn" onclick="switchTab(this,'tab-cms')">📝 CMS Editor</button>
+        <button class="tab-btn" onclick="switchTab(this,'tab-email-tpl')">📧 Email Templates</button>
+        <button class="tab-btn" onclick="switchTab(this,'tab-legal')">⚖️ Legal Pages</button>
+      </div>
+
+      <div id="tab-branding">
+        <div class="two-col">
+          <div class="card card-pad">
+            <div class="section-header">Brand Identity</div>
+            <div class="settings-row">
+              <div><div class="settings-label">Site Name</div></div>
+              <input class="settings-input" value="Agencyfic OMS">
+            </div>
+            <div class="settings-row">
+              <div><div class="settings-label">Tagline</div></div>
+              <input class="settings-input" value="One Dashboard. All Platforms. Zero Chaos.">
+            </div>
+            <div class="settings-row">
+              <div><div class="settings-label">Primary (Accent) Color</div></div>
+              <div style="display:flex;align-items:center;gap:10px;">
+                <input type="color" value="#F97316" style="width:40px;height:32px;border:1px solid var(--border);border-radius:6px;cursor:pointer;">
+                <input class="settings-input" value="#F97316" style="width:100px;">
+              </div>
+            </div>
+            <div class="settings-row">
+              <div><div class="settings-label">Dark Background Color</div></div>
+              <div style="display:flex;align-items:center;gap:10px;">
+                <input type="color" value="#0D0F1A" style="width:40px;height:32px;border:1px solid var(--border);border-radius:6px;cursor:pointer;">
+                <input class="settings-input" value="#0D0F1A" style="width:100px;">
+              </div>
+            </div>
+            <div class="settings-row">
+              <div><div class="settings-label">Login Background Style</div></div>
+              <select class="settings-input">
+                <option selected>Dark gradient</option>
+                <option>Light minimal</option>
+                <option>Custom image</option>
+              </select>
+            </div>
+            <div class="settings-row">
+              <div><div class="settings-label">Cookie Consent Banner</div></div>
+              <label class="toggle"><input type="checkbox" checked><div class="toggle-track"></div></label>
+            </div>
+          </div>
+          <div class="card card-pad">
+            <div class="section-header">Logo & Favicon</div>
+            <div style="margin-bottom:16px;">
+              <div class="text-sm fw-600 text-muted" style="margin-bottom:8px;">Current Logo</div>
+              <div style="padding:16px;background:#F8FAFC;border-radius:8px;border:1px solid var(--border);display:flex;align-items:center;gap:10px;">
+                <div style="width:34px;height:34px;background:var(--admin);border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;font-size:14px;">A</div>
+                <span style="font-size:15px;font-weight:800;">Agencyfic <span style="color:var(--accent);">OMS</span></span>
+              </div>
+              <button class="btn btn-secondary btn-sm" style="margin-top:8px;width:100%;">📁 Upload Logo (PNG/SVG, 200×50px)</button>
+            </div>
+            <div>
+              <div class="text-sm fw-600 text-muted" style="margin-bottom:8px;">Current Favicon</div>
+              <div style="padding:16px;background:#F8FAFC;border-radius:8px;border:1px solid var(--border);display:flex;align-items:center;gap:10px;">
+                <div style="width:32px;height:32px;background:var(--admin);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:14px;">🛡</div>
+                <span class="text-xs text-muted">32×32 px · ICO/PNG</span>
+              </div>
+              <button class="btn btn-secondary btn-sm" style="margin-top:8px;width:100%;">📁 Upload Favicon</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="tab-cms" class="hidden">
+        <div class="two-col">
+          <div class="card card-pad">
+            <div class="section-header">Home Page Content</div>
+            <div class="settings-row"><div><div class="settings-label">Announcement Banner</div><div class="settings-sub">Shown at top of landing page</div></div><button class="btn btn-secondary btn-xs">✏️ Edit</button></div>
+            <div class="settings-row"><div><div class="settings-label">Hero Tagline</div><div class="settings-sub">Main headline text</div></div><button class="btn btn-secondary btn-xs">✏️ Edit</button></div>
+            <div class="settings-row"><div><div class="settings-label">Feature Descriptions</div><div class="settings-sub">6 feature cards</div></div><button class="btn btn-secondary btn-xs">✏️ Edit</button></div>
+            <div class="section-header" style="margin-top:16px;">Pricing Page</div>
+            <div class="settings-row"><div><div class="settings-label">Starter Plan Description</div></div><button class="btn btn-secondary btn-xs">✏️ Edit</button></div>
+            <div class="settings-row"><div><div class="settings-label">Growth Plan Description</div></div><button class="btn btn-secondary btn-xs">✏️ Edit</button></div>
+            <div class="settings-row"><div><div class="settings-label">Pro Plan Description</div></div><button class="btn btn-secondary btn-xs">✏️ Edit</button></div>
+            <div class="settings-row"><div><div class="settings-label">FAQ Entries</div><div class="settings-sub">Add / remove / reorder</div></div><button class="btn btn-secondary btn-xs">✏️ Edit</button></div>
+          </div>
+          <div class="card card-pad">
+            <div class="section-header">Onboarding Flow</div>
+            <div class="settings-row"><div><div class="settings-label">Welcome Message</div><div class="settings-sub">After first signup</div></div><button class="btn btn-secondary btn-xs">✏️ Edit</button></div>
+            <div class="settings-row"><div><div class="settings-label">Connect Meesho Guide</div></div><button class="btn btn-secondary btn-xs">✏️ Edit</button></div>
+            <div class="settings-row"><div><div class="settings-label">Connect Amazon Guide</div></div><button class="btn btn-secondary btn-xs">✏️ Edit</button></div>
+            <div class="settings-row"><div><div class="settings-label">Connect Flipkart Guide</div></div><button class="btn btn-secondary btn-xs">✏️ Edit</button></div>
+            <div class="settings-row"><div><div class="settings-label">Evidence Tutorial Text</div></div><button class="btn btn-secondary btn-xs">✏️ Edit</button></div>
+            <div class="section-header" style="margin-top:16px;">Error Messages</div>
+            <div class="settings-row"><div><div class="settings-label">Session Expired Banner</div></div><button class="btn btn-secondary btn-xs">✏️ Edit</button></div>
+            <div class="settings-row"><div><div class="settings-label">Credits Exhausted Message</div></div><button class="btn btn-secondary btn-xs">✏️ Edit</button></div>
+            <div style="margin-top:14px;"><button class="btn btn-ghost btn-sm">Browse 50+ Help Tooltips →</button></div>
+          </div>
+        </div>
+      </div>
+
+      <div id="tab-email-tpl" class="hidden">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Template</th><th>Subject Line</th><th>Last Edited</th><th>Actions</th></tr></thead>
+            <tbody>
+              <tr><td class="fw-600">Welcome / Email Verification</td><td class="text-xs text-muted">Welcome to Agencyfic OMS, {{seller_name}}!</td><td class="text-xs">8 Apr 2026</td><td><div style="display:flex;gap:5px;"><button class="btn btn-secondary btn-xs">✏️ Edit</button><button class="btn btn-ok btn-xs">✉ Test</button></div></td></tr>
+              <tr><td class="fw-600">New Order Alert</td><td class="text-xs text-muted">🛍 New order #{{order_id}} on {{platform}}</td><td class="text-xs">5 Apr 2026</td><td><div style="display:flex;gap:5px;"><button class="btn btn-secondary btn-xs">✏️ Edit</button><button class="btn btn-ok btn-xs">✉ Test</button></div></td></tr>
+              <tr><td class="fw-600">Dispatch Deadline Warning</td><td class="text-xs text-muted">⚠️ Dispatch deadline in {{hours}} hours — {{order_count}} orders pending</td><td class="text-xs">3 Apr 2026</td><td><div style="display:flex;gap:5px;"><button class="btn btn-secondary btn-xs">✏️ Edit</button><button class="btn btn-ok btn-xs">✉ Test</button></div></td></tr>
+              <tr><td class="fw-600">Session Expired Alert</td><td class="text-xs text-muted">🔴 Your Meesho account session has expired</td><td class="text-xs">1 Apr 2026</td><td><div style="display:flex;gap:5px;"><button class="btn btn-secondary btn-xs">✏️ Edit</button><button class="btn btn-ok btn-xs">✉ Test</button></div></td></tr>
+              <tr><td class="fw-600">Credits Exhausted Alert</td><td class="text-xs text-muted">🚨 Your order credits are fully used — renew now</td><td class="text-xs">1 Apr 2026</td><td><div style="display:flex;gap:5px;"><button class="btn btn-secondary btn-xs">✏️ Edit</button><button class="btn btn-ok btn-xs">✉ Test</button></div></td></tr>
+              <tr><td class="fw-600">Payment Successful</td><td class="text-xs text-muted">✅ Payment confirmed — {{plan}} plan activated!</td><td class="text-xs">28 Mar 2026</td><td><div style="display:flex;gap:5px;"><button class="btn btn-secondary btn-xs">✏️ Edit</button><button class="btn btn-ok btn-xs">✉ Test</button></div></td></tr>
+              <tr><td class="fw-600">Account Suspended Notice</td><td class="text-xs text-muted">Your Agencyfic OMS account has been suspended</td><td class="text-xs">20 Mar 2026</td><td><div style="display:flex;gap:5px;"><button class="btn btn-secondary btn-xs">✏️ Edit</button><button class="btn btn-ok btn-xs">✉ Test</button></div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div id="tab-legal" class="hidden">
+        <div class="three-col">
+          <div class="card card-pad">
+            <div style="font-size:20px;margin-bottom:8px;">📜</div>
+            <div class="fw-600">Terms of Service</div>
+            <div class="text-xs text-muted" style="margin-top:3px;margin-bottom:14px;">Last updated: 1 Apr 2026</div>
+            <div style="display:flex;flex-direction:column;gap:8px;">
+              <button class="btn btn-secondary btn-sm btn-full">✏️ Edit in Rich Text</button>
+              <button class="btn btn-ghost btn-sm btn-full">👁 Preview</button>
+            </div>
+          </div>
+          <div class="card card-pad">
+            <div style="font-size:20px;margin-bottom:8px;">🔒</div>
+            <div class="fw-600">Privacy Policy</div>
+            <div class="text-xs text-muted" style="margin-top:3px;margin-bottom:14px;">Last updated: 1 Apr 2026</div>
+            <div style="display:flex;flex-direction:column;gap:8px;">
+              <button class="btn btn-secondary btn-sm btn-full">✏️ Edit in Rich Text</button>
+              <button class="btn btn-ghost btn-sm btn-full">👁 Preview</button>
+            </div>
+          </div>
+          <div class="card card-pad">
+            <div style="font-size:20px;margin-bottom:8px;">💸</div>
+            <div class="fw-600">Refund Policy</div>
+            <div class="text-xs text-muted" style="margin-top:3px;margin-bottom:14px;">Last updated: 15 Mar 2026</div>
+            <div style="display:flex;flex-direction:column;gap:8px;">
+              <button class="btn btn-secondary btn-sm btn-full">✏️ Edit in Rich Text</button>
+              <button class="btn btn-ghost btn-sm btn-full">👁 Preview</button>
+            </div>
+          </div>
+          <div class="card card-pad">
+            <div style="font-size:20px;margin-bottom:8px;">🍪</div>
+            <div class="fw-600">Cookie Policy</div>
+            <div class="text-xs text-muted" style="margin-top:3px;margin-bottom:14px;">Last updated: 1 Apr 2026</div>
+            <div style="display:flex;flex-direction:column;gap:8px;">
+              <button class="btn btn-secondary btn-sm btn-full">✏️ Edit in Rich Text</button>
+              <button class="btn btn-ghost btn-sm btn-full">👁 Preview</button>
+            </div>
+          </div>
+          <div class="card card-pad">
+            <div style="font-size:20px;margin-bottom:8px;">🇮🇳</div>
+            <div class="fw-600">IT Act 2000 Compliance</div>
+            <div class="text-xs text-muted" style="margin-top:3px;margin-bottom:14px;">Last updated: 10 Mar 2026</div>
+            <div style="display:flex;flex-direction:column;gap:8px;">
+              <button class="btn btn-secondary btn-sm btn-full">✏️ Edit in Rich Text</button>
+              <button class="btn btn-ghost btn-sm btn-full">👁 Preview</button>
+            </div>
+          </div>
+          <div class="card card-pad">
+            <div style="font-size:20px;margin-bottom:8px;">🧑‍⚖️</div>
+            <div class="fw-600">Grievance Officer</div>
+            <div class="text-xs text-muted" style="margin-top:3px;margin-bottom:14px;">Required for Indian platforms</div>
+            <input class="settings-input" placeholder="Officer Name" style="width:100%;margin-bottom:8px;">
+            <input class="settings-input" placeholder="Officer Email" style="width:100%;">
+            <button class="btn btn-admin btn-sm btn-full" style="margin-top:8px;">💾 Save</button>
+          </div>
+        </div>
+      </div>
+    </div><!-- /website-settings -->
+
+    <!-- ════ PAGE: NOTIFICATIONS ════ -->
+    <div id="page-notifications" class="page-content hidden">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Notifications</div>
+          <div class="page-sub">Send announcements to clients across channels</div>
+        </div>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'tab-compose')">📢 Send Announcement</button>
+        <button class="tab-btn" onclick="switchTab(this,'tab-notif-history')">📋 Notification History</button>
+      </div>
+
+      <div id="tab-compose">
+        <div class="two-col">
+          <div class="card card-pad">
+            <div class="section-header">Target Audience</div>
+            <div class="notif-target-grid">
+              <div class="notif-target-btn selected">
+                <div class="notif-target-label">All Active Sellers</div>
+                <div class="notif-target-sub">231 recipients</div>
+              </div>
+              <div class="notif-target-btn">
+                <div class="notif-target-label">By Plan Tier</div>
+                <div class="notif-target-sub">Starter / Growth / Pro</div>
+              </div>
+              <div class="notif-target-btn">
+                <div class="notif-target-label">Specific Users</div>
+                <div class="notif-target-sub">Search & select</div>
+              </div>
+            </div>
+            <div class="separator"></div>
+            <div class="section-header">Message</div>
+            <div class="form-group">
+              <label class="form-label">Subject</label>
+              <input class="form-input" placeholder="e.g. New Feature: Batch Label Printing is here!">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Body</label>
+              <textarea class="form-input" rows="5" placeholder="Write your announcement message here...
+You can use {{seller_name}} as a variable."></textarea>
+            </div>
+            <div class="section-header">Delivery Channels</div>
+            <div class="channel-checks" style="margin-bottom:14px;">
+              <label class="channel-check"><input type="checkbox" checked> 📱 In-App</label>
+              <label class="channel-check"><input type="checkbox" checked> 📧 Email</label>
+              <label class="channel-check"><input type="checkbox"> 💬 SMS</label>
+              <label class="channel-check"><input type="checkbox"> 🟢 WhatsApp</label>
+            </div>
+            <div class="section-header">Schedule</div>
+            <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;">
+              <label class="channel-check"><input type="radio" name="schedule" checked> Send immediately</label>
+              <label class="channel-check"><input type="radio" name="schedule"> Schedule for: <input type="datetime-local" class="settings-input" style="width:180px;margin-left:8px;"></label>
+            </div>
+            <div style="display:flex;gap:8px;">
+              <button class="btn btn-admin btn-full">📢 Send Announcement</button>
+              <button class="btn btn-secondary">👁 Preview</button>
+            </div>
+          </div>
+          <div class="card card-pad">
+            <div class="section-header">Preview — In-App Notification</div>
+            <div style="padding:14px;background:#F8FAFC;border-radius:10px;border:1px solid var(--border);margin-bottom:14px;">
+              <div style="display:flex;align-items:flex-start;gap:10px;">
+                <div style="font-size:20px;">📢</div>
+                <div>
+                  <div class="fw-600">Your announcement title</div>
+                  <div class="text-xs text-muted" style="margin-top:3px;">Your announcement body text will appear here for the seller to read.</div>
+                  <div class="text-xs" style="color:var(--admin);margin-top:6px;">Just now</div>
+                </div>
+              </div>
+            </div>
+            <div class="section-header">Preview — Email</div>
+            <div style="padding:14px;background:#F8FAFC;border-radius:10px;border:1px solid var(--border);">
+              <div style="font-size:11px;font-weight:700;color:var(--text3);margin-bottom:8px;">FROM: noreply@agencyfic.in &nbsp;|&nbsp; TO: seller@example.com</div>
+              <div style="padding:12px;background:#fff;border-radius:8px;border:1px solid var(--border);">
+                <div style="font-size:16px;font-weight:700;margin-bottom:8px;">Your announcement title</div>
+                <div class="text-sm text-muted">Hi Seller Name,<br><br>Your announcement body text will appear here.<br><br>— Agencyfic OMS Team</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="tab-notif-history" class="hidden">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Date</th><th>Subject</th><th>Target</th><th>Channels</th><th>Sent / Total</th><th>Actions</th></tr></thead>
+            <tbody>
+              <tr>
+                <td class="text-xs">10 Apr 2026 · 9:00 AM</td>
+                <td class="fw-600">New Feature: Batch Label Download</td>
+                <td><span class="badge badge-gray">All Active</span></td>
+                <td><span class="tag">In-App</span>&nbsp;<span class="tag">Email</span></td>
+                <td class="text-mono">231 / 231</td>
+                <td><button class="btn btn-ghost btn-xs">View</button></td>
+              </tr>
+              <tr>
+                <td class="text-xs">5 Apr 2026 · 11:30 AM</td>
+                <td class="fw-600">Maintenance: Saturday 2–4 AM IST</td>
+                <td><span class="badge badge-gray">All Active</span></td>
+                <td><span class="tag">In-App</span>&nbsp;<span class="tag">Email</span>&nbsp;<span class="tag">SMS</span></td>
+                <td class="text-mono">229 / 231</td>
+                <td><div style="display:flex;gap:5px;"><button class="btn btn-ghost btn-xs">View</button><button class="btn btn-warn btn-xs">↻ Resend Failed</button></div></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div><!-- /notifications -->
+
+    <!-- ════ PAGE: SYSTEM SETTINGS ════ -->
+    <div id="page-system-settings" class="page-content hidden">
+      <div class="page-header">
+        <div>
+          <div class="page-title">System Settings</div>
+          <div class="page-sub">Global configuration, API keys, and security controls</div>
+        </div>
+        <div class="page-actions">
+          <button class="btn btn-admin btn-sm">💾 Save All Settings</button>
+        </div>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'tab-global')">🌐 Global Settings</button>
+        <button class="tab-btn" onclick="switchTab(this,'tab-api-keys')">🔑 API Keys</button>
+        <button class="tab-btn" onclick="switchTab(this,'tab-security')">🔒 Security</button>
+      </div>
+
+      <div id="tab-global">
+        <div class="card card-pad">
+          <div class="section-header">Infrastructure Limits</div>
+          <div class="settings-row">
+            <div><div class="settings-label">Max Concurrent Playwright Instances</div><div class="settings-sub">Higher = more RAM usage (8GB VPS max: 3)</div></div>
+            <input class="settings-input" value="3" style="width:80px;">
+          </div>
+          <div class="settings-row">
+            <div><div class="settings-label">Sync Batch Size (accounts per cron run)</div><div class="settings-sub">Number of accounts synced per 5-minute cycle</div></div>
+            <input class="settings-input" value="20" style="width:80px;">
+          </div>
+          <div class="section-header" style="margin-top:4px;">Data Retention</div>
+          <div class="settings-row">
+            <div><div class="settings-label">Orders Data Retention</div><div class="settings-sub">Delete old order records after N days</div></div>
+            <div style="display:flex;align-items:center;gap:6px;"><input class="settings-input" value="365" style="width:80px;"><span class="text-sm text-muted">days</span></div>
+          </div>
+          <div class="settings-row">
+            <div><div class="settings-label">Notification Logs Retention</div></div>
+            <div style="display:flex;align-items:center;gap:6px;"><input class="settings-input" value="90" style="width:80px;"><span class="text-sm text-muted">days</span></div>
+          </div>
+          <div class="settings-row">
+            <div><div class="settings-label">Temporary Evidence (R2) Retention</div><div class="settings-sub">Evidence files before claim filed</div></div>
+            <div style="display:flex;align-items:center;gap:6px;"><input class="settings-input" value="30" style="width:80px;"><span class="text-sm text-muted">days</span></div>
+          </div>
+          <div class="settings-row">
+            <div><div class="settings-label">Label Storage</div></div>
+            <label class="toggle"><input type="checkbox" checked><div class="toggle-track"></div></label>
+          </div>
+          <div class="settings-row">
+            <div><div class="settings-label">Invoice Storage</div></div>
+            <label class="toggle"><input type="checkbox" checked><div class="toggle-track"></div></label>
+          </div>
+          <div class="section-header" style="margin-top:4px;">Maintenance Mode</div>
+          <div class="settings-row">
+            <div><div class="settings-label">Maintenance Mode</div><div class="settings-sub">Show maintenance page to all sellers (admin still accessible)</div></div>
+            <label class="toggle"><input type="checkbox"><div class="toggle-track"></div></label>
+          </div>
+          <div class="settings-row">
+            <div><div class="settings-label">Maintenance Message</div></div>
+            <input class="settings-input" value="We're upgrading our systems. Back in 30 minutes!" style="width:340px;">
+          </div>
+        </div>
+      </div>
+
+      <div id="tab-api-keys" class="hidden">
+        <div class="card card-pad">
+          <div class="section-header">Third-Party API Keys</div>
+          <div class="api-key-row">
+            <div class="api-service">Razorpay Key ID</div>
+            <div class="api-masked">rzp_live_●●●●●●●●●●●●</div>
+            <div class="api-tested">Tested 2h ago</div>
+            <div style="display:flex;gap:5px;"><button class="btn btn-secondary btn-xs">✏️ Edit</button><button class="btn btn-ok btn-xs">✓ Test</button></div>
+          </div>
+          <div class="api-key-row">
+            <div class="api-service">Razorpay Secret</div>
+            <div class="api-masked">●●●●●●●●●●●●●●●●</div>
+            <div class="api-tested">Configured</div>
+            <div><button class="btn btn-secondary btn-xs">✏️ Edit</button></div>
+          </div>
+          <div class="api-key-row">
+            <div class="api-service">Razorpay Webhook</div>
+            <div class="api-masked">●●●●●●●●●●●●●●●●</div>
+            <div class="api-tested">Configured</div>
+            <div><button class="btn btn-secondary btn-xs">✏️ Edit</button></div>
+          </div>
+          <div class="api-key-row">
+            <div class="api-service">SMTP (SendGrid)</div>
+            <div class="api-masked">SG.●●●●●●●●●●●●●●●●</div>
+            <div class="api-tested"><span class="badge badge-ok">✅ Active</span></div>
+            <div style="display:flex;gap:5px;"><button class="btn btn-secondary btn-xs">✏️ Edit</button><button class="btn btn-ok btn-xs">✉ Test</button></div>
+          </div>
+          <div class="api-key-row">
+            <div class="api-service">SMS Gateway</div>
+            <div class="api-masked" style="color:var(--warn);">Not configured</div>
+            <div class="api-tested">—</div>
+            <div><button class="btn btn-admin btn-xs">⚙️ Configure</button></div>
+          </div>
+          <div class="api-key-row">
+            <div class="api-service">WhatsApp API</div>
+            <div class="api-masked" style="color:var(--warn);">Not configured</div>
+            <div class="api-tested">—</div>
+            <div><button class="btn btn-admin btn-xs">⚙️ Configure</button></div>
+          </div>
+          <div class="api-key-row">
+            <div class="api-service">Cloudflare R2</div>
+            <div class="api-masked">●●●●●●●●●●●●●●●●</div>
+            <div class="api-tested"><span class="badge badge-ok">✅ Active</span></div>
+            <div style="display:flex;gap:5px;"><button class="btn btn-secondary btn-xs">✏️ Edit</button><button class="btn btn-ok btn-xs">✓ Test</button></div>
+          </div>
+          <div class="api-key-row">
+            <div class="api-service">Firebase FCM</div>
+            <div class="api-masked">●●●●●●●●●●●●●●●●</div>
+            <div class="api-tested"><span class="badge badge-ok">✅ Active</span></div>
+            <div><button class="btn btn-secondary btn-xs">✏️ Edit</button></div>
+          </div>
+        </div>
+        <div class="card card-pad" style="margin-top:14px;">
+          <div class="section-header">IP Whitelist for /superadmin</div>
+          <div style="display:flex;gap:8px;margin-bottom:12px;">
+            <input class="settings-input" placeholder="e.g. 103.45.67.89" style="flex:1;">
+            <button class="btn btn-admin btn-sm">➕ Add IP</button>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:6px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:#F8FAFC;border-radius:8px;border:1px solid var(--border);">
+              <span class="text-mono fw-600">103.45.12.89</span>
+              <span class="text-xs text-muted">Added 15 Mar 2026 — Admin Home</span>
+              <button class="btn btn-danger btn-xs">Remove</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="tab-security" class="hidden">
+        <div class="card card-pad">
+          <div class="section-header">Session & Authentication</div>
+          <div class="settings-row">
+            <div><div class="settings-label">JWT Secret Key</div><div class="settings-sub" style="color:var(--err);">⚠ Rotating invalidates ALL active sessions</div></div>
+            <button class="btn btn-danger btn-sm">🔄 Rotate JWT Key</button>
+          </div>
+          <div class="settings-row">
+            <div><div class="settings-label">AES Encryption Key</div><div class="settings-sub" style="color:var(--err);">⚠ Requires re-encryption of all stored secrets</div></div>
+            <button class="btn btn-danger btn-sm">🔄 Rotate AES Key</button>
+          </div>
+          <div class="settings-row">
+            <div><div class="settings-label">Max Login Attempts Before Lockout</div></div>
+            <input class="settings-input" value="5" style="width:80px;">
+          </div>
+          <div class="settings-row">
+            <div><div class="settings-label">Account Lockout Duration</div></div>
+            <div style="display:flex;align-items:center;gap:6px;"><input class="settings-input" value="30" style="width:80px;"><span class="text-sm text-muted">minutes</span></div>
+          </div>
+          <div class="settings-row">
+            <div><div class="settings-label">Trust Token Validity</div></div>
+            <div style="display:flex;align-items:center;gap:6px;"><input class="settings-input" value="30" style="width:80px;"><span class="text-sm text-muted">days</span></div>
+          </div>
+          <div class="settings-row">
+            <div><div class="settings-label">OTP Expiry</div></div>
+            <div style="display:flex;align-items:center;gap:6px;"><input class="settings-input" value="10" style="width:80px;"><span class="text-sm text-muted">minutes</span></div>
+          </div>
+          <div class="settings-row">
+            <div><div class="settings-label">JWT Session Duration</div></div>
+            <div style="display:flex;align-items:center;gap:6px;"><input class="settings-input" value="24" style="width:80px;"><span class="text-sm text-muted">hours</span></div>
+          </div>
+          <div class="settings-row">
+            <div><div class="settings-label">Require Email Verification Before Plan Purchase</div></div>
+            <label class="toggle"><input type="checkbox" checked><div class="toggle-track"></div></label>
+          </div>
+          <div class="settings-row">
+            <div><div class="settings-label">Block VPN / Proxy Users</div><div class="settings-sub">Not recommended — Indian sellers use mobile data (IP varies)</div></div>
+            <label class="toggle"><input type="checkbox"><div class="toggle-track"></div></label>
+          </div>
+          <div style="margin-top:16px;"><button class="btn btn-admin">💾 Save Security Settings</button></div>
+        </div>
+      </div>
+    </div><!-- /system-settings -->
+
+    <!-- ════ PAGE: ACTIVITY LOG ════ -->
+    <div id="page-activity-log" class="page-content hidden">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Activity Log</div>
+          <div class="page-sub">All admin actions are logged with IP and timestamp — immutable audit trail</div>
+        </div>
+        <div class="page-actions">
+          <button class="btn btn-secondary btn-sm">📥 Export CSV</button>
+        </div>
+      </div>
+      <div class="filters">
+        <select class="filter-select"><option>All Admins</option><option>admin@agencyfic.com</option></select>
+        <select class="filter-select">
+          <option>All Actions</option>
+          <option>PLAN_CHANGED</option>
+          <option>CREDITS_ADDED</option>
+          <option>IMPERSONATE</option>
+          <option>SUSPEND</option>
+          <option>AI_MODEL_CHANGED</option>
+          <option>SETTINGS_SAVED</option>
+        </select>
+        <select class="filter-select"><option>Last 24h</option><option>Last 7 days</option><option>Last 30 days</option><option>Custom</option></select>
+        <input class="search-input" placeholder="Search by user, action...">
+      </div>
+      <div class="card card-pad">
+        <div class="log-row" style="font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);border-bottom:2px solid var(--border);">
+          <div>Timestamp</div><div>Admin</div><div>Action</div><div>Detail</div><div>IP</div>
+        </div>
+        <div class="log-row">
+          <div class="log-time">10 Apr 11:00 AM</div>
+          <div class="log-admin">admin@agencyfic.com</div>
+          <div class="log-action"><span class="badge badge-admin">AI_MODEL_CHANGED</span></div>
+          <div class="log-detail">task:listing_optimize — Changed from gpt-4o to claude-sonnet-4-5</div>
+          <div class="text-mono text-xs" style="color:var(--text3);">103.x.x.x</div>
+        </div>
+        <div class="log-row">
+          <div class="log-time">10 Apr 10:15 AM</div>
+          <div class="log-admin">admin@agencyfic.com</div>
+          <div class="log-action"><span class="badge badge-warn">IMPERSONATE_END</span></div>
+          <div class="log-detail">user:rahul@techkart.in — Session ended after 15 min</div>
+          <div class="text-mono text-xs" style="color:var(--text3);">103.x.x.x</div>
+        </div>
+        <div class="log-row">
+          <div class="log-time">10 Apr 10:00 AM</div>
+          <div class="log-admin">admin@agencyfic.com</div>
+          <div class="log-action"><span class="badge badge-warn">IMPERSONATE_START</span></div>
+          <div class="log-detail">user:rahul@techkart.in — Debug: order sync issue</div>
+          <div class="text-mono text-xs" style="color:var(--text3);">103.x.x.x</div>
+        </div>
+        <div class="log-row">
+          <div class="log-time">10 Apr 09:45 AM</div>
+          <div class="log-admin">admin@agencyfic.com</div>
+          <div class="log-action"><span class="badge badge-ok">CREDITS_ADDED</span></div>
+          <div class="log-detail">user:pk@example.com — +500 bonus credits. Reason: "issue resolution"</div>
+          <div class="text-mono text-xs" style="color:var(--text3);">103.x.x.x</div>
+        </div>
+        <div class="log-row">
+          <div class="log-time">10 Apr 09:30 AM</div>
+          <div class="log-admin">admin@agencyfic.com</div>
+          <div class="log-action"><span class="badge badge-info">PLAN_CHANGED</span></div>
+          <div class="log-detail">user:pk@example.com — Starter → Growth</div>
+          <div class="text-mono text-xs" style="color:var(--text3);">103.x.x.x</div>
+        </div>
+        <div class="log-row">
+          <div class="log-time">09 Apr 06:15 PM</div>
+          <div class="log-admin">admin@agencyfic.com</div>
+          <div class="log-action"><span class="badge badge-err">ACCOUNT_SUSPENDED</span></div>
+          <div class="log-detail">user:suspicious@fraud.com — TOS violation: multiple fake return claims</div>
+          <div class="text-mono text-xs" style="color:var(--text3);">103.x.x.x</div>
+        </div>
+        <div class="log-row">
+          <div class="log-time">09 Apr 03:00 PM</div>
+          <div class="log-admin">admin@agencyfic.com</div>
+          <div class="log-action"><span class="badge badge-gray">SETTINGS_SAVED</span></div>
+          <div class="log-detail">system-settings · billing_settings — Updated Razorpay webhook secret</div>
+          <div class="text-mono text-xs" style="color:var(--text3);">103.x.x.x</div>
+        </div>
+        <div class="log-row">
+          <div class="log-time">08 Apr 11:00 AM</div>
+          <div class="log-admin">admin@agencyfic.com</div>
+          <div class="log-action"><span class="badge badge-admin">BRANDING_UPDATED</span></div>
+          <div class="log-detail">website-settings · branding — Primary color updated to #F97316</div>
+          <div class="text-mono text-xs" style="color:var(--text3);">103.x.x.x</div>
+        </div>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:14px;font-size:12.5px;color:var(--text2);">
+        Showing 8 of 1,284 log entries
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-secondary btn-xs">← Prev</button>
+          <button class="btn btn-secondary btn-xs" style="background:var(--admin);color:#fff;border-color:var(--admin);">1</button>
+          <button class="btn btn-secondary btn-xs">2</button>
+          <button class="btn btn-secondary btn-xs">3</button>
+          <button class="btn btn-secondary btn-xs">Next →</button>
+        </div>
+      </div>
+    </div><!-- /activity-log -->
+
+  </main>
+</div><!-- /app-shell -->
+
+<script>
+function showApp(){
+  document.getElementById('login-page').classList.add('hidden');
+  document.getElementById('app-shell').classList.remove('hidden');
+}
+function showLogin(){
+  document.getElementById('login-page').classList.remove('hidden');
+  document.getElementById('app-shell').classList.add('hidden');
+}
+
+const pageTitles = {
+  overview:'Overview',
+  clients:'All Clients',
+  'client-profile':'Client Profile',
+  plans:'Plans & Revenue',
+  'platform-health':'Platform Health',
+  'ai-settings':'AI Settings',
+  'website-settings':'Website Settings',
+  notifications:'Notifications',
+  'system-settings':'System Settings',
+  'activity-log':'Activity Log'
+};
+
+const pageSubs = {
+  overview:'Dashboard',
+  clients:'247 clients',
+  'client-profile':'Rahul Sharma',
+  plans:'Billing',
+  'platform-health':'Infrastructure',
+  'ai-settings':'Models',
+  'website-settings':'Content',
+  notifications:'Messaging',
+  'system-settings':'Configuration',
+  'activity-log':'Audit Trail'
+};
+
+function showPage(id){
+  document.querySelectorAll('[id^="page-"]').forEach(p=>p.classList.add('hidden'));
+  const el = document.getElementById('page-'+id);
+  if(el) el.classList.remove('hidden');
+  document.getElementById('page-title').innerHTML = `${pageTitles[id]||id} <small>${pageSubs[id]||''}</small>`;
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>{
+    if(n.getAttribute('onclick') && n.getAttribute('onclick').includes("'"+id+"'")){
+      n.classList.add('active');
+    }
+  });
+}
+
+function switchTab(btn, tabId){
+  const parentTabs = btn.closest('.tabs');
+  parentTabs.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  const sib = parentTabs.nextElementSibling;
+  const parent = parentTabs.parentElement;
+  parent.querySelectorAll('[id^="tab-"]').forEach(t=>t.classList.add('hidden'));
+  const target = document.getElementById(tabId);
+  if(target) target.classList.remove('hidden');
+}
+
+// make notif target btns work
+document.querySelectorAll('.notif-target-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    btn.closest('.notif-target-grid').querySelectorAll('.notif-target-btn').forEach(b=>b.classList.remove('selected'));
+    btn.classList.add('selected');
+  });
+});
+
+// table checkboxes
+document.querySelectorAll('th input[type="checkbox"]').forEach(cb=>{
+  cb.addEventListener('change',()=>{
+    const t = cb.closest('table');
+    t.querySelectorAll('td input[type="checkbox"]').forEach(r=>r.checked=cb.checked);
+  });
+});
+</script>
+</body>
+</html>

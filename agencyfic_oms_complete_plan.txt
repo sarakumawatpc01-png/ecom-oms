@@ -1,0 +1,3276 @@
+================================================================================
+AGENCYFIC OMS — AGENCYFIC ORDER MANAGEMENT SYSTEM
+COMPLETE DETAILED TECHNICAL & PRODUCT PLAN
+================================================================================
+Version: 1.0 | Date: April 2026
+Product Name: Agencyfic OMS
+Tagline: One Dashboard. All Platforms. Zero Chaos.
+Target Market: Indian ecommerce sellers on Meesho, Amazon India, Flipkart
+Business Model: SaaS, Per-Order Credit Pool Billing
+Primary Stack: Node.js + PostgreSQL + Redis + Playwright + Next.js (PWA)
+Infrastructure: VPS (Hetzner recommended), single-server to start
+
+================================================================================
+TABLE OF CONTENTS
+================================================================================
+
+PART 1  — PRODUCT OVERVIEW & VISION
+PART 2  — SYSTEM ARCHITECTURE (Full Technical)
+PART 3  — DATABASE SCHEMA (All Tables)
+PART 4  — MEESHO INTEGRATION (Session-Based, A to Z)
+PART 5  — AMAZON SP-API INTEGRATION (A to Z)
+PART 6  — FLIPKART API INTEGRATION (A to Z)
+PART 7  — CORE FEATURES — SELLER DASHBOARD (Every Screen, Every Button)
+PART 8  — SUPER ADMIN PANEL (Every Screen, Every Control)
+PART 9  — BILLING SYSTEM (Packages, Credits, Razorpay, Enforcement)
+PART 10 — AI FEATURES (Listing Optimizer + Image Generator)
+PART 11 — AUTH SYSTEM (Login, OTP, Trusted Devices, JWT)
+PART 12 — NOTIFICATION SYSTEM (In-App, Email, SMS, WhatsApp)
+PART 13 — EVIDENCE CAPTURE & RETURN CLAIMS SYSTEM
+PART 14 — LABEL & INVOICE SYSTEM
+PART 15 — VPS SETUP & INFRASTRUCTURE
+PART 16 — SECURITY ARCHITECTURE
+PART 17 — LEGAL & COMPLIANCE PAGES
+PART 18 — BUILD ROADMAP (Phase-by-Phase)
+PART 19 — COST PROJECTIONS (Infrastructure + AI at Scale)
+PART 20 — FOLDER STRUCTURE (Complete Codebase Layout)
+
+================================================================================
+PART 1 — PRODUCT OVERVIEW & VISION
+================================================================================
+
+WHAT IS AGENCYFIC OMS?
+-----------------------
+Agencyfic OMS is a multi-tenant, web-based order management SaaS platform
+built for Indian ecommerce sellers who sell across Meesho, Amazon India, and
+Flipkart simultaneously. Instead of logging into three separate seller panels
+every day, sellers manage everything — orders, labels, invoices, return claims,
+AI-optimized listings, and product images — from one unified dashboard.
+
+The key differentiator vs existing tools (Unicommerce, EasyEcom, Vinculum):
+1. Meesho is supported WITHOUT needing Meesho's official API (session-based)
+2. Per-order credit pool billing — not per-platform, not per-user
+3. AI listing optimization and AI product image generation built-in
+4. Evidence capture system for return fraud claims (photos + video)
+5. Designed for small-to-mid sellers, not large enterprises
+6. Affordable Indian pricing (₹1,000 / ₹4,000 / ₹7,500 per pool)
+
+WHO ARE THE USERS?
+------------------
+Primary: Indian sellers who sell on Meesho + at least one of Amazon/Flipkart
+Secondary: Agency owners managing multiple seller accounts for clients
+Size: Sellers processing 500 to 15,000 orders per month
+
+USER PAIN POINTS BEING SOLVED:
+1. Logging into 3 separate platforms daily wastes 1-2 hours
+2. Meesho dispatch deadlines are missed because sellers forget to check
+3. Wrong return fraud — seller has no evidence to file claims
+4. Printing labels from 3 platforms separately is chaotic
+5. GST invoice generation is manual and error-prone
+6. Product listings are poorly optimized, hurting search visibility
+7. Product images are low quality (phone photos, bad backgrounds)
+
+================================================================================
+PART 2 — SYSTEM ARCHITECTURE
+================================================================================
+
+HIGH-LEVEL ARCHITECTURE DIAGRAM:
+----------------------------------
+
+  [SELLER'S DEVICE — Any Browser / Mobile / Desktop]
+         |
+         |  HTTPS (API calls + WebSocket)
+         |
+  [YOUR VPS — HETZNER]
+  +--------------------------------------------------+
+  |  NGINX (Reverse Proxy + SSL Termination)         |
+  |  +----------------------------------------------+|
+  |  |  NEXT.JS FRONTEND (PWA)                      ||
+  |  |  — Served by Next.js SSR                     ||
+  |  +----------------------------------------------+|
+  |  +----------------------------------------------+|
+  |  |  NODE.JS BACKEND (Express/Fastify API)        ||
+  |  |  — REST API endpoints                        ||
+  |  |  — Socket.io (real-time)                     ||
+  |  |  — Bull Queue workers                        ||
+  |  |  — Cron job scheduler                        ||
+  |  +----------------------------------------------+|
+  |  +----------------+  +------------------------+ ||
+  |  | POSTGRESQL     |  | REDIS                  | ||
+  |  | — All data     |  | — Sessions/cookies     | ||
+  |  | — Orders       |  | — Job queues (Bull)    | ||
+  |  | — Users        |  | — Rate limiting        | ||
+  |  | — Accounts     |  | — Caching              | ||
+  |  | — Claims       |  | — OTP storage          | ||
+  |  +----------------+  +------------------------+ ||
+  |  +----------------------------------------------+|
+  |  |  PLAYWRIGHT ENGINE (Headless Chromium)        ||
+  |  |  — Meesho session login (on-demand only)     ||
+  |  |  — Meesho order actions (accept/pack/ship)   ||
+  |  |  — Meesho claim filing assistance            ||
+  |  +----------------------------------------------+|
+  +--------------------------------------------------+
+         |
+         |  Direct API Calls
+         |
+  +------------------+  +------------------+  +------------------+
+  | MEESHO           |  | AMAZON SP-API    |  | FLIPKART API     |
+  | supplier.meesho  |  | sellingpartner   |  | seller.flipkart  |
+  | .com (session)   |  | api.amazon.com   |  | .com/api-docs    |
+  +------------------+  +------------------+  +------------------+
+         |
+  +------------------+  +------------------+
+  | AI APIS          |  | CLOUDFLARE R2    |
+  | — Claude/GPT-4   |  | — Temp evidence  |
+  | — Stability AI   |  | — Label PDFs     |
+  | — Clipdrop       |  | — Invoice PDFs   |
+  +------------------+  +------------------+
+
+COMPONENT BREAKDOWN:
+---------------------
+
+1. NGINX
+   - Listens on port 80 and 443
+   - Redirects HTTP to HTTPS
+   - Reverse proxies to Next.js (port 3000) and Node API (port 4000)
+   - Handles SSL via Let's Encrypt / Certbot
+   - Rate limiting at nginx level (100 req/min per IP)
+
+2. NEXT.JS FRONTEND
+   - Server-side rendered PWA
+   - Works on any browser including mobile
+   - "Add to Home Screen" support on Android/iOS
+   - Communicates with backend via REST API + Socket.io
+   - NO business logic on frontend — purely UI + API calls
+   - All routes protected by JWT middleware
+
+3. NODE.JS BACKEND (API Server)
+   - REST API on port 4000
+   - Endpoints: /auth, /orders, /labels, /invoices, /claims,
+     /accounts, /billing, /platforms, /ai, /admin
+   - Bull queue manager for async jobs
+   - Socket.io server for real-time push to frontend
+   - Cron jobs: order sync (every 5 min), session health check (every 6h),
+     claim deadline alerts (every hour), billing alerts (daily)
+
+4. POSTGRESQL DATABASE
+   - Main persistent data store
+   - All tables listed in Part 3
+   - PgBouncer connection pooling (for 100+ users)
+   - Indexed on: user_id, account_id, order_id, platform, created_at, status
+
+5. REDIS
+   - Session cookie cache: key = "session:{user_id}:{account_id}"
+   - OTP storage: key = "otp:{email}" with 10 min TTL
+   - Trust tokens: key = "trust:{token}" with 30 day TTL
+   - Bull queues: order_sync_queue, action_queue, ai_queue, label_queue
+   - Rate limiting counters
+
+6. PLAYWRIGHT ENGINE
+   - NOT running 24/7
+   - Invoked ON DEMAND for:
+     a. First login to a Meesho account (capture session cookies)
+     b. Session expiry re-login
+     c. Order actions on Meesho (accept, pack, ship buttons)
+     d. Meesho claim form filling assistance
+   - Headless Chromium
+   - Each invocation spins up a browser context, does the task, closes it
+   - Max 3 concurrent Playwright instances on 8GB VPS to avoid RAM spike
+
+7. BULL QUEUE SYSTEM
+   Queue: order_sync_queue
+     Workers: 5 concurrent
+     Jobs: Fetch orders for one seller account (HTTP call with cookie)
+     Schedule: Every 5 minutes, one job per active account
+
+   Queue: action_queue
+     Workers: 3 concurrent
+     Jobs: Accept/pack/ship order via Playwright
+     Priority: HIGH — process within 30 seconds of request
+
+   Queue: label_queue
+     Workers: 3 concurrent
+     Jobs: Fetch label PDF from Meesho/Flipkart, generate Amazon label
+     Priority: MEDIUM
+
+   Queue: ai_queue
+     Workers: 2 concurrent
+     Jobs: AI listing optimization calls, AI image generation
+     Priority: LOW (not time-critical)
+
+   Queue: notification_queue
+     Workers: 2 concurrent
+     Jobs: Send email, SMS, WhatsApp notifications
+
+REAL-TIME UPDATES (Socket.io):
+  - Seller connects → joins room "user:{user_id}"
+  - When new order detected: emit "new_order" to that room
+  - When order status changes: emit "order_update"
+  - When session expires: emit "session_expired" with account details
+  - When AI job completes: emit "ai_complete"
+  - When Bull job fails: emit "job_error"
+  - Frontend listens and updates UI without page refresh
+
+================================================================================
+PART 3 — DATABASE SCHEMA
+================================================================================
+
+TABLE: users
+------------
+id                    UUID PRIMARY KEY DEFAULT gen_random_uuid()
+email                 VARCHAR(255) UNIQUE NOT NULL
+password_hash         VARCHAR(255) NOT NULL  -- bcrypt, 12 rounds
+name                  VARCHAR(255) NOT NULL
+phone                 VARCHAR(20)
+business_name         VARCHAR(255)
+gstin                 VARCHAR(20)
+pan                   VARCHAR(15)
+address               TEXT
+city                  VARCHAR(100)
+state                 VARCHAR(100)
+pincode               VARCHAR(10)
+plan_id               UUID REFERENCES plans(id)
+credits_purchased     INTEGER DEFAULT 0
+credits_used          INTEGER DEFAULT 0
+credits_grace_used    INTEGER DEFAULT 0
+plan_expires_at       TIMESTAMP
+is_active             BOOLEAN DEFAULT true
+is_verified           BOOLEAN DEFAULT false
+role                  VARCHAR(20) DEFAULT 'seller'  -- 'seller' | 'sub_user' | 'admin'
+parent_user_id        UUID REFERENCES users(id) NULL  -- for sub-users
+sub_user_role         VARCHAR(20) NULL  -- 'admin' | 'order_manager' | 'view_only'
+created_at            TIMESTAMP DEFAULT NOW()
+updated_at            TIMESTAMP DEFAULT NOW()
+
+TABLE: plans
+------------
+id                    UUID PRIMARY KEY
+name                  VARCHAR(100) NOT NULL   -- 'Starter', 'Growth', 'Pro'
+order_count           INTEGER NOT NULL        -- 1000, 5000, 10000
+price_inr             DECIMAL(10,2) NOT NULL  -- 1000.00, 4000.00, 7500.00
+price_per_order       DECIMAL(10,4)           -- auto-calculated
+grace_orders          INTEGER DEFAULT 50
+grace_rate_paise      INTEGER DEFAULT 150     -- ₹1.50 per grace order
+features              JSONB                   -- {"video_evidence": true, "ai_listing": "on_request", ...}
+is_active             BOOLEAN DEFAULT true
+display_order         INTEGER                 -- for sorting on pricing page
+created_at            TIMESTAMP DEFAULT NOW()
+
+TABLE: linked_accounts
+-----------------------
+id                    UUID PRIMARY KEY
+user_id               UUID REFERENCES users(id) ON DELETE CASCADE
+platform              VARCHAR(20) NOT NULL    -- 'meesho' | 'amazon' | 'flipkart'
+account_nickname      VARCHAR(100)            -- user-defined, e.g. "Company A Meesho"
+meesho_phone          VARCHAR(20) NULL
+meesho_password_enc   TEXT NULL               -- AES-256 encrypted
+amazon_seller_id      VARCHAR(100) NULL
+amazon_refresh_token  TEXT NULL               -- OAuth refresh token (not password)
+amazon_marketplace_id VARCHAR(50) NULL        -- AEXKL89LWJ0JX for India
+flipkart_app_id       VARCHAR(200) NULL
+flipkart_app_secret   TEXT NULL               -- encrypted
+flipkart_access_token TEXT NULL
+flipkart_refresh_token TEXT NULL
+session_status        VARCHAR(20) DEFAULT 'not_connected'
+                      -- 'active' | 'expired' | 'not_connected' | 'error'
+last_sync_at          TIMESTAMP
+last_sync_success     BOOLEAN DEFAULT false
+last_error            TEXT NULL
+sync_enabled          BOOLEAN DEFAULT true
+sync_frequency_min    INTEGER DEFAULT 5
+auto_accept_orders    BOOLEAN DEFAULT false
+created_at            TIMESTAMP DEFAULT NOW()
+updated_at            TIMESTAMP DEFAULT NOW()
+
+TABLE: sessions (Meesho session cookies — also stored in Redis for speed)
+--------------------------------------------------------------------------
+id                    UUID PRIMARY KEY
+linked_account_id     UUID REFERENCES linked_accounts(id) ON DELETE CASCADE
+cookies_json          TEXT NOT NULL           -- AES-256 encrypted JSON of cookies
+expires_at            TIMESTAMP
+created_at            TIMESTAMP DEFAULT NOW()
+refreshed_at          TIMESTAMP DEFAULT NOW()
+
+TABLE: orders
+-------------
+id                    UUID PRIMARY KEY
+user_id               UUID REFERENCES users(id)
+linked_account_id     UUID REFERENCES linked_accounts(id)
+platform              VARCHAR(20) NOT NULL
+platform_order_id     VARCHAR(100) NOT NULL
+platform_suborder_id  VARCHAR(100) NULL       -- Flipkart shipment ID
+status                VARCHAR(50) NOT NULL
+                      -- 'pending' | 'accepted' | 'packed' | 'ready_to_ship'
+                      -- 'shipped' | 'delivered' | 'cancelled' | 'returned' | 'rto'
+customer_name         VARCHAR(255)
+customer_phone        VARCHAR(20) NULL        -- may not be available
+customer_address      TEXT
+customer_city         VARCHAR(100)
+customer_state        VARCHAR(100)
+customer_pincode      VARCHAR(10)
+products              JSONB                   -- [{name, sku, qty, price, image_url}]
+order_amount          DECIMAL(10,2)
+payment_type          VARCHAR(10)             -- 'cod' | 'prepaid'
+cod_amount            DECIMAL(10,2) NULL
+platform_fee          DECIMAL(10,2) NULL
+awb_number            VARCHAR(100) NULL
+courier_name          VARCHAR(100) NULL
+dispatch_deadline     TIMESTAMP NULL
+shipped_at            TIMESTAMP NULL
+delivered_at          TIMESTAMP NULL
+cancelled_at          TIMESTAMP NULL
+return_initiated_at   TIMESTAMP NULL
+credit_counted        BOOLEAN DEFAULT false   -- true = 1 credit deducted
+credit_deducted_at    TIMESTAMP NULL
+invoice_generated     BOOLEAN DEFAULT false
+label_downloaded      BOOLEAN DEFAULT false
+notes                 TEXT NULL               -- seller internal notes
+raw_data              JSONB NULL              -- original API response stored
+created_at            TIMESTAMP DEFAULT NOW()
+updated_at            TIMESTAMP DEFAULT NOW()
+UNIQUE(platform, platform_order_id, user_id)
+
+TABLE: labels
+-------------
+id                    UUID PRIMARY KEY
+order_id              UUID REFERENCES orders(id)
+user_id               UUID REFERENCES users(id)
+platform              VARCHAR(20)
+label_format          VARCHAR(20)             -- 'a4' | 'thermal_4x6' | '4up'
+storage_key           VARCHAR(500)            -- R2 object key
+storage_url           TEXT NULL
+file_size_bytes       INTEGER
+downloaded_at         TIMESTAMP
+expires_at            TIMESTAMP               -- R2 auto-delete after 90 days
+created_at            TIMESTAMP DEFAULT NOW()
+
+TABLE: invoices
+---------------
+id                    UUID PRIMARY KEY
+invoice_number        VARCHAR(50) UNIQUE NOT NULL
+order_id              UUID REFERENCES orders(id)
+user_id               UUID REFERENCES users(id)
+seller_gstin          VARCHAR(20)
+seller_name           VARCHAR(255)
+seller_address        TEXT
+buyer_name            VARCHAR(255)
+buyer_state           VARCHAR(100)
+items_json            JSONB
+subtotal              DECIMAL(10,2)
+cgst                  DECIMAL(10,2) DEFAULT 0
+sgst                  DECIMAL(10,2) DEFAULT 0
+igst                  DECIMAL(10,2) DEFAULT 0
+total                 DECIMAL(10,2)
+storage_key           VARCHAR(500)            -- R2 object key
+created_at            TIMESTAMP DEFAULT NOW()
+
+TABLE: returns
+--------------
+id                    UUID PRIMARY KEY
+order_id              UUID REFERENCES orders(id)
+user_id               UUID REFERENCES users(id)
+platform              VARCHAR(20)
+platform_return_id    VARCHAR(100)
+return_reason         VARCHAR(255)
+return_type           VARCHAR(50)             -- 'customer_return' | 'rto'
+return_initiated_at   TIMESTAMP
+return_delivered_at   TIMESTAMP NULL
+claim_deadline        TIMESTAMP NULL          -- last date to raise claim
+evidence_status       VARCHAR(20) DEFAULT 'none'
+                      -- 'none' | 'captured' | 'submitted'
+claim_status          VARCHAR(30) DEFAULT 'not_raised'
+                      -- 'not_raised' | 'raised' | 'under_review' | 'won' | 'lost'
+claim_raised_at       TIMESTAMP NULL
+claim_resolution_at   TIMESTAMP NULL
+amount_recovered      DECIMAL(10,2) NULL
+platform_claim_id     VARCHAR(100) NULL
+notes                 TEXT NULL
+created_at            TIMESTAMP DEFAULT NOW()
+updated_at            TIMESTAMP DEFAULT NOW()
+
+TABLE: evidence_files
+---------------------
+id                    UUID PRIMARY KEY
+return_id             UUID REFERENCES returns(id)
+user_id               UUID REFERENCES users(id)
+order_id              UUID REFERENCES orders(id)
+file_type             VARCHAR(10)             -- 'photo' | 'video'
+capture_stage         VARCHAR(20)             -- 'packing' | 'return_received'
+storage_location      VARCHAR(20)             -- 'r2_temp' | 'google_drive' | 'device'
+storage_key           VARCHAR(500) NULL       -- R2 key or Google Drive file ID
+file_size_bytes       INTEGER NULL
+captured_at           TIMESTAMP NOT NULL
+submitted_to_platform BOOLEAN DEFAULT false
+submitted_at          TIMESTAMP NULL
+expires_at            TIMESTAMP NULL          -- R2 TTL
+created_at            TIMESTAMP DEFAULT NOW()
+
+TABLE: billing_transactions
+---------------------------
+id                    UUID PRIMARY KEY
+user_id               UUID REFERENCES users(id)
+transaction_type      VARCHAR(20)             -- 'purchase' | 'topup' | 'grace' | 'refund'
+plan_id               UUID REFERENCES plans(id) NULL
+orders_purchased      INTEGER
+amount_inr            DECIMAL(10,2)
+razorpay_order_id     VARCHAR(100) NULL
+razorpay_payment_id   VARCHAR(100) NULL
+payment_status        VARCHAR(20)             -- 'pending' | 'paid' | 'failed' | 'refunded'
+invoice_number        VARCHAR(50) NULL        -- your invoice to seller for this
+paid_at               TIMESTAMP NULL
+created_at            TIMESTAMP DEFAULT NOW()
+
+TABLE: ai_jobs
+--------------
+id                    UUID PRIMARY KEY
+user_id               UUID REFERENCES users(id)
+job_type              VARCHAR(30)             -- 'listing_optimize' | 'image_generate' | 'bg_remove'
+platform              VARCHAR(20) NULL
+linked_account_id     UUID NULL
+input_data            JSONB                   -- listing text, product category, original image URL
+output_data           JSONB NULL              -- optimized text, generated image URL
+ai_model_used         VARCHAR(50)             -- 'claude-3-5-sonnet' | 'gpt-4o' | 'stability-sd3'
+tokens_used           INTEGER NULL
+credits_charged       DECIMAL(10,4) NULL      -- AI cost to you
+status                VARCHAR(20)             -- 'queued' | 'processing' | 'done' | 'failed'
+error_message         TEXT NULL
+created_at            TIMESTAMP DEFAULT NOW()
+completed_at          TIMESTAMP NULL
+
+TABLE: ai_model_settings (Superadmin controlled)
+-------------------------------------------------
+id                    UUID PRIMARY KEY
+task_type             VARCHAR(30) UNIQUE      -- 'listing_optimize' | 'image_generate' | 'bg_remove' | 'support'
+model_provider        VARCHAR(30)             -- 'anthropic' | 'openai' | 'stability' | 'clipdrop'
+model_name            VARCHAR(100)            -- 'claude-3-5-sonnet-20241022' | 'gpt-4o' | etc.
+api_key_encrypted     TEXT                    -- AES-256 encrypted
+is_active             BOOLEAN DEFAULT true
+cost_per_call_paise   INTEGER                 -- your cost in paise per call
+updated_by_admin      UUID NULL
+updated_at            TIMESTAMP DEFAULT NOW()
+
+TABLE: site_settings (Superadmin controlled)
+--------------------------------------------
+id                    UUID PRIMARY KEY
+key                   VARCHAR(100) UNIQUE NOT NULL
+value                 TEXT
+value_type            VARCHAR(20)             -- 'text' | 'boolean' | 'json' | 'url' | 'color'
+description           TEXT
+updated_at            TIMESTAMP DEFAULT NOW()
+
+-- Key examples stored here:
+-- site_name, site_tagline, site_logo_url, site_favicon_url, support_email,
+-- support_phone, razorpay_key_id, razorpay_key_secret (encrypted),
+-- smtp_host, smtp_user, smtp_pass (encrypted), sms_api_key,
+-- whatsapp_api_key, grace_orders_default, grace_rate_default,
+-- free_trial_orders, low_balance_pct_yellow, low_balance_pct_red,
+-- order_counted_at_status (meesho: 'accepted', amazon: 'shipped', flipkart: 'rtd'),
+-- max_concurrent_playwright, sync_batch_size, data_retention_days
+
+TABLE: notifications_log
+------------------------
+id                    UUID PRIMARY KEY
+user_id               UUID REFERENCES users(id)
+channel               VARCHAR(20)             -- 'in_app' | 'email' | 'sms' | 'whatsapp'
+type                  VARCHAR(50)             -- 'new_order' | 'dispatch_alert' | 'session_expired' | etc.
+title                 VARCHAR(255)
+message               TEXT
+is_read               BOOLEAN DEFAULT false
+sent_at               TIMESTAMP DEFAULT NOW()
+read_at               TIMESTAMP NULL
+
+TABLE: trusted_devices
+-----------------------
+id                    UUID PRIMARY KEY
+user_id               UUID REFERENCES users(id)
+device_name           VARCHAR(100)            -- 'Chrome on Windows', 'Safari on iPhone'
+trust_token           VARCHAR(255) UNIQUE
+ip_address            VARCHAR(50)
+user_agent            TEXT
+expires_at            TIMESTAMP               -- 30 days from creation
+last_used_at          TIMESTAMP
+created_at            TIMESTAMP DEFAULT NOW()
+
+TABLE: login_history
+--------------------
+id                    UUID PRIMARY KEY
+user_id               UUID REFERENCES users(id)
+ip_address            VARCHAR(50)
+user_agent            TEXT
+device_hint           VARCHAR(100)
+success               BOOLEAN
+failure_reason        VARCHAR(100) NULL
+created_at            TIMESTAMP DEFAULT NOW()
+
+TABLE: seller_invoices (Your invoices TO sellers for their subscriptions)
+--------------------------------------------------------------------------
+id                    UUID PRIMARY KEY
+invoice_number        VARCHAR(50) UNIQUE
+user_id               UUID REFERENCES users(id)
+billing_transaction_id UUID REFERENCES billing_transactions(id)
+your_gstin            VARCHAR(20)
+seller_gstin          VARCHAR(20)
+amount_before_gst     DECIMAL(10,2)
+gst_amount            DECIMAL(10,2)
+total_amount          DECIMAL(10,2)
+storage_key           VARCHAR(500)
+issued_at             TIMESTAMP DEFAULT NOW()
+
+TABLE: admin_activity_log
+--------------------------
+id                    UUID PRIMARY KEY
+admin_id              UUID REFERENCES users(id)
+action                VARCHAR(100)
+target_type           VARCHAR(50)             -- 'user' | 'plan' | 'setting' | 'ai_model'
+target_id             VARCHAR(100)
+details               JSONB
+ip_address            VARCHAR(50)
+created_at            TIMESTAMP DEFAULT NOW()
+
+================================================================================
+PART 4 — MEESHO INTEGRATION (A TO Z)
+================================================================================
+
+WHY NO OFFICIAL API:
+---------------------
+Meesho does not provide a public API for order management. Their API is
+invite-only and given only to approved enterprise aggregators (Unicommerce,
+EasyEcom). For everyone else, the only option is session-based automation —
+logging into the Meesho Seller Panel (supplier.meesho.com) using the seller's
+phone number + password, capturing the session cookies, and using those cookies
+to make HTTP calls to Meesho's internal (undocumented) API endpoints.
+
+This is the same method used by Base.com, Fynd Konnect, and other platforms
+before they got official API access. It works reliably at moderate scale.
+
+STEP 1 — SELLER ONBOARDING (First Time Account Connection):
+------------------------------------------------------------
+1. Seller opens Agencyfic OMS dashboard
+2. Goes to: Platforms → Meesho → "Connect Account"
+3. Form shown:
+   - Account Nickname (e.g. "Women's Kurtas Store")
+   - Meesho Registered Phone Number
+   - Meesho Password
+4. Seller submits form
+5. Backend receives phone + password
+6. Password encrypted with AES-256 before storage:
+   encrypted_password = AES.encrypt(plain_password, MASTER_KEY)
+   MASTER_KEY is stored as environment variable on VPS, never in DB
+7. linked_accounts record created with status = 'connecting'
+8. Bull action_queue job created: { type: 'meesho_first_login', account_id }
+9. Worker picks up job, invokes Playwright:
+
+PLAYWRIGHT LOGIN FLOW (Code Logic):
+   a. Launch headless Chromium browser
+   b. Create new browser context (incognito-like)
+   c. Navigate to: https://supplier.meesho.com/
+   d. Wait for login page to load
+   e. Check if password login option exists (it does for returning users)
+      — Click "Login with Password" if toggle needed
+   f. Fill phone number field
+   g. Fill password field
+   h. Click Login / Submit button
+   i. Wait for navigation (max 10 seconds)
+   j. Check result:
+      - If redirected to dashboard → SUCCESS
+      - If OTP screen shown → FAIL (notify seller to login manually once)
+      - If wrong credentials error → FAIL (notify seller to update password)
+   k. On SUCCESS: extract all cookies from browser context:
+      cookies = await context.cookies()
+   l. Serialize cookies to JSON string
+   m. Encrypt cookies JSON with AES-256
+   n. Store in sessions table
+   o. Store in Redis: SET "session:meesho:{account_id}" encrypted_cookies EX 2592000
+      (2592000 seconds = 30 days TTL in Redis)
+   p. Update linked_accounts: session_status = 'active', last_sync_at = NOW()
+   q. Close browser context and browser
+   r. Trigger first order sync immediately
+
+PASSWORD LOGIN NOTE:
+   Meesho allows returning users to login with phone + password (no OTP).
+   This is the key enabler of full automation. If a seller has never used
+   password login, they need to set it once in the Meesho app, then provide
+   it to our system.
+
+STEP 2 — ORDER SYNC (Runs Every 5 Minutes):
+-------------------------------------------
+The cron job loops through all active linked_accounts where platform='meesho'
+and sync_enabled=true. For each account:
+
+a. Load session cookies from Redis
+   If Redis cache miss → load from DB, put back in Redis
+b. Decrypt cookies
+c. Make HTTP request to Meesho internal API:
+   GET https://supplier.meesho.com/api/v2/orders?status=pending&page=1&limit=50
+   Headers:
+     Cookie: [decrypted cookie string]
+     Content-Type: application/json
+     User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64)...
+     Referer: https://supplier.meesho.com/orders
+d. Parse response JSON
+e. For each order in response:
+   - Check if order already exists: SELECT id FROM orders WHERE platform='meesho'
+     AND platform_order_id=? AND user_id=?
+   - If NEW order:
+     * Insert into orders table
+     * emit Socket.io event "new_order" to user's room
+     * Create notification: "New order #{order_id} on Meesho"
+     * If auto_accept_orders=true, queue an accept action
+   - If EXISTING order with changed status:
+     * Update orders table
+     * emit "order_update" event
+f. Check if HTTP response was 401 or 403 (session expired):
+   * Flag linked_accounts.session_status = 'expired'
+   * Send notification: "Your Meesho account '{nickname}' session expired.
+     Please reconnect."
+   * Schedule re-login job
+
+MEESHO API ENDPOINTS CAPTURED VIA REVERSE ENGINEERING:
+(These are internal endpoints discovered by inspecting Network tab in Chrome)
+
+GET  /api/v2/orders                   — fetch orders by status
+GET  /api/v2/orders/{order_id}        — single order detail
+POST /api/v2/orders/{order_id}/accept — accept pending order
+POST /api/v2/orders/{order_id}/pack   — mark as packed
+POST /api/v2/orders/{order_id}/ship   — mark as shipped (with AWB)
+GET  /api/v2/orders/{order_id}/label  — get label PDF URL
+GET  /api/v2/orders/{order_id}/invoice — get invoice PDF URL
+GET  /api/v2/returns                   — fetch returns list
+GET  /api/v2/returns/{return_id}       — single return detail
+POST /api/v2/claims/create             — create a return claim
+GET  /api/v2/claims/{claim_id}/status  — check claim status
+GET  /api/v2/seller/profile            — health check endpoint
+
+NOTE: If an endpoint returns 404 (Meesho updated their API), the system logs
+the error and sends an alert to the superadmin's monitoring dashboard.
+
+STEP 3 — ORDER ACTIONS (Accept / Pack / Ship):
+-----------------------------------------------
+When seller clicks Accept on an order in the dashboard:
+
+a. Frontend sends: POST /api/orders/{id}/accept
+b. Backend validates: JWT valid, order belongs to this user, order is 'pending'
+c. Load session cookies from Redis
+d. If Meesho allows direct HTTP POST to /api/v2/orders/{id}/accept with cookie:
+   → Make direct HTTP call (fastest, <1 second)
+e. If that endpoint requires browser interaction:
+   → Queue Playwright action job (priority HIGH)
+   → Playwright loads order page, clicks Accept button
+   → Returns result
+f. On success: update orders table status = 'accepted'
+g. Deduct 1 credit from user's pool (this is the "counted" event for Meesho)
+h. Emit Socket.io "order_update" to frontend
+
+STEP 4 — LABEL DOWNLOAD:
+--------------------------
+a. Make HTTP GET to Meesho's label URL with session cookie
+b. Meesho returns a redirect to label PDF URL
+c. Follow redirect, download PDF bytes
+d. Store in Cloudflare R2: labels/{user_id}/{order_id}/label.pdf
+e. Return download URL to frontend
+f. Label stored permanently (never auto-deleted — superadmin setting)
+
+STEP 5 — SESSION HEALTH CHECK (Every 6 Hours):
+-----------------------------------------------
+Cron job runs for all active Meesho accounts:
+a. Make GET to https://supplier.meesho.com/api/v2/seller/profile with cookie
+b. If 200 → session still alive → update last_sync_at, do nothing
+c. If 401/403 → session expired → trigger re-login with stored password
+d. Re-login uses same Playwright flow as Step 1
+e. If re-login fails (password changed) → notify seller to update password
+
+STEP 6 — PARALLEL PROCESSING (Rush Hour Mode):
+-----------------------------------------------
+Seller clicks "Rush Hour Mode" or system detects >20 pending orders:
+- Bull action_queue processes up to 9 concurrent jobs (one per linked account)
+- Each job handles its own account's pending orders sequentially
+- Jobs for DIFFERENT accounts run in parallel (safe — different sessions)
+- Jobs for SAME account run sequentially (to avoid race conditions)
+- Priority: Claims filing > Order acceptance > Label download > Sync
+
+MEESHO SCALABILITY NOTE:
+  All Meesho sessions from all users run from your VPS IP.
+  This is identical to how Unicommerce, EasyEcom operate.
+  Meesho recognizes this as normal aggregator behavior.
+  Risk of ban: LOW for normal order volumes (under 10,000 requests/day).
+  At 200 users doing 50 orders/day = 10,000 order syncs = spread over 288
+  cron cycles = ~35 API calls per cycle. Completely normal traffic.
+
+================================================================================
+PART 5 — AMAZON SP-API INTEGRATION (A TO Z)
+================================================================================
+
+REGISTRATION PROCESS:
+---------------------
+1. Go to: https://developer.amazonservices.com (or via Seller Central)
+2. Register as a "Public Developer" (you're building for multiple sellers)
+3. Fill application:
+   - Your company name, website URL (Agencyfic OMS must be live)
+   - Application description: "Multi-channel order management SaaS for Indian sellers"
+   - Data Access requested: Orders, Fulfillment, Reports, Notifications
+4. Amazon reviews application (2-4 weeks)
+5. On approval: you receive a Developer Account
+6. Create a "Public Seller Application" in your developer account
+7. Set OAuth redirect URI: https://yourdomain.com/oauth/amazon/callback
+8. Receive: Client ID (LWA_APP_ID) and Client Secret (LWA_CLIENT_SECRET)
+
+SELLER ONBOARDING VIA OAUTH:
+------------------------------
+When a seller clicks "Connect Amazon Account":
+
+1. Your backend generates an OAuth URL:
+   https://sellercentral.amazon.in/apps/authorize/consent?
+   application_id={YOUR_APP_ID}
+   &state={random_state_token}
+   &redirect_uri=https://yourdomain.com/oauth/amazon/callback
+   &version=beta
+
+2. Seller is redirected to Amazon Seller Central
+3. Seller sees your app requesting permissions, clicks "Authorize"
+4. Amazon redirects back to your callback URL with:
+   ?spapi_oauth_code={AUTH_CODE}&state={state_token}
+
+5. Your backend exchanges auth_code for tokens:
+   POST https://api.amazon.com/auth/o2/token
+   Body: {
+     grant_type: "authorization_code",
+     code: AUTH_CODE,
+     redirect_uri: YOUR_REDIRECT_URI,
+     client_id: LWA_APP_ID,
+     client_secret: LWA_CLIENT_SECRET
+   }
+   Response: {
+     access_token: "...",     // expires in 1 hour
+     refresh_token: "...",    // never expires
+     token_type: "bearer"
+   }
+
+6. Store refresh_token encrypted in linked_accounts table
+7. Access token cached in Redis with 55-minute TTL
+8. Seller ID fetched via: GET /sellers/v1/marketplaceParticipations
+
+HOW TOKEN REFRESH WORKS:
+  Before every Amazon API call:
+  a. Check Redis for valid access_token for this account
+  b. If found and not expired → use it
+  c. If expired or not found:
+     POST https://api.amazon.com/auth/o2/token
+     Body: { grant_type: "refresh_token", refresh_token: decrypted_refresh_token,
+             client_id, client_secret }
+     Response: new access_token
+     Cache in Redis for 55 minutes
+
+ORDER SYNC:
+-----------
+Every 5 minutes (or via push notification webhook — see below):
+
+GET https://sellingpartnerapi-eu.amazon.com/orders/v0/orders
+Headers: x-amz-access-token: {access_token}
+Params: MarketplaceIds=AEXKL89LWJ0JX (India), CreatedAfter={5 min ago}, OrderStatuses=Unshipped,PartiallyShipped
+
+Parse response, insert new orders into orders table.
+Amazon order status mapping to our status:
+  Pending          → 'pending'
+  Unshipped        → 'accepted'
+  PartiallyShipped → 'packed'
+  Shipped          → 'shipped'
+  Delivered        → 'delivered'
+  Canceled         → 'cancelled'
+
+Credit deduction trigger for Amazon: when seller confirms shipment
+(status changes to 'shipped' via our dashboard).
+
+LABEL GENERATION:
+-----------------
+Amazon FBM sellers use the Merchant Fulfillment API:
+POST /mws/fulfillment/2010-10-01/
+  — Create shipment with carrier details
+  — Amazon returns label PDF as base64
+  — Decode, store in R2, serve to seller
+  — We support: India Post, Delhivery, BlueDart, Xpressbees, DTDC
+
+RETURNS & SAFE-T CLAIMS:
+------------------------
+GET /orders/v0/orders/{orderId}/orderItems
+GET /fulfillment/v0/returnItems
+POST /solicitations/v1/orders/{orderId}/solicitations/productReviewAndSellerFeedback
+  — For SAFE-T claims when wrong return received
+  — Amazon SAFE-T API handles claim submission officially
+
+PUSH NOTIFICATIONS (Amazon SNS — Better Than Polling):
+-------------------------------------------------------
+Amazon offers real-time push notifications via SNS:
+1. Create SNS topic in your AWS account
+2. Register your endpoint with Amazon:
+   POST /notifications/v1/subscriptions
+   Body: { notificationType: "ORDER_CHANGE", destinationType: "SQS", ... }
+3. When any order changes on Amazon → Amazon pushes to your SQS queue
+4. Your server polls SQS every 30 seconds (or use SQS push to your endpoint)
+5. No need for 5-minute cron job polling for Amazon at all
+6. Real-time updates to seller dashboard
+
+================================================================================
+PART 6 — FLIPKART API INTEGRATION (A TO Z)
+================================================================================
+
+REGISTRATION PROCESS:
+---------------------
+1. Go to: https://seller.flipkart.com/api-docs/fmsapi_index.html
+2. Register on Flipkart Partner Dashboard:
+   https://partner.flipkart.com/
+3. During registration, select "Yes" to "Are you an API Partner?"
+4. Fill details: company name, website, integration description
+5. Flipkart team contacts within 72 hours to verify
+6. After verification: create a "Third Party Application"
+7. Receive: App ID and App Secret
+
+SELLER ONBOARDING VIA OAUTH:
+-----------------------------
+Similar to Amazon OAuth flow:
+1. Generate Flipkart auth URL with your App ID
+2. Seller logs into their Flipkart Seller account
+3. Seller authorizes your app
+4. Flipkart redirects back with auth_code
+5. Exchange auth_code for access_token + refresh_token
+6. Store refresh_token encrypted in linked_accounts
+
+ORDER SYNC VIA PUSH NOTIFICATION (Flipkart's Preferred Method):
+---------------------------------------------------------------
+Flipkart supports push notifications (webhook):
+1. Register your webhook URL with Flipkart:
+   POST /seller/orders/notification/register
+   Body: { endpoint_url: "https://yourdomain.com/webhooks/flipkart" }
+2. Flipkart sends POST to your webhook when orders change
+3. Your webhook handler:
+   a. Validate the request signature (Flipkart signs with your app secret)
+   b. Parse the event: { event_type: "ORDER_APPROVE", shipment_id: "..." }
+   c. Fetch full order details if needed
+   d. Update your orders table
+   e. Return 200 OK immediately (async processing)
+
+BACKUP POLLING (every 10 minutes in case webhook misses):
+POST /seller/orders/filter
+Body: {
+  states: ["APPROVED", "PACKING_IN_PROGRESS", "PACKED", "READY_TO_DISPATCH"],
+  start_date: "last 10 minutes",
+  page_size: 50
+}
+
+KEY FLIPKART OPERATIONS:
+------------------------
+
+Fetch order details:
+GET /seller/orders/{order_id}
+
+Mark Ready to Dispatch (RTD) — MANDATORY before shipping on Flipkart:
+POST /seller/shipments/{shipment_ids}/markReadyToDispatch
+This is the credit deduction trigger for Flipkart.
+
+Download label (bulk, up to 100 at once):
+POST /seller/shipments/{shipment_ids}/labelOnly/pdf
+Returns: PDF file
+
+Download invoice:
+GET /seller/shipments/{shipment_ids}/invoices
+Returns: PDF file
+
+Generate manifest (for courier pickup):
+POST /seller/shipments/manifest
+Returns: manifest PDF
+
+Handle returns:
+GET /seller/returns
+POST /seller/returns/{return_id}/approve
+POST /seller/returns/{return_id}/reject
+
+FLIPKART LABEL NOTE:
+  Flipkart labels are A4 format by default.
+  For thermal printer users, we auto-crop to 4x6 inches.
+  Our system does this with sharp (Node.js image library):
+  Crop the A4 label PDF, extract the barcode region, resize to 4x6 format.
+  Sellers using Zebra/POSTEK thermal printers love this feature.
+
+================================================================================
+PART 7 — SELLER DASHBOARD (Every Screen, Every Button)
+================================================================================
+
+PAGE: LOGIN / SIGNUP
+---------------------
+Route: /login, /signup, /forgot-password
+
+Login Form:
+  - Email field
+  - Password field
+  - [Login] button
+  - "Forgot password?" link → /forgot-password
+  - "Don't have an account? Sign up" → /signup
+  - Google OAuth option (optional, Phase 2)
+
+On Login Submit:
+  a. POST /auth/login { email, password }
+  b. Backend checks: user exists, password hash matches, account active
+  c. Check if device has a valid trust token (cookie: agencyfic_trust)
+  d. If trust token valid → issue JWT directly, no OTP
+  e. If no trust token (new device) → generate 6-digit OTP, email it
+  f. Frontend shows OTP entry screen
+  g. Seller enters OTP → POST /auth/verify-otp { email, otp, trustDevice: true/false }
+  h. OTP verified → JWT issued (24h expiry)
+  i. If trustDevice=true → generate trust token UUID, set as cookie (30 days)
+  j. If trustDevice=false → no cookie, OTP required next login on this device
+  k. Redirect to /dashboard
+
+Forgot Password:
+  - Enter email → receive reset link (expires 1 hour)
+  - Click link → set new password
+  - All trust tokens and active sessions invalidated after password reset
+
+Signup Form:
+  - Name, Email, Phone, Password, Confirm Password
+  - Business Name (optional at signup)
+  - GSTIN (optional at signup)
+  - [Create Account] button
+  - On submit: account created, email verification sent
+  - Email contains: "Verify your email" link
+  - After verification: redirected to dashboard with 50 free trial orders
+    (amount set by superadmin in site_settings)
+
+PAGE: DASHBOARD HOME
+---------------------
+Route: /dashboard
+
+TOP BAR (always visible across all pages):
+  Left: Agencyfic logo + "OMS"
+  Center: Search bar (searches by order ID, customer name, SKU, product name)
+  Right: 
+    [Credits pill: 1,579 orders remaining — click to see breakdown]
+    [Bell icon with notification count badge]
+    [User avatar → Profile menu → Settings / Billing / Logout]
+
+Credits Pill Dropdown (on click):
+  ┌──────────────────────────────────────┐
+  │ Growth Plan — 5,000 orders           │
+  │ ████████████████░░░░ 68% used        │
+  │ 3,421 used  ·  1,579 remaining       │
+  │                                      │
+  │ Breakdown by platform:               │
+  │ Meesho    2,100 orders  (61%)        │
+  │ Amazon      800 orders  (23%)        │
+  │ Flipkart    521 orders  (15%)        │
+  │                                      │
+  │ Plan expires: 31 Jan 2027            │
+  │ [View Billing]  [Buy More Orders]    │
+  └──────────────────────────────────────┘
+
+ALERT BANNER (conditionally shown):
+  - If any Meesho session expired: orange banner "2 Meesho accounts need
+    reconnection. [Fix Now]"
+  - If credits < 20%: yellow "Only 320 orders remaining. [Buy More]"
+  - If credits = 0: red "No orders remaining. Processing paused. [Buy Now]"
+  - If dispatch deadline <3h on any order: red pulsing alert
+
+METRIC CARDS ROW (4 cards):
+  [Today's Orders: 47]    [Pending Dispatch: 12]
+  [Returns Today: 3]      [Credits Remaining: 1,579]
+
+PLATFORM STATUS ROW:
+  [Meesho: Connected ●]   [Amazon: Connected ●]   [Flipkart: ⚠ Session Expired]
+  Each pill is clickable → goes to that platform's settings
+
+ORDER USAGE BAR:
+  Total: ████████████████░░░░ 3,421 / 5,000 orders used
+  By platform (informational bars below):
+  Meesho:   2,100   Amazon: 800   Flipkart: 521
+  [Buy More Orders] button
+
+ALERTS & ACTIONS PANEL (right column):
+  ⚠ Order #MES123456 — dispatch in 2h 14m [Accept Now]
+  ⚠ Order #MES123457 — dispatch in 3h 01m [View]
+  ● 3 returns need evidence capture [View Returns]
+  ● Flipkart session expired [Reconnect]
+  ● 2 claims pending review on Meesho
+
+RECENT ORDERS TABLE:
+  Columns: Order ID | Platform Icon | Product (truncated) | Amount |
+           Payment Type | Status Badge | Time | Quick Actions
+  Rows: Last 10 orders across all platforms, sorted by created_at DESC
+  Each row clickable → opens Order Detail Panel (right slide-in)
+  Quick actions per row:
+    [Print Label] [Generate Invoice] [More ▾]
+
+DISPATCH DEADLINE COUNTDOWN:
+  Orders within 6 hours show a countdown clock:
+  e.g. "3:42:11" in red pulsing text
+
+SIDEBAR NAVIGATION:
+  📊 Dashboard
+  📦 Orders
+     └── All Orders
+     └── Pending Dispatch
+     └── Ready to Ship
+     └── Shipped
+     └── Delivered
+     └── Cancelled
+     └── Returns
+  🏷️ Labels
+     └── Print Labels
+     └── Label History
+  🧾 Invoices
+     └── Generate Invoice
+     └── Invoice History
+  🛡️ Claims & Returns
+     └── Active Returns
+     └── Raise a Claim
+     └── Claim History
+     └── Evidence Capture
+  📈 Reports
+     └── Sales Summary
+     └── Returns Analysis
+     └── Platform Performance
+     └── Export Data
+  🔌 Platforms
+     └── Meesho
+     └── Amazon
+     └── Flipkart
+     └── + Add Platform
+  🤖 AI Tools
+     └── Listing Optimizer
+     └── Image Generator
+  💳 Billing
+     └── Current Plan
+     └── Buy Orders
+     └── Payment History
+     └── Invoices from Us
+  ⚙️ Settings
+     └── Profile
+     └── Business Details
+     └── Notifications
+     └── Team Members
+     └── Security
+
+PAGE: ORDERS — ALL ORDERS
+--------------------------
+Route: /orders
+
+FILTER BAR (sticky at top):
+  Platform: [All] [Meesho] [Amazon] [Flipkart]
+  Status: [All] [Pending] [Accepted] [Packed] [Ready] [Shipped] [Delivered] [Cancelled] [Returned]
+  Date: [Today] [Yesterday] [Last 7 Days] [Last 30 Days] [Custom Range]
+  Payment: [All] [COD] [Prepaid]
+  Account: [All Accounts] [Company A — Meesho] [Amazon Store] [...dropdown]
+  Search: [Search by Order ID, Customer, SKU, Product...]
+
+BULK ACTION BAR (shown when 1+ orders selected):
+  [✓ Select All on Page] [Select All Matching]
+  [Print Labels (X)] [Download Invoices (X)] [Mark Packed (X)]
+  [Mark Ready to Ship (X)] [Export Selected]
+
+ORDER TABLE:
+  Columns:
+  ☐ | Order ID | Platform | Product | SKU | Qty | Amount | Type |
+  Customer | City | Order Date | Deadline | Status | Actions
+
+  Status badges with colors:
+  Pending (yellow) | Accepted (blue) | Packed (purple) | Ready (orange) |
+  Shipped (teal) | Delivered (green) | Cancelled (red) | Returned (red-outline)
+
+  Dispatch deadline column:
+  Green if >6h | Orange if 3-6h | Red+blinking if <3h | Passed (grey)
+
+  Actions column (per row):
+  [View] [Label] [Invoice] [⋮ More → Accept / Pack / Ship / Capture Evidence / Raise Claim / Add Note]
+
+  Row click → opens Order Detail Drawer (slides in from right):
+
+ORDER DETAIL DRAWER:
+  Order #MES-1234567890
+  Platform: Meesho | Account: Women's Kurtas Store
+
+  --- Order Info ---
+  Order Date: 10 Apr 2026 2:34 PM
+  AWB Number: 1234567890ABC
+  Courier: Delhivery
+  Payment Type: COD | Amount: ₹549
+  Dispatch Deadline: 11 Apr 2026 6:00 PM (countdown)
+
+  --- Customer ---
+  Name: Priya Sharma
+  City: Jaipur, Rajasthan 302001
+  (Phone hidden for privacy per platform rules)
+
+  --- Products ---
+  [Image thumb] Red Floral Kurti - Size M
+  SKU: WK-RED-M | Qty: 1 | Price: ₹549
+
+  --- Status Timeline ---
+  ● Order Placed — 10 Apr 10:30 AM
+  ● Accepted — 10 Apr 11:00 AM [auto-accepted]
+  ○ Packed — (pending)
+  ○ Shipped — (pending)
+  ○ Delivered — (pending)
+
+  --- Actions ---
+  [Mark as Packed] [Download Label] [Generate Invoice]
+  [Capture Packing Evidence] [Add Note]
+
+  --- Notes ---
+  (text area — seller's internal notes)
+  [Save Note]
+
+PAGE: LABELS
+-------------
+Route: /labels
+
+PRINT LABELS TAB:
+  Filter: Platform | Account | Date Range | Status (show only Accepted/Packed/Ready)
+  Select orders for labels
+  
+  Label Format Options:
+  ○ A4 Standard (2 labels per page) — Works on any printer
+  ○ A4 Compact (4 labels per page) — Paper-saving
+  ○ 4×6 Thermal — For Zebra/POSTEK thermal printers
+  ○ Flipkart A4 Cropped to 4×6 — Auto-crop for thermal
+  
+  [Generate Labels PDF] button → downloads merged PDF
+  [Download All as ZIP] → one PDF per order in a ZIP
+  [Generate Manifest] → pickup sheet for courier
+
+  Label PDF contains:
+  - AWB barcode (scannable)
+  - Customer name + full address
+  - Pincode (large, easy to read)
+  - Seller name + return address
+  - Order ID + AWB number (text)
+  - Product name + SKU
+  - COD amount (prominent if COD)
+  - Platform logo
+  - QR code (optional, links to tracking)
+
+LABEL HISTORY TAB:
+  Table: Date | Orders Count | Platform | Format | Downloaded | Download Again
+  Last 90 days of label downloads
+
+PAGE: INVOICES
+---------------
+Route: /invoices
+
+GENERATE INVOICE TAB:
+  Select orders (filter by platform, date, status)
+  
+  Invoice Template uses:
+  - Seller GSTIN from Settings > GST
+  - Invoice number auto-incremented from last (prefix settable: "INV-2026-")
+  - GST calculation:
+    * Same state (seller state = buyer state): CGST 9% + SGST 9%
+    * Different state: IGST 18%
+    * Check seller state vs customer_state in order
+  
+  Invoice Preview Modal:
+  Shows rendered invoice before download
+  Contains: Invoice Number, Date, Seller details (name/GSTIN/address),
+  Buyer details (name/state/pincode), Item table (product/qty/rate/tax/total),
+  GST breakup, Grand Total, "This is a computer generated invoice"
+  
+  [Download PDF] [Download Bulk ZIP for Selected Orders]
+
+INVOICE SETTINGS (link to Settings > GST):
+  Seller Legal Name, GSTIN, Business Address, Invoice Prefix,
+  Include Logo on Invoice (toggle), Bank details on invoice (toggle)
+
+INVOICE HISTORY TAB:
+  Table: Invoice # | Order ID | Platform | Date | Amount | Download
+  Search by invoice number or order ID
+  [Export to Excel] button
+
+PAGE: CLAIMS & RETURNS
+-----------------------
+Route: /claims
+
+ACTIVE RETURNS TAB:
+  Table columns:
+  Order ID | Platform | Product | Return Reason | Return Date |
+  Claim Deadline | Evidence | Claim Status | Actions
+
+  Evidence Status icons:
+  🔴 No evidence — capture before deadline
+  🟡 Evidence captured — not yet submitted
+  🟢 Evidence submitted to platform
+
+  Claim Status badges:
+  Not Raised | Raised | Under Review | Won ✓ | Lost ✗ | Escalated
+
+  Action buttons per return:
+  [Capture Evidence] [View Evidence] [Raise Claim] [Track Claim] [Mark Resolved]
+
+  Claim Deadline countdown (same as dispatch deadline):
+  Red if <24h remaining
+
+RAISE A CLAIM (4-Step Wizard):
+  Step 1 — Select Return
+    Dropdown list of returns without claims raised
+    Shows: Order ID, Product, Return Date, Deadline
+    Select one to proceed
+
+  Step 2 — Dispute Type
+    ○ Wrong item returned — customer sent a different product
+    ○ Empty box returned — box received with no product inside
+    ○ Damaged product returned — product broken/unusable when received
+    ○ Used/worn item returned — product was clearly used before return
+    ○ Missing items — partial return, some items missing
+    ○ Return not yet received — platform marked delivered but item not received
+
+  Step 3 — Evidence
+    Shows evidence files already captured for this order:
+    [Thumbnail] Packing Video — Captured 15 Mar 2026 4:30 PM
+    [Thumb] Photo 1 — Front of product
+    [Thumb] Photo 2 — Back of product
+    [Thumb] Photo 3 — Sealed packaging
+    [Thumb] Photo 4 — Label visible
+
+    [+ Add More Evidence] button
+
+    For Meesho claims:
+    "Your evidence files are ready. We will assist you in submitting
+    to Meesho. Click Submit Claim to proceed."
+
+    For Amazon SAFE-T:
+    "We will submit this claim directly to Amazon via their SAFE-T API.
+    No manual steps needed."
+
+    For Flipkart:
+    "We will assist you in submitting via Flipkart seller support."
+
+  Step 4 — Review & Submit
+    Pre-generated claim text (editable):
+    "I am writing to dispute return for order #{order_id}.
+    The original product shipped was [product_name] (SKU: {sku}).
+    The return received on [date] was found to be [dispute_type].
+    I have photographic/video evidence of packing this item on [date].
+    I request a full refund of ₹[amount].
+    Evidence files: [list of files with timestamps]"
+
+    Platform-specific actions:
+    Meesho: [Open Meesho Claims Page] (opens in new tab) + claim text pre-copied
+            + evidence files listed with download buttons
+            "Complete the form on Meesho. We've pre-filled the details above."
+    Amazon: [Submit via Amazon SAFE-T API] (automated, single button)
+    Flipkart: [Open Flipkart Support] + pre-filled text
+
+    [Submit & Save Claim Record] → saves claim to DB, marks evidence as submitted
+
+EVIDENCE CAPTURE SECTION:
+  [Explained in detail in Part 13]
+
+CLAIM HISTORY TAB:
+  Table: Claim ID | Order ID | Platform | Dispute Type | Raised Date |
+         Status | Resolution | Amount Recovered | Actions
+  
+  Summary at top:
+  Total Claims: 47 | Won: 31 (66%) | Lost: 12 | Pending: 4
+  Amount Recovered This Month: ₹14,250
+
+PAGE: AI TOOLS — LISTING OPTIMIZER
+------------------------------------
+Route: /ai/listings
+
+HOW IT WORKS:
+  1. Seller selects a linked account (Meesho/Amazon/Flipkart)
+  2. Our system fetches their product listings via platform API (or session)
+  3. Seller selects a listing to optimize
+  4. AI analyzes current title, description, bullet points, keywords
+  5. Returns optimized versions in side-by-side comparison
+  6. Seller reviews, edits if needed, approves
+  7. System pushes updated listing back to platform
+
+SCREEN LAYOUT:
+  Left panel: Current Listing
+    - Product Image
+    - Current Title (highlighted weaknesses in red)
+    - Current Bullet Points
+    - Current Description
+    - Current Keywords
+    - Current SEO Score: 42/100
+
+  Right panel: AI Optimized Listing
+    - Same product image
+    - Optimized Title (improvements highlighted in green)
+    - Optimized Bullet Points (added keywords highlighted)
+    - Optimized Description
+    - Suggested Keywords (new ones highlighted)
+    - New SEO Score: 78/100
+
+  Actions:
+  [Apply Optimized Version] [Edit Before Applying] [Regenerate] [Skip]
+
+  AI prompt used internally (example for Meesho):
+  "You are an expert ecommerce listing optimizer for Meesho India.
+  Platform: Meesho
+  Category: Women's Ethnic Wear
+  Current title: {current_title}
+  Current description: {current_description}
+  Current keywords: {keywords}
+  
+  Optimize this listing for better search visibility on Meesho.
+  Consider: Hindi/regional language keywords mixed with English,
+  festival season relevance, size/color variants, popular search terms.
+  
+  Return as JSON: {optimized_title, optimized_bullets[], optimized_description,
+  suggested_keywords[], improvement_notes[]}"
+
+PACKAGE AVAILABILITY:
+  Starter: Not available
+  Growth: On-request (seller manually triggers, max 50/month)
+  Pro: Continuous (system checks weekly, auto-suggests, unlimited)
+
+BATCH OPTIMIZER (Pro only):
+  Select multiple products → bulk AI optimization
+  Queue shown with progress bar
+  Email notification when batch complete
+
+PAGE: AI TOOLS — IMAGE GENERATOR
+----------------------------------
+Route: /ai/images
+
+TOOLS AVAILABLE:
+  1. Background Remover
+     - Upload product photo
+     - AI removes background (Clipdrop API or remove.bg)
+     - Result: product on white/transparent background
+     - Available: Growth (unlimited), Starter (5/month)
+
+  2. Background Replacer
+     - Start from removed background
+     - Choose background type:
+       ○ White studio (clean, professional)
+       ○ Lifestyle (AI generates contextual scene)
+       ○ Festive (Diwali/Holi/Eid seasonal templates)
+       ○ Custom color (hex color background)
+       ○ Custom upload (seller provides background image)
+     - AI composites product onto selected background
+     - Available: Growth, Pro
+
+  3. Full AI Generation (Pro only)
+     - Describe product in text
+     - AI generates product photography-style image
+     - Useful for: catalog images, banner images, promotional graphics
+     - Model: Stability AI SDXL or DALL-E 3
+
+  4. Bulk Processing (Pro only)
+     - Upload multiple product images (zip file)
+     - Select operation: bg remove / bg replace / festive overlay
+     - Queue processes all, email when complete
+     - Download all processed images as ZIP
+
+SCREEN LAYOUT:
+  Step 1: Upload Image (drag-drop zone or file picker)
+  Step 2: Select Operation (tabs: Remove BG | Replace BG | Generate)
+  Step 3: Preview result
+  Step 4: Download or push to platform listing
+
+USAGE COUNTER (shown in sidebar):
+  "Images this month: 23 / 50 (Growth Plan)"
+  For Pro: "Images this month: 187 (Unlimited)"
+
+PAGE: PLATFORMS — MEESHO SETTINGS
+-----------------------------------
+Route: /platforms/meesho
+
+CONNECTED ACCOUNTS:
+  List of all Meesho accounts linked by this user:
+  [Account card]: 
+    Nickname: Women's Kurtas Store
+    Phone: +91 98XXX XXXXX
+    Status: ✅ Connected — Last sync: 2 min ago
+    Orders today: 34
+    [Edit Nickname] [Reconnect] [Disconnect] [Settings]
+
+  [+ Add New Meesho Account] button
+
+  Account Settings (expanded panel per account):
+    Sync frequency: [Every 5 min ▾]
+    Auto-accept new orders: [Off ●]
+    Dispatch alert at: [< 6 hours ▾] [< 3 hours ▾]
+    Alert channels: [✓ In-App] [✓ Email] [☐ SMS] [☐ WhatsApp]
+    Return auto-detect: [On ●]
+    Label format default: [Thermal 4x6 ▾]
+    Invoice auto-generate on: [Order Accepted ▾]
+    Session health check: [Every 6 hours ▾]
+
+PAGE: PLATFORMS — AMAZON SETTINGS
+-----------------------------------
+Route: /platforms/amazon
+
+  Seller ID: AXX1234567890
+  Marketplace: Amazon.in (IN)
+  Status: ✅ Connected via SP-API | Token expires: auto-refreshing
+  Last sync: 1 min ago | [Reconnect / Reauthorize] [Disconnect]
+
+  Fulfillment type: [FBM ● / FBA (tracking only)]
+  
+  Sync settings:
+    Order sync method: [Push Notifications (recommended) ▾]
+    Fallback polling: Every [10 min ▾]
+    Auto-confirm shipments: [Off ●]
+  
+  Shipping:
+    Default carrier: [Delhivery ▾]
+    Label format: [Amazon Standard ▾]
+  
+  Alerts:
+    New order: [✓] A-to-Z claim received: [✓] Return: [✓]
+
+PAGE: PLATFORMS — FLIPKART SETTINGS
+-------------------------------------
+Route: /platforms/flipkart
+
+  App ID: FK-12345678
+  Status: ✅ Connected | [Reconnect] [Disconnect]
+  
+  Order sync: [Push Webhook (active) ▾]
+  RTD marking: [Manual ●] (auto-RTD toggle)
+  Batch RTD: [Enable — mark up to 50 orders RTD at once]
+  
+  Label format: [A4 original ▾] / [A4 cropped to 4x6 thermal]
+  Auto-crop for thermal: [On ●]
+  
+  Performance metrics (read-only, pulled from Flipkart):
+    Order Defect Rate: 0.8% (Target: <1%) ✅
+    Late Shipment Rate: 0.3% (Target: <4%) ✅
+    Cancellation Rate: 0.5% (Target: <2.5%) ✅
+
+PAGE: BILLING
+--------------
+Route: /billing
+
+CURRENT PLAN CARD:
+  ┌──────────────────────────────────────────────┐
+  │ 🟠 Growth Plan                               │
+  │ 5,000 orders — ₹4,000 / purchase            │
+  │                                              │
+  │ Used:      3,421 orders                      │
+  │ Remaining: 1,579 orders                      │
+  │                                              │
+  │ Usage bar: ████████████████░░░░ 68%          │
+  │                                              │
+  │ Platform breakdown:                          │
+  │ Meesho: 2,100 · Amazon: 800 · Flipkart: 521 │
+  │                                              │
+  │ Purchased: 15 Mar 2026                       │
+  │ Expires: 14 Apr 2026 (or when used up)       │
+  │                                              │
+  │ [Renew / Buy Same Plan] [Upgrade to Pro]     │
+  └──────────────────────────────────────────────┘
+
+AVAILABLE PLANS (side-by-side cards):
+  Starter          Growth (current)    Pro
+  1,000 orders     5,000 orders        10,000 orders
+  ₹1,000           ₹4,000              ₹7,500
+  ₹1.00 / order    ₹0.80 / order       ₹0.75 / order
+  Basic features   All features        All + AI unlimited
+  [Buy ₹1,000]     [Current Plan]      [Upgrade ₹7,500]
+
+  "All plans cover Meesho + Amazon + Flipkart equally.
+  1 order processed = 1 credit regardless of platform."
+
+TOP-UP ORDERS (add to current pool without changing plan):
+  [500 orders — ₹600]    [1,000 orders — ₹1,100]    [2,000 orders — ₹2,000]
+  These are deducted from your pool immediately after payment.
+
+RAZORPAY PAYMENT FLOW:
+  1. Seller clicks [Buy ₹4,000]
+  2. Razorpay checkout modal opens
+  3. Seller pays via UPI / Net Banking / Card
+  4. Razorpay webhook: POST /webhooks/razorpay { event: "payment.captured" }
+  5. Backend verifies webhook signature
+  6. On verification:
+     - billing_transactions record: status='paid'
+     - credits_purchased += 5000 on users table
+     - seller_invoice generated and emailed
+     - Socket.io event "billing_updated" to frontend
+  7. Frontend updates credits pill immediately
+
+PAYMENT HISTORY TAB:
+  Table: Date | Description | Orders | Amount | Payment ID | Status | Receipt
+  [Filter by date] [Export to CSV]
+
+INVOICES FROM US TAB:
+  GST invoices from Agencyfic to seller for subscription purchases
+  Seller needs these for GST input credit claims
+  Table: Invoice # | Date | Plan | Amount | GST | Total | Download PDF
+
+PAGE: SETTINGS
+---------------
+Route: /settings
+
+PROFILE TAB:
+  Name, Email (change needs OTP verification), Phone (change needs OTP)
+  Profile Photo upload
+  [Change Password] button → current password + new password + confirm
+
+BUSINESS DETAILS TAB:
+  Business/Shop Name
+  Legal Entity: [Proprietorship ▾] / Partnership / Pvt Ltd / LLP
+  Registered Address, City, State, Pincode
+
+GST & TAX TAB:
+  GSTIN
+  PAN Number
+  Business Type: [Regular GST Dealer ▾] / Composition Dealer / Unregistered
+  Invoice number prefix: [INV-2026- __ ]
+  Invoice auto-numbering: start from [1001]
+  Auto-generate invoice on: [Order Accepted ▾]
+  Include seller logo on invoice: [On ●]
+  Include bank details on invoice: [Off ●]
+    Bank Name, Account Number, IFSC (shown on invoice if toggle on)
+
+NOTIFICATIONS TAB:
+  Events and channels (each toggleable independently):
+  Event                    | In-App | Email | SMS | WhatsApp
+  New Order                |   ✓    |   ✓   |  ✓  |    ✓
+  Dispatch Deadline (6h)   |   ✓    |   ✓   |  ✓  |    ✓
+  Dispatch Deadline (3h)   |   ✓    |   ✓   |  ✓  |    ✓
+  Return Received          |   ✓    |   ✓   |  ☐  |    ✓
+  Claim Deadline Warning   |   ✓    |   ✓   |  ✓  |    ✓
+  Session Expired          |   ✓    |   ✓   |  ✓  |    ✓
+  Credits Low (20%)        |   ✓    |   ✓   |  ☐  |    ✓
+  Credits Low (5%)         |   ✓    |   ✓   |  ✓  |    ✓
+  Credits Exhausted        |   ✓    |   ✓   |  ✓  |    ✓
+  Plan Renewal Due         |   ✓    |   ✓   |  ☐  |    ☐
+  Claim Resolved           |   ✓    |   ✓   |  ☐  |    ☐
+  AI Job Completed         |   ✓    |   ✓   |  ☐  |    ☐
+
+  WhatsApp number: [+91 ________]
+  SMS number: [+91 ________]
+
+TEAM MEMBERS TAB:
+  Current team:
+  [You — Admin (owner)]
+  [Amit Kumar — Order Manager | Last login: 2h ago | [Remove] [Change Role]]
+  [Ritu Gupta — View Only | Last login: 3 days ago | [Remove] [Change Role]]
+
+  [+ Invite Team Member]
+    Email, Name, Role: [Order Manager ▾]
+    → Invite email sent with signup link
+    → Sub-user signs up with their own password
+    → Linked to your account with assigned role permissions
+
+  Role permissions:
+  Admin: Full access to all features
+  Order Manager: Can view orders, print labels, generate invoices,
+                 capture evidence, raise claims, view reports.
+                 Cannot change billing, settings, connected accounts.
+  View Only: Can view everything. Cannot take any action.
+
+SECURITY TAB:
+  Active Sessions:
+  Chrome on Windows — Jaipur, Rajasthan — Last active 2 min ago [Current]
+  Safari on iPhone — Jaipur, Rajasthan — Last active 1 day ago [Logout]
+  [Logout All Other Sessions]
+
+  Trusted Devices:
+  My Laptop (Chrome, Windows) — Added 15 Mar 2026 [Remove]
+  My iPhone (Safari) — Added 20 Mar 2026 [Remove]
+  [Remove All Trusted Devices]
+
+  Login History (last 10):
+  Date | Time | Device | Location | IP | Status
+  10 Apr 2026 | 9:30 AM | Chrome Windows | Jaipur | 103.x.x.x | Success
+  09 Apr 2026 | 7:15 PM | iPhone Safari | Jaipur | 103.x.x.x | Success
+  ...
+
+  Two-Factor Authentication:
+  Currently: Email OTP on new devices
+  [Enable on every login] option
+  [Enable Authenticator App] option (Phase 2)
+
+PAGE: REPORTS
+--------------
+Route: /reports
+
+SALES SUMMARY TAB:
+  Date range selector + Platform filter + Account filter
+  
+  Cards:
+  Total Orders | Total Revenue | Average Order Value | COD % | Prepaid %
+  
+  Line chart: Orders per day (last 30 days)
+  Bar chart: Orders by platform (Meesho vs Amazon vs Flipkart)
+  
+  Table: Daily breakdown
+  Date | Meesho Orders | Amazon Orders | Flipkart Orders | Total | Revenue
+
+RETURNS ANALYSIS TAB:
+  Return rate by platform (donut chart)
+  Return rate by product/SKU (table: highest returned products)
+  Return reason breakdown (pie chart)
+  Claims won vs lost (bar chart)
+  Amount recovered from claims (this month vs last month)
+
+PLATFORM PERFORMANCE TAB:
+  Side-by-side comparison table:
+  Metric            | Meesho | Amazon | Flipkart
+  Orders (month)    |  2,100 |    800 |      521
+  Revenue (month)   | ₹8.4L  |  ₹5.2L |    ₹2.1L
+  Return Rate       |  8.2%  |   3.1% |     4.7%
+  Claims Won        |   31   |      8 |        5
+  Dispatch Rate     | 94.2%  |  99.1% |    97.3%
+  Avg Order Value   |   ₹400 |   ₹650 |     ₹403
+
+EXPORT DATA TAB:
+  Select: Orders | Returns | Invoices | Claims | Credits Usage
+  Format: [CSV] [Excel] [JSON]
+  Date Range, Platform Filter
+  [Download Export] → immediate download
+
+================================================================================
+PART 8 — SUPER ADMIN PANEL
+================================================================================
+
+Access URL: https://yourdomain.com/superadmin/login
+COMPLETELY SEPARATE from seller login. Different URL, different session.
+Admin credentials stored separately (admin role in users table, or separate
+admin_users table for extra security).
+
+Note: In production, consider restricting /superadmin to specific IP addresses
+via nginx for additional security.
+
+ADMIN LOGIN PAGE:
+  Email + Password form
+  No "Sign up" link (admin accounts created manually via CLI or seeder)
+  Strong password + 2FA mandatory for all admin accounts
+
+ADMIN SIDEBAR:
+  📊 Overview
+  👥 Clients
+     └── All Clients
+     └── Add Client
+     └── Suspended Clients
+  💳 Plans & Billing
+     └── Manage Plans
+     └── All Transactions
+     └── Revenue Analytics
+  🔌 Platform Health
+     └── Session Monitor
+     └── Sync Jobs
+     └── Error Logs
+  🤖 AI Settings
+     └── Model Configuration
+     └── Task Assignments
+     └── Usage & Costs
+  🌐 Website Settings
+     └── Branding
+     └── CMS / Text Editor
+     └── Email Templates
+     └── Legal Pages
+  🔔 Notifications
+     └── Send Announcement
+     └── Notification History
+  ⚙️ System Settings
+     └── Global Settings
+     └── API Keys
+     └── Security Settings
+  📜 Activity Log
+
+PAGE: ADMIN OVERVIEW
+---------------------
+Route: /superadmin/overview
+
+METRIC CARDS ROW 1:
+  Total Active Clients | New Signups (Today) | Orders Processed (Today) | Revenue (This Month)
+
+METRIC CARDS ROW 2:
+  Session Errors Right Now | Queue Depth | Failed Jobs (Last 24h) | Server Load %
+
+SYSTEM HEALTH BAR:
+  ● Meesho Sync: OK (last run 3 min ago, 0 errors)
+  ● Amazon Sync: OK (webhooks active)
+  ● Flipkart Sync: ⚠ 2 webhook failures in last hour
+  ● Bull Queue: OK (depth: 12 jobs)
+  ● Database: OK (connections: 23/100)
+  ● Redis: OK (memory: 412MB / 2GB)
+  ● Playwright Pool: 0/3 instances active
+
+CHARTS:
+  Orders processed per day (last 30 days) — line chart
+  Revenue per day — line chart
+  New signups per week — bar chart
+  Platform distribution — donut (Meesho vs Amazon vs Flipkart orders)
+
+RECENT ACTIVITY FEED:
+  [2 min ago] New signup: rahul@example.com — Growth Plan purchased
+  [5 min ago] Session expired: Account "Company B Meesho" for user pk@example.com
+  [12 min ago] Claim won: ₹450 recovered for user amit@example.com
+  [1 hour ago] AI image batch completed: 23 images for priya@example.com
+  [2 hours ago] Payment failed: ₹4,000 Growth Plan for ritu@example.com
+
+PAGE: ADMIN — ALL CLIENTS
+--------------------------
+Route: /superadmin/clients
+
+FILTER BAR:
+  Plan: [All] [Starter] [Growth] [Pro] [Expired] [Free Trial]
+  Status: [All] [Active] [Suspended] [Unverified]
+  Platform: [Has Meesho] [Has Amazon] [Has Flipkart]
+  Sort: [Joined ▾] [Credits Used] [Revenue] [Last Active]
+  Search: by name, email, business name, phone
+
+CLIENT TABLE:
+  Name | Email | Plan | Credits (Used/Total) | Accounts Connected |
+  Orders Today | Last Active | Status | Actions
+
+  Actions per row:
+  [View Profile] [Impersonate] [Add Credits] [Change Plan] [Suspend] [Delete]
+
+CLIENT PROFILE PAGE (/superadmin/clients/{id}):
+  Header: Name, email, business name, join date, status
+  
+  SUMMARY CARDS:
+  Total Orders Processed | Credits Remaining | Total Paid | Active Since
+  
+  CONNECTED PLATFORMS:
+  Meesho [3 accounts — 2 active, 1 expired]
+  Amazon [1 account — active]
+  Flipkart [2 accounts — both active]
+  
+  BILLING HISTORY:
+  Table of all transactions for this user
+  [Add Bonus Credits]: admin can manually add credits (with reason note)
+  [Change Plan]: dropdown to change plan + optional order count override
+  
+  ORDERS BREAKDOWN:
+  Chart showing orders per platform per day (last 30 days)
+  
+  SESSION HEALTH:
+  Per-account session status, last sync time, error count
+  [Force Reconnect] button per account
+  [Force Logout from Agencyfic] button
+  
+  AI USAGE:
+  Listing optimizations this month: 23
+  Images generated this month: 47
+  Total AI cost incurred by this user: ₹180 (your cost)
+  
+  ADMIN ACTIONS:
+  [Send Message to User] — sends email to their inbox
+  [Impersonate User] — log in as this user to debug issues
+    (all impersonation sessions logged in admin_activity_log)
+  [Suspend Account] — blocks login, stops all syncs
+  [Unsuspend Account]
+  [Delete Account] — with confirmation dialog (GDPR-style soft delete)
+  [Download User Data] — export all their data as JSON/CSV
+  [Admin Notes] — internal notes field (not visible to user)
+
+PAGE: ADMIN — PLANS & BILLING
+-------------------------------
+Route: /superadmin/plans
+
+MANAGE PLANS:
+  List of all plans with edit buttons:
+  
+  [Edit Plan Modal]:
+    Plan Name
+    Order Count (e.g. 1000, 5000, 10000, or custom number)
+    Price (INR)
+    Grace Orders Allowed
+    Grace Rate (paise per grace order)
+    Features JSON toggle per feature:
+      [ ] Video Evidence Capture
+      [ ] Claim Builder
+      [ ] AI Listing: off / on_request / continuous
+      [ ] AI Images: off / basic_50 / unlimited
+      [ ] Team Members: 1 / 3 / unlimited
+      [ ] WhatsApp Notifications
+      [ ] Reports Export
+    Validity Type: [No Expiry (credit pool) ▾] / Monthly
+    Status: [Active] [Hidden from sellers] [Discontinued]
+    Display Order (for pricing page sort)
+  
+  [+ Create New Plan] button
+  [Reorder Plans] drag-and-drop
+
+REVENUE ANALYTICS:
+  Period: [This Month ▾] [Last Month] [Last 3 Months] [Custom]
+  
+  Cards: Total Revenue | Transactions | Avg Transaction Value | Refunds
+  
+  Revenue by plan tier (bar chart)
+  Revenue by day (line chart)
+  Top 10 customers by revenue (table)
+  
+  Churn Analytics:
+  Clients who let plan expire without renewing (last 30 days)
+  Clients who downgraded
+  
+  [Export Revenue CSV] [Export All Transactions CSV]
+
+BILLING SETTINGS PANEL:
+  Free trial orders for new accounts: [50 __ ] orders
+  Grace orders enabled: [Yes ●]
+  Grace order limit (per purchase cycle): [50 __ ]
+  Grace order rate: [150 __ paise per order]
+  Low balance alert yellow threshold: [20 __ %]
+  Low balance alert red threshold: [5 __ %]
+  Hard block at zero: [Yes ●]
+  Order counted at status:
+    Meesho: [accepted ▾]
+    Amazon: [shipped ▾]
+    Flipkart: [ready_to_dispatch ▾]
+  Invoice auto-generation for seller purchases: [Yes ●]
+  Your GSTIN for seller invoices: [29AABCT1332L1ZS]
+  Invoice prefix: [AGF-INV-]
+  GST rate on your subscriptions: [18%]
+  
+  Razorpay Keys:
+  Key ID: [rzp_live_XXXXXXXX]
+  Key Secret: [••••••••••••••••] [Update]
+  Webhook Secret: [••••••••••••••••] [Update]
+  [Test Razorpay Connection] button
+
+PAGE: ADMIN — PLATFORM HEALTH
+-------------------------------
+Route: /superadmin/platform-health
+
+SESSION MONITOR TAB:
+  Real-time table of ALL linked Meesho accounts across all users:
+  
+  User | Account Nickname | Phone | Last Sync | Status | Last Error
+  
+  Filters: [All] [Active] [Expired] [Error]
+  
+  Status badges:
+  🟢 Active — syncing normally
+  🟡 Stale — last sync >15 min ago
+  🔴 Expired — needs re-login
+  ⚫ Disabled — sync turned off by user
+  
+  Actions:
+  [Force Re-login] — triggers immediate Playwright re-login
+  [Force Sync] — triggers immediate order sync
+  [View Logs] — shows last 20 sync attempts with errors
+  
+  Summary cards:
+  Total Meesho Accounts | Active | Expired | Errors Today
+  Amazon Accounts | All OAuth Tokens Valid | Expired Tokens
+  Flipkart Accounts | Webhook Active | Webhook Failures Today
+
+SYNC JOBS TAB:
+  Bull Queue visualization:
+  Queue: order_sync_queue | Waiting: 34 | Active: 5 | Completed: 4,821 | Failed: 2
+  Queue: action_queue     | Waiting: 2  | Active: 1 | Completed: 382   | Failed: 0
+  Queue: label_queue      | Waiting: 0  | Active: 0 | Completed: 1,294 | Failed: 1
+  Queue: ai_queue         | Waiting: 3  | Active: 1 | Completed: 491   | Failed: 3
+  Queue: notification_q   | Waiting: 1  | Active: 0 | Completed: 8,432 | Failed: 12
+
+  [Pause All Queues] [Resume All Queues] [Clear Failed Jobs] buttons
+  
+  Failed Jobs list (last 24h):
+  Job ID | Queue | Type | User | Error Message | [Retry] [Delete]
+
+ERROR LOGS TAB:
+  All errors logged by the system (last 24h / 7d / 30d):
+  Timestamp | Level | Type | User/Account | Message | [Details]
+  
+  Filter: [Critical] [Error] [Warning] [Info]
+  
+  Critical errors (e.g. Meesho changed API endpoint) auto-email superadmin.
+
+PAGE: ADMIN — AI SETTINGS
+--------------------------
+Route: /superadmin/ai-settings
+
+AI MODEL CONFIGURATION:
+  4 task cards, each independently configured:
+
+  TASK 1: Listing Optimization
+  Current Model: Claude 3.5 Sonnet (Anthropic)
+  API Key: [sk-ant-api03-••••••••] [Update Key]
+  Model Name: [claude-3-5-sonnet-20241022 ▾]
+  Status: ✅ Active | Cost per call: ~₹3.50 estimated
+  [Test Call] — sends a sample listing, shows output
+  [View Usage] — total calls, total cost this month
+
+  TASK 2: Image Generation (Full AI)
+  Current Model: Stability AI SDXL
+  API Key: [sk-••••••••] [Update Key]
+  Model: [stable-diffusion-xl-1024-v1-0 ▾]
+  Status: ✅ Active | Cost per call: ~₹4.00
+  [Test Call] [View Usage]
+
+  TASK 3: Background Removal
+  Current Model: Clipdrop (by Stability AI)
+  API Key: [••••••••] [Update Key]
+  Status: ✅ Active | Cost per call: ~₹0.60
+  [Test Call] [View Usage]
+
+  TASK 4: Customer Support AI (Future Feature)
+  Current Model: Not configured
+  [Configure Model]
+  (This will power an AI chatbot for seller support in Phase 3)
+
+  AVAILABLE MODELS DROPDOWN (per task):
+  Listing Optimization: claude-3-5-sonnet | gpt-4o | gpt-4-turbo | gemini-1.5-pro
+  Image Generation: stability-sd3 | dall-e-3 | ideogram-v2
+  Background Removal: clipdrop | remove-bg-api
+  
+  NOTE: Superadmin can switch models anytime. Change takes effect for all
+  new jobs immediately. Existing queued jobs use the old model.
+
+AI USAGE & COSTS DASHBOARD:
+  Total AI calls this month: 1,847
+  Total AI cost this month: ₹6,420
+  Cost per user (top 10 AI users table)
+  By task breakdown: Listing 34% | Image Gen 51% | BG Remove 15%
+  
+  Alert thresholds:
+  Monthly AI cost budget: [₹50,000] → alert if exceeded
+  Per-user AI cost cap: [₹2,000 per month] → throttle if exceeded
+
+  [Export AI Usage Report]
+
+PAGE: ADMIN — WEBSITE SETTINGS
+--------------------------------
+Route: /superadmin/website-settings
+
+BRANDING TAB:
+  Site Name: [Agencyfic OMS]
+  Tagline: [One Dashboard. All Platforms. Zero Chaos.]
+  
+  Logo:
+  [Upload Logo] (PNG/SVG, max 2MB)
+  Current logo preview: [preview image]
+  Logo dimensions guidance: Recommended 200x50px
+  
+  Favicon:
+  [Upload Favicon] (ICO/PNG 32x32 or 64x64)
+  Current favicon preview: [preview]
+  
+  Brand Colors:
+  Primary Color: [#F97316 ▾ color picker] (used for buttons, accents)
+  Secondary Color: [#0F1218 ▾] (dark bg)
+  
+  Login Page:
+  Background style: [Dark gradient ▾]
+  Login illustration: [Upload custom image]
+  Login tagline: [Your custom tagline here]
+  
+  Email Header Logo: [Upload] (shown in all outgoing emails)
+  
+  [Save Branding] → changes propagate to frontend immediately (stored in
+  site_settings table, Next.js reads on SSR)
+  
+  [Preview Changes] button — opens preview in modal
+
+CMS / TEXT EDITOR TAB:
+  Sections list:
+  
+  Home Page:
+    [Edit] Announcement Banner Text
+    [Edit] Hero Tagline
+    [Edit] Feature descriptions
+  
+  Pricing Page:
+    [Edit] Starter Plan description
+    [Edit] Growth Plan description
+    [Edit] Pro Plan description
+    [Edit] FAQ entries (add/remove/reorder)
+  
+  Onboarding Flow:
+    [Edit] Welcome message (shown after first signup)
+    [Edit] "Connect Meesho" instructions text
+    [Edit] "Connect Amazon" instructions text
+    [Edit] "Connect Flipkart" instructions text
+    [Edit] "Capture Evidence" tutorial text
+  
+  Help Tooltips:
+    [Edit] 50+ help tooltip texts (searchable list)
+    Example: Tooltip for "AWB Number" → "Air Waybill Number — unique shipment
+    tracking number assigned by the courier."
+  
+  Error Messages:
+    [Edit] User-facing error messages (e.g. "Session expired" banner text)
+  
+  Each text item: WYSIWYG editor (basic: bold, italic, links)
+  [Save All Changes] [Preview Changes] [Reset to Default]
+
+EMAIL TEMPLATES TAB:
+  List of all email templates:
+  - Welcome / Email Verification
+  - Password Reset
+  - New Order Alert
+  - Dispatch Deadline Warning
+  - Session Expired Alert
+  - Low Credits Warning (20%)
+  - Credits Exhausted Alert
+  - Return Received Alert
+  - Claim Deadline Warning
+  - Payment Successful
+  - Your Subscription Invoice
+  - Team Member Invitation
+  - Account Suspended Notice
+  - Custom Announcement
+  
+  Template Editor for each:
+  Subject line (with variables like {{seller_name}}, {{order_id}})
+  HTML body with preview panel
+  Available variables list shown alongside editor
+  [Send Test Email] → sends to admin email
+  [Save Template]
+
+LEGAL PAGES TAB:
+  Pages that can be edited as rich text:
+  - Terms of Service
+  - Privacy Policy
+  - Refund Policy
+  - Cookie Policy
+  - Data Processing Agreement (DPA)
+  - GDPR / IT Act Compliance Statement
+  
+  Each page:
+  [Edit in Rich Text Editor]
+  [Preview as User Sees It]
+  [Save]
+  
+  Footer links automatically generated from saved pages.
+  
+  Compliance notices required for India:
+  ✅ GST Invoice generation for all paid subscriptions
+  ✅ IT Act 2000 compliance statement
+  ✅ User data retention policy (settable in System Settings)
+  ✅ Cookie consent banner (on/off toggle)
+  ✅ Grievance Officer designation field (required for Indian platforms >50k users)
+
+PAGE: ADMIN — SYSTEM SETTINGS
+-------------------------------
+Route: /superadmin/system-settings
+
+GLOBAL SETTINGS:
+  Max concurrent Playwright instances: [3 __ ]
+  Sync batch size (accounts per cron run): [20 __ ]
+  Data retention — orders: [365 __ ] days
+  Data retention — notification logs: [90 __ ] days
+  Data retention — login history: [90 __ ] days
+  Data retention — temp R2 evidence: [30 __ ] days
+  Label storage: [Permanent ●] / [Delete after X days]
+  Invoice storage: [Permanent ●]
+  New account free trial orders: [50 __ ]
+  
+  Maintenance Mode:
+  [Off ●] — if turned on, shows maintenance page to all sellers
+  Maintenance message: [text field]
+  Scheduled maintenance: [date/time picker]
+
+API KEYS TAB:
+  All third-party API keys managed here:
+  
+  Service           | Key Status    | Last Tested | Actions
+  Razorpay Key ID   | ✅ Configured  | 2 hours ago | [Edit] [Test]
+  Razorpay Secret   | ✅ Configured  | 2 hours ago | [Edit]
+  Razorpay Webhook  | ✅ Configured  | 2 hours ago | [Edit]
+  SMTP (SendGrid)   | ✅ Configured  | 1 day ago   | [Edit] [Test]
+  SMS Gateway       | ⚠ Not set     | —           | [Configure]
+  WhatsApp API      | ⚠ Not set     | —           | [Configure]
+  Firebase FCM      | ✅ Configured  | 1 day ago   | [Edit]
+  Cloudflare R2     | ✅ Configured  | 1 hour ago  | [Edit] [Test]
+  
+  All secrets stored encrypted (AES-256) in site_settings table.
+  Never shown in plaintext after saving (masked with ●●●●●●●●).
+
+SECURITY SETTINGS TAB:
+  JWT secret key: [Rotate Key] (invalidates all existing sessions)
+  AES encryption key: [Rotate Key] (requires all stored secrets to be re-encrypted)
+  Max login attempts before lockout: [5 __ ]
+  Account lockout duration: [30 __ ] minutes
+  Trust token validity: [30 __ ] days
+  OTP expiry: [10 __ ] minutes
+  Session (JWT) duration: [24 __ ] hours
+  Require email verification before plan purchase: [Yes ●]
+  Block VPN/proxy users: [No ●] (risky for Indian sellers using mobile internet)
+  IP whitelist for /superadmin: [Add IP] (restrict admin panel access)
+
+PAGE: ADMIN — NOTIFICATIONS
+-----------------------------
+Route: /superadmin/notifications
+
+SEND ANNOUNCEMENT:
+  Target:
+  ○ All Active Sellers
+  ○ Specific Plan (select: Starter / Growth / Pro)
+  ○ Specific Users (search and select multiple)
+  
+  Message:
+  Subject: [text field]
+  Body: [rich text editor]
+  
+  Channels:
+  [✓] In-App notification
+  [✓] Email
+  [☐] SMS
+  [☐] WhatsApp
+  
+  Schedule:
+  ○ Send immediately
+  ○ Schedule for: [date/time picker]
+  
+  Preview: [Show how it looks in each channel]
+  [Send Announcement] / [Schedule]
+
+NOTIFICATION HISTORY:
+  All announcements sent, with:
+  - Date/time, target group, channels used
+  - Delivery stats (X of Y sent successfully)
+  [Resend Failed] button
+
+PAGE: ADMIN — ACTIVITY LOG
+----------------------------
+Route: /superadmin/activity-log
+
+All admin actions logged:
+Timestamp | Admin Email | Action | Target | Details | IP Address
+
+Filter: by admin, action type, date range
+Export: CSV
+
+Example entries:
+10 Apr 2026 09:30 | admin@agencyfic.com | PLAN_CHANGED | user:pk@example.com | Changed from Starter to Growth | 103.x.x.x
+10 Apr 2026 09:45 | admin@agencyfic.com | CREDITS_ADDED | user:pk@example.com | Added 500 bonus credits. Reason: "issue resolution" | 103.x.x.x
+10 Apr 2026 10:00 | admin@agencyfic.com | IMPERSONATE_START | user:rahul@example.com | | 103.x.x.x
+10 Apr 2026 10:15 | admin@agencyfic.com | IMPERSONATE_END | user:rahul@example.com | | 103.x.x.x
+10 Apr 2026 11:00 | admin@agencyfic.com | AI_MODEL_CHANGED | task:listing_optimize | Changed from gpt-4o to claude-3-5-sonnet | 103.x.x.x
+
+================================================================================
+PART 9 — BILLING SYSTEM (Complete Flow)
+================================================================================
+
+PRICING STRUCTURE:
+  Starter: 1,000 orders — ₹1,000 — ₹1.00/order
+  Growth:  5,000 orders — ₹4,000 — ₹0.80/order
+  Pro:    10,000 orders — ₹7,500 — ₹0.75/order
+  
+  Top-ups (mid-plan extra orders):
+  500 orders  — ₹600   (₹1.20/order, slight premium)
+  1,000 orders — ₹1,100 (₹1.10/order)
+  2,000 orders — ₹2,000 (₹1.00/order)
+
+CREDIT POOL MODEL:
+  - No monthly subscription. You buy a pool of orders.
+  - Pool is shared across ALL platforms (Meesho + Amazon + Flipkart)
+  - Pool expires based on superadmin setting (e.g. 90 days or never)
+  - When pool exhausts: grace orders kick in (50 free, then billed)
+  - Grace orders: ₹1.50/order, billed at next purchase
+
+WHAT COUNTS AS AN ORDER:
+  Meesho: Seller accepts order (clicks Accept) = 1 credit
+  Amazon: Seller confirms shipment = 1 credit
+  Flipkart: Seller marks Ready to Dispatch (RTD) = 1 credit
+  
+  Does NOT count:
+  - Orders cancelled before the counted action
+  - Orders auto-cancelled by platform
+  - Duplicate orders (protected by UNIQUE constraint on platform_order_id)
+  - Synced orders that were just viewed (view = free, action = paid)
+
+RAZORPAY INTEGRATION FLOW:
+  
+  1. Seller clicks [Buy ₹4,000 — 5,000 orders]
+  
+  2. Backend creates Razorpay order:
+     POST https://api.razorpay.com/v1/orders
+     Headers: Basic Auth with Key ID + Key Secret
+     Body: {
+       amount: 400000,  // in paise (₹4,000 = 400000 paise)
+       currency: "INR",
+       receipt: "agf-{user_id}-{timestamp}",
+       notes: { user_id: "...", plan_id: "..." }
+     }
+     Response: { id: "order_XXX", ... }
+  
+  3. Store billing_transaction record: status='pending', razorpay_order_id=order_XXX
+  
+  4. Frontend receives Razorpay order ID, opens Razorpay Checkout Modal:
+     var options = {
+       key: "rzp_live_XXXXXXXX",
+       amount: 400000,
+       currency: "INR",
+       name: "Agencyfic OMS",
+       description: "Growth Plan — 5,000 orders",
+       order_id: "order_XXX",
+       handler: function(response) {
+         // POST to backend with razorpay_payment_id + razorpay_signature
+       },
+       prefill: { email: seller.email, contact: seller.phone },
+       theme: { color: "#F97316" }
+     };
+     var rzp = new Razorpay(options);
+     rzp.open();
+  
+  5. Seller pays via UPI / Card / Net Banking
+  
+  6. On payment success, Razorpay ALSO sends webhook to:
+     POST https://yourdomain.com/webhooks/razorpay
+     Header: X-Razorpay-Signature (HMAC-SHA256 of body with webhook secret)
+     Body: { event: "payment.captured", payload: { payment: {...} } }
+  
+  7. Webhook handler:
+     a. Verify signature: HMAC(body, webhook_secret) === X-Razorpay-Signature
+     b. If valid:
+        - Update billing_transaction: status='paid', razorpay_payment_id=...
+        - UPDATE users SET credits_purchased = credits_purchased + 5000,
+          plan_id = growth_plan_id, plan_expires_at = NOW() + INTERVAL '90 days'
+        - Generate seller invoice PDF (stored in R2)
+        - Send payment confirmation email with invoice attached
+        - Socket.io emit "billing_updated" to user's room
+     c. If invalid signature: log security event, return 400
+  
+  NOTE: Verify BOTH frontend response AND webhook. Never update credits
+  based on frontend alone (easily spoofed). Webhook is the authoritative source.
+  
+  8. Frontend receives Socket.io event, updates credits pill immediately
+
+GRACE ORDER BILLING:
+  When credits reach 0:
+  - grace_orders_used starts incrementing
+  - On next purchase, grace bill added automatically:
+    e.g. 23 grace orders × ₹1.50 = ₹34.50 added to next invoice
+  - Shown in billing as "Grace orders used: 23 × ₹1.50 = ₹34.50 (billed)"
+
+CREDIT ENFORCEMENT MIDDLEWARE:
+  Before processing any billable action (accept order, confirm shipment, RTD):
+  
+  async function checkCredits(userId) {
+    const user = await db.query(
+      'SELECT credits_purchased, credits_used, credits_grace_used FROM users WHERE id=$1',
+      [userId]
+    );
+    const remaining = user.credits_purchased - user.credits_used;
+    if (remaining > 0) return { allowed: true, type: 'standard' };
+    if (user.credits_grace_used < GRACE_LIMIT) return { allowed: true, type: 'grace' };
+    return { allowed: false, reason: 'credits_exhausted' };
+  }
+  
+  If allowed=false: return 402 Payment Required, frontend shows paywall modal.
+  If type='grace': process action + increment credits_grace_used + notify seller.
+
+SUBSCRIPTION INVOICE GENERATION:
+  After each successful payment:
+  - Your company details (GSTIN, address) from site_settings
+  - Seller details (name, GSTIN, address) from users table
+  - Plan description, amount, 18% GST breakup
+  - Invoice PDF generated using pdfkit or similar
+  - Stored in R2: invoices/system/{year}/{invoice_number}.pdf
+  - Linked in seller_invoices table
+  - Emailed to seller
+  - Visible in seller's dashboard under Billing > Invoices from Us
+
+================================================================================
+PART 10 — AI FEATURES
+================================================================================
+
+AI LISTING OPTIMIZER — DETAILED FLOW:
+--------------------------------------
+
+WHEN TRIGGERED:
+  Growth plan: Seller manually clicks "Optimize" on a listing
+  Pro plan: System runs weekly analysis on all listings, flags low-performing ones
+
+STEP-BY-STEP PROCESS:
+  1. Seller navigates to AI Tools > Listing Optimizer
+  2. System fetches all product listings from connected platforms:
+     - Amazon: GET /catalog/2022-04-01/items (list all FBM products)
+     - Flipkart: GET /seller/listings/v3 (list all SKUs)
+     - Meesho: Playwright scrapes /supplier-catalog (products list page)
+  3. Listings displayed in table: Product | Platform | SEO Score (calculated) | Last Optimized
+  4. Seller clicks [Optimize] on a listing
+  5. System calls AI:
+  
+  API CALL TO CLAUDE (example):
+  POST https://api.anthropic.com/v1/messages
+  Headers: x-api-key: {encrypted_key_from_settings}
+  Body: {
+    model: "claude-3-5-sonnet-20241022",
+    max_tokens: 2000,
+    messages: [{
+      role: "user",
+      content: `You are an expert ecommerce product listing optimizer for Indian marketplaces.
+      
+      Platform: ${platform}
+      Category: ${category}
+      Current Title: ${currentTitle}
+      Current Bullet Points: ${currentBullets.join('\n')}
+      Current Description: ${currentDescription}
+      Current Keywords: ${currentKeywords.join(', ')}
+      
+      Analyze and optimize this listing for maximum search visibility on ${platform} India.
+      
+      Guidelines:
+      - For Meesho: Include Hindi keywords (transliterated), festival/occasion keywords, size/color variants
+      - For Amazon: Follow Amazon's title format guidelines, include brand + product type + key features
+      - For Flipkart: Include specification-rich keywords, local language terms
+      
+      Return ONLY valid JSON (no other text):
+      {
+        "optimized_title": "...",
+        "optimized_bullets": ["...", "...", "...", "...", "..."],
+        "optimized_description": "...",
+        "suggested_keywords": ["...", "..."],
+        "seo_score_before": 42,
+        "seo_score_after": 78,
+        "improvement_notes": ["...", "..."]
+      }`
+    }]
+  }
+  
+  6. Parse JSON response (strip any markdown if model adds backticks)
+  7. Save to ai_jobs table: input, output, model used, status='done'
+  8. Display side-by-side comparison to seller
+  9. Seller approves → system pushes updated listing to platform:
+     - Amazon: PUT /listings/2021-08-01/items/{sellerId}/{sku}
+     - Flipkart: POST /seller/listings/v3/update
+     - Meesho: Playwright fills edit product form (session-based)
+  10. Deduct 1 AI listing credit from Growth plan quota (or unlimited for Pro)
+
+AI IMAGE GENERATOR — DETAILED FLOW:
+-------------------------------------
+
+BACKGROUND REMOVAL:
+  1. Seller uploads product image (JPEG/PNG, max 10MB)
+  2. File uploaded via presigned R2 URL (never touches server RAM):
+     a. Frontend: GET /api/upload-url?type=ai_input → gets presigned R2 URL
+     b. Browser: PUT file directly to R2
+     c. Frontend: POST /api/ai/remove-bg { r2_key: "..." }
+  3. Backend downloads image from R2 (small, <1MB after compress)
+  4. Sends to Clipdrop API:
+     POST https://clipdrop-api.co/remove-background/v1
+     Headers: x-api-key: {clipdrop_key}
+     Body: FormData with image file
+     Response: PNG with transparent background (binary)
+  5. Store output in R2: ai_outputs/{user_id}/{job_id}_nobg.png
+  6. Return R2 URL to frontend for preview
+  7. Deduct 1 background removal credit
+
+BACKGROUND REPLACEMENT:
+  1. Takes output from step above (or fresh upload)
+  2. User selects background type
+  3. System calls Stability AI:
+     POST https://api.stability.ai/v1/generation/stable-diffusion-xl-1024-v1-0/image-to-image
+     With: init_image (product with transparent bg), text_prompt based on selection:
+     - White studio: "professional product photography white studio background, 
+       soft shadows, clean minimal look"
+     - Lifestyle (kurta): "Indian woman wearing colorful ethnic wear, happy, 
+       festive celebration background, warm lighting, natural"
+     - Diwali festive: "Diwali festival decorations, diyas, marigold flowers, 
+       golden lights, celebratory atmosphere"
+  4. Store output, return to seller
+  5. Seller can download and manually upload to Meesho/Amazon/Flipkart
+     OR system can push directly via platform listing API (Amazon/Flipkart)
+
+BATCH PROCESSING (Pro):
+  Seller uploads ZIP of product images
+  System extracts, queues each as separate ai_queue job
+  Progress bar: "14/23 images processed"
+  Email notification when all done
+  Download all as ZIP
+
+AI COST TRACKING:
+  Every ai_jobs record stores:
+  - tokens_used (for LLM calls)
+  - credits_charged (your actual API cost)
+  
+  Admin dashboard aggregates these to show:
+  - Total AI spend this month
+  - Cost per user (identify heavy users)
+  - Cost per task type
+  
+  If a Pro seller uses 2,000 images/month at ₹4/image = ₹8,000 cost to you
+  but they paid ₹7,500 for the plan → you're losing money on that user.
+  Solution: implement soft cap: "Unlimited means up to 500 images/month, 
+  then ₹5/image" — configurable in AI Settings.
+
+================================================================================
+PART 11 — AUTH SYSTEM
+================================================================================
+
+JWT STRUCTURE:
+  payload: {
+    sub: user_id,
+    email: email,
+    role: 'seller' | 'sub_user' | 'admin',
+    parent_id: null | parent_user_id,  // for sub-users
+    sub_role: null | 'admin' | 'order_manager' | 'view_only',
+    iat: issued_at,
+    exp: issued_at + 86400  // 24 hours
+  }
+  signed with: HS256(JWT_SECRET from env)
+
+TOKEN REFRESH:
+  Frontend checks token expiry 5 minutes before expiry
+  If expiry approaching: POST /auth/refresh (with current valid token)
+  Backend issues new token (sliding window — extends 24h from each use)
+
+TRUST TOKEN MECHANISM:
+  When seller selects "Trust this device for 30 days":
+  1. Generate UUID v4 trust token
+  2. Store in trusted_devices table with user_id, expires_at (30 days), IP, user_agent
+  3. Store in Redis: SET "trust:{token}" "{user_id}" EX 2592000
+  4. Set HTTP-only cookie: agencyfic_trust={token}, Max-Age=2592000, Secure, SameSite=Strict
+  
+  On next login from same device:
+  1. Backend reads cookie agencyfic_trust
+  2. Check Redis: GET "trust:{token}" → gets user_id
+  3. Verify user_id matches email submitted
+  4. If match → skip OTP, issue JWT directly
+  5. Update trusted_devices.last_used_at
+
+OTP FLOW:
+  Generate: Math.floor(100000 + Math.random() * 900000).toString() → 6 digits
+  Store: SET "otp:{email}" "{otp}" EX 600 (10 minutes)
+  Send via: SendGrid (email only for now, SMS optional)
+  Verify: GET "otp:{email}" → compare → DEL "otp:{email}" on match
+  Failed attempts: if wrong OTP 5 times → lock for 15 minutes
+
+SUB-USER PERMISSIONS:
+  Middleware checks both role AND sub_role in JWT:
+  
+  Route protection examples:
+  GET /api/orders — allowed for all roles
+  POST /api/orders/:id/accept — allowed for 'admin' role, 'order_manager' sub_role
+                                 NOT allowed for 'view_only'
+  GET /api/billing — allowed for owner only (role='seller', no parent_id)
+  PUT /api/settings — allowed for owner only
+  POST /api/accounts — allowed for owner only (add platform accounts)
+
+================================================================================
+PART 12 — NOTIFICATION SYSTEM
+================================================================================
+
+NOTIFICATION TYPES AND TRIGGERS:
+
+  new_order:
+    Trigger: New order detected in sync
+    Title: "New {platform} Order — ₹{amount}"
+    Body: "Order #{order_id} for {product} from {city}"
+    Channels: In-app, Email (if enabled), WhatsApp (if enabled)
+  
+  dispatch_deadline_6h:
+    Trigger: Cron job checks every hour for orders with deadline in 3-6h
+    Title: "⚠ Ship in 6 hours: Order #{order_id}"
+    Body: "Dispatch deadline: {deadline_time}. Mark as packed and ready."
+    Channels: In-app, Email, SMS, WhatsApp
+  
+  dispatch_deadline_3h:
+    Trigger: Cron job checks for orders with deadline in <3h
+    Title: "🚨 URGENT: Ship in 3 hours!"
+    Channels: In-app (pulsing), Email, SMS, WhatsApp
+  
+  dispatch_overdue:
+    Trigger: Dispatch deadline passed without shipping
+    Title: "❌ Dispatch overdue: Order #{order_id}"
+    Channels: All channels
+  
+  session_expired:
+    Trigger: Meesho session health check fails
+    Title: "Meesho session expired: {account_nickname}"
+    Body: "Re-login needed to continue order sync."
+    Channels: In-app, Email, WhatsApp
+  
+  credits_low_20:
+    Trigger: credits_remaining drops below 20% of plan
+    Title: "Your order credits are getting low"
+    Body: "{remaining} orders remaining. Top up to avoid disruption."
+    Channels: In-app, Email
+  
+  credits_low_5:
+    Trigger: credits_remaining drops below 5%
+    Title: "🔴 Only {remaining} orders left!"
+    Channels: All channels
+  
+  credits_exhausted:
+    Trigger: credits_remaining = 0 and grace limit reached
+    Title: "Order processing paused — No credits remaining"
+    Body: "Purchase a plan to resume processing."
+    Channels: All channels
+
+EMAIL SENDING (via SendGrid):
+  POST https://api.sendgrid.com/v3/mail/send
+  Headers: Authorization: Bearer {SENDGRID_API_KEY}
+  From: noreply@agencyfic.com
+  Template: loaded from site_settings (HTML template with variables)
+  Variable substitution: replace {{seller_name}}, {{order_id}}, etc.
+
+WHATSAPP (via WhatsApp Business API or 3rd party like Interakt/Wati):
+  Messages sent via template messages (approved by Meta):
+  Template example: "New order on {{1}} — Order {{2}} for ₹{{3}}. 
+  Dispatch by {{4}}. Open dashboard: {{5}}"
+  
+  Integration: POST to WhatsApp API with template name + variables
+  Cost: ~₹0.20-0.50 per message (Meta pricing)
+
+IN-APP NOTIFICATIONS:
+  Stored in notifications_log table
+  Bell icon shows unread count (max 99+)
+  Notification panel: scrollable list, last 50 notifications
+  Mark as read: individually or "Mark All Read"
+  Real-time: new notifications appear via Socket.io without refresh
+
+================================================================================
+PART 13 — EVIDENCE CAPTURE & RETURN CLAIMS SYSTEM
+================================================================================
+
+WHY THIS FEATURE IS CRITICAL:
+  Indian ecommerce return fraud is a major seller pain point.
+  Meesho return fraud rate: approximately 5-15% (industry estimates).
+  Common fraud: buyer receives genuine product, returns empty box, claims refund.
+  Without evidence: seller loses the claim every time.
+  With timestamped packing video: seller wins ~80% of claims.
+
+EVIDENCE CAPTURE FLOW:
+  
+  Phase 1 — During Packing (Proactive):
+  
+  1. Seller opens order in dashboard, clicks "Capture Packing Evidence"
+  2. System shows camera interface in browser (using getUserMedia API):
+     [Record Video] [Take Photos]
+     Video: records packing session (seller shows product, packs it, seals box, shows label)
+     Photos: 5-6 photos required — front/back of product, sealed box, label closeup
+  
+  3. File handling for video:
+     a. Browser records video using MediaRecorder API (max 3 minutes)
+     b. On stop: GET /api/upload-url → backend generates presigned R2 URL
+     c. Browser uploads directly to R2: evidence/{user_id}/{order_id}/packing_video.mp4
+     d. Browser notifies backend: POST /api/evidence/confirm { r2_key, order_id, type:'video', captured_at }
+     e. Backend creates evidence_files record
+     f. Backend does NOT handle the binary data — zero RAM usage
+  
+  4. File handling for photos:
+     Same presigned URL flow, one URL per photo
+     5 photos × ~500KB each = 2.5MB total, stored in R2
+  
+  5. After capture: order shows evidence indicator (green camera icon)
+  
+  Phase 2 — When Return Arrives:
+  
+  1. System detects return via API/scraping
+  2. Creates returns record, sets claim_deadline
+  3. Notifies seller: "Return for Order #{id} received. Evidence captured ✅"
+  4. Seller navigates to Claims > Active Returns
+  5. Clicks [Raise Claim] → 4-step wizard (described in Part 7)
+
+EVIDENCE STORAGE:
+  - Photos: stored permanently in R2 (small size, negligible cost)
+    5 photos × 500KB × 100 sellers × 50 returns/month = 1.25GB/month
+    At R2 pricing ($0.015/GB): $0.02/month. Effectively free.
+  - Videos: stored in R2 with TTL = claim_deadline + 30 days (configurable)
+    After that: auto-deleted by R2 lifecycle policy
+    Maximum storage at any time: ~50GB for 200 active users
+    Cost: $0.75/month for 50GB. Negligible.
+
+EVIDENCE FOR DIFFERENT PLATFORMS:
+  Meesho:
+    - Claim form is on supplier.meesho.com/claims
+    - Our system: opens page in new tab, pre-copies claim text to clipboard
+    - Seller manually pastes text and uploads photos (downloaded from our system in 1 click)
+    - System records: claim_status='raised', platform_claim_id entered by seller
+    
+  Amazon SAFE-T:
+    - Fully automated via API:
+    POST /orders/v0/orders/{orderId}/orderItems → get item details
+    POST /solicitations/v1/... → SAFE-T claim with evidence
+    - Amazon S3 presigned URL for evidence upload
+    - System handles entire flow without seller manual action
+    - Seller just clicks [Submit to Amazon] → done
+    
+  Flipkart:
+    - Return approval/rejection:
+    POST /seller/returns/{return_id}/reject (with reason and evidence reference)
+    - For dispute escalation: Flipkart seller support ticket
+    - Similar to Meesho: system opens support page, pre-fills details
+
+CLAIM TRACKING (Post-Submission):
+  System polls/checks claim status periodically:
+  Meesho: scrape /claims page every 6 hours for status updates
+  Amazon: poll SAFE-T claim status via API
+  Flipkart: check return status via /seller/returns/{id}
+  
+  Status updates reflected in Claims > Claim History table.
+  Notification sent when claim is resolved (won or lost).
+
+================================================================================
+PART 14 — LABEL & INVOICE SYSTEM
+================================================================================
+
+LABEL SYSTEM:
+  
+  Meesho Labels:
+  - Labels are pre-generated by Meesho when order is accepted
+  - Fetch via: GET /api/v2/orders/{id}/label with session cookie
+  - Returns: redirect URL to PDF
+  - Download PDF, store in R2: labels/{user_id}/{order_id}/meesho_label.pdf
+  - For bulk download: loop through order IDs, download each, merge using pdf-lib
+  - Thermal 4×6: extract label region from A4 PDF, resize using pdf-lib
+  
+  Amazon Labels:
+  - Amazon FBM: use Merchant Fulfillment API to purchase shipping
+    → Amazon generates label PDF
+  - Store in R2
+  
+  Flipkart Labels:
+  - POST /seller/shipments/{shipment_ids}/labelOnly/pdf
+  - Returns merged PDF for up to 100 orders at once
+  - For thermal: same crop/resize as Meesho
+  
+  Manifest Generation:
+  - Pull all orders being dispatched today
+  - Generate manifest PDF: date, seller info, list of AWBs + customer cities
+  - Some couriers (Delhivery) require this for pickup
+  - Format: A4, one page per 20 shipments
+  
+  Label Storage Policy:
+  - All labels stored permanently in R2 (configurable in admin settings)
+  - Why: Sellers often need to reprint months later for disputes
+  - Storage: 1 label PDF ≈ 150KB × 100 sellers × 50 orders/day × 30 days = 22.5GB/month cumulative
+  - R2 cost: $0.34/month. Completely justified.
+
+INVOICE SYSTEM:
+  
+  GST Invoice Generation Rules:
+  - If seller_state == customer_state: CGST (9%) + SGST (9%)
+  - If seller_state != customer_state: IGST (18%)
+  - For composition scheme dealers: no GST charged to buyer
+  - For unregistered sellers: no GST invoice (just a sales receipt)
+  
+  Invoice Content:
+  Line 1: Invoice Number (e.g. INV-2026-001234)
+  Line 2: Invoice Date
+  SELLER:
+    [GSTIN], [Name], [Address], [State], [Email]
+  BUYER:
+    [Name], [State], [Pincode]
+    (Phone and full address optional — depends on platform privacy)
+  ITEMS TABLE:
+    | # | Description (product name) | HSN Code | Qty | Rate | Taxable | CGST/SGST/IGST | Total |
+  TOTALS:
+    Subtotal, CGST amount, SGST amount (or IGST), Grand Total
+  FOOTER:
+    "This is a computer-generated invoice."
+    "Thank you for your purchase."
+  
+  HSN Code: Set by seller in product/SKU settings. For kurti/women's wear: 6104 or 6211
+  (Seller sets this once, system auto-fills on all invoices for that SKU)
+  
+  Generation Library: pdfkit (Node.js)
+  Storage: Permanent in R2: invoices/{user_id}/{year}/{invoice_number}.pdf
+  
+  Bulk Invoice Download:
+  - Select orders → Generate All Invoices
+  - System generates PDFs in parallel (Bull queue)
+  - Merges into ZIP using archiver (Node.js)
+  - Returns ZIP download
+
+================================================================================
+PART 15 — VPS SETUP & INFRASTRUCTURE
+================================================================================
+
+RECOMMENDED VPS SPECS:
+
+  Launch (0-50 users):
+    Provider: Hetzner Cloud
+    Server: CX32 (4 vCPU, 8GB RAM, 80GB SSD)
+    Cost: €8.86/month (~₹820)
+    Network: 20TB bandwidth included — more than sufficient
+
+  Growth (50-200 users):
+    Provider: Hetzner Cloud
+    Server: CX42 (8 vCPU, 16GB RAM, 160GB SSD) + upgrade Cloudflare R2
+    Cost: €17.99/month (~₹1,660)
+  
+  Scale (200-500 users):
+    App Server: Hetzner CX52 (16 vCPU, 32GB RAM)
+    DB Server: Separate Hetzner CX32 (PostgreSQL only)
+    Cost: €55/month combined (~₹5,080)
+
+UBUNTU 22.04 SETUP COMMANDS:
+  
+  Initial setup:
+  apt update && apt upgrade -y
+  apt install -y nginx certbot python3-certbot-nginx ufw
+  ufw allow 22 (SSH)
+  ufw allow 80 (HTTP)
+  ufw allow 443 (HTTPS)
+  ufw enable
+  
+  Node.js 20:
+  curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+  apt install -y nodejs
+  
+  PM2 process manager:
+  npm install -g pm2
+  pm2 startup ubuntu (auto-start on reboot)
+  
+  PostgreSQL 15:
+  apt install -y postgresql postgresql-contrib
+  systemctl enable postgresql
+  CREATE DATABASE agencyfic;
+  CREATE USER agencyfic_user WITH PASSWORD '...';
+  GRANT ALL PRIVILEGES ON DATABASE agencyfic TO agencyfic_user;
+  
+  Redis 7:
+  apt install -y redis-server
+  Configure: maxmemory 2gb, maxmemory-policy allkeys-lru
+  systemctl enable redis
+  
+  Playwright + Chromium:
+  npm install playwright
+  npx playwright install chromium
+  npx playwright install-deps chromium
+  
+  Certbot SSL:
+  certbot --nginx -d yourdomain.com -d www.yourdomain.com
+
+NGINX CONFIG (simplified):
+  server {
+    listen 443 ssl;
+    server_name yourdomain.com;
+    
+    location / {
+      proxy_pass http://localhost:3000;  # Next.js
+      proxy_http_version 1.1;
+      proxy_set_header Upgrade $http_upgrade;
+      proxy_set_header Connection 'upgrade';
+    }
+    
+    location /api/ {
+      proxy_pass http://localhost:4000;  # Node.js API
+      proxy_http_version 1.1;
+    }
+    
+    location /socket.io/ {
+      proxy_pass http://localhost:4000;
+      proxy_http_version 1.1;
+      proxy_set_header Upgrade $http_upgrade;
+      proxy_set_header Connection 'upgrade';
+    }
+  }
+
+PM2 ECOSYSTEM FILE (ecosystem.config.js):
+  module.exports = {
+    apps: [
+      { name: 'agencyfic-frontend', script: 'npm', args: 'start',
+        cwd: '/var/www/agencyfic/frontend', env: { PORT: 3000 } },
+      { name: 'agencyfic-api', script: 'server.js',
+        cwd: '/var/www/agencyfic/backend', instances: 2, exec_mode: 'cluster' },
+      { name: 'agencyfic-worker', script: 'worker.js',
+        cwd: '/var/www/agencyfic/backend', instances: 1 }
+    ]
+  };
+
+DEPLOYMENT FLOW:
+  Local machine → git push → GitHub
+  VPS: git pull → npm install → npm run build → pm2 reload all
+  (Or set up GitHub Actions for auto-deploy on push to main branch)
+
+BACKUP STRATEGY:
+  Daily PostgreSQL dump:
+    pg_dump agencyfic | gzip > /backups/db_$(date +%Y%m%d).sql.gz
+  Keep last 30 days, delete older
+  Upload to Cloudflare R2 (backups bucket): daily
+  Hetzner server snapshots: weekly (full disk snapshot, ₹200/month extra)
+
+MONITORING:
+  UptimeRobot (free): monitors site availability every 5 min, email alert on down
+  PM2 monitoring: pm2 monit (CPU/RAM per process)
+  PostgreSQL: pg_stat_statements extension for slow query detection
+  Redis: redis-cli INFO stats (memory, hit rate)
+  Application-level: error logging to PostgreSQL error_logs table
+  Admin can view server health via System Health panel in superadmin
+
+================================================================================
+PART 16 — SECURITY ARCHITECTURE
+================================================================================
+
+DATA ENCRYPTION:
+  Passwords: bcrypt with 12 rounds (industry standard)
+    Never stored in plaintext. Cannot be reversed.
+    Hash stored in users.password_hash
+  
+  Meesho passwords: AES-256-GCM
+    Key: ENCRYPTION_MASTER_KEY environment variable (never in DB)
+    Encrypted value stored in linked_accounts.meesho_password_enc
+    Decrypted only in memory when needed for Playwright login
+    Example:
+    const { encrypted, iv, authTag } = AES.encrypt(plaintext, MASTER_KEY);
+    stored = iv + ':' + authTag + ':' + encrypted (base64)
+  
+  Session cookies: AES-256-GCM (same as above)
+  OAuth tokens (Amazon/Flipkart): AES-256-GCM
+  Third-party API keys (in site_settings): AES-256-GCM
+  
+  Master encryption key rotation: superadmin can trigger re-encryption
+  (decrypts all values with old key, re-encrypts with new key in a transaction)
+
+API SECURITY:
+  All API endpoints require valid JWT except: /auth/login, /auth/signup,
+  /auth/forgot-password, /auth/reset-password, /webhooks/razorpay
+  
+  Rate limiting (via express-rate-limit + Redis):
+  /auth/login: 5 attempts per 15 minutes per IP
+  /auth/verify-otp: 5 attempts per 10 minutes per email
+  General API: 100 requests per minute per user
+  
+  Input validation: all inputs validated and sanitized (express-validator)
+  SQL: parameterized queries only, never string concatenation
+  XSS: Content-Security-Policy headers, all output HTML-escaped
+
+WEBHOOK SECURITY:
+  Razorpay: HMAC-SHA256 signature verification on every webhook
+  Amazon SNS: verify against Amazon's published certificate
+  Flipkart: verify signature with app secret
+
+HTTPS ENFORCEMENT:
+  All HTTP redirected to HTTPS (nginx)
+  HSTS header: Strict-Transport-Security: max-age=31536000
+  TLS 1.2+ only
+
+SESSION SECURITY:
+  JWT stored in memory (not localStorage) to prevent XSS theft
+  On mobile/desktop: stored in httpOnly cookie alternative
+  Concurrent session limit: configurable (default: no limit, but shown in security tab)
+  Session invalidation: on password change, account suspension
+
+================================================================================
+PART 17 — LEGAL & COMPLIANCE PAGES
+================================================================================
+
+REQUIRED PAGES (accessible from footer):
+  /terms — Terms of Service
+  /privacy — Privacy Policy
+  /refund — Refund Policy
+  /cookies — Cookie Policy
+  /data-processing — Data Processing Agreement
+  /grievance — Grievance Officer Contact (required under Indian IT Rules 2021
+               for platforms with > 50,000 users)
+  /about — About Agencyfic OMS
+  /contact — Contact Us
+
+TERMS OF SERVICE key clauses to include:
+  - Service description (order management SaaS)
+  - User obligations (provide accurate credentials, compliant with platform TOS)
+  - Meesho credential storage disclaimer: "You authorize us to store and use
+    your Meesho login credentials solely for the purpose of order management
+    automation on your behalf."
+  - No guarantee of uptime (Meesho may change their platform)
+  - Credit refund policy (non-refundable after use, refund within 7 days if unused)
+  - Account suspension terms
+  - Intellectual property
+  - Governing law: India, jurisdiction: [your city] courts
+
+PRIVACY POLICY key sections:
+  - What data we collect (email, phone, business details, platform credentials)
+  - How we use data (order management, billing, notifications)
+  - Data storage (VPS in [location], R2 on Cloudflare)
+  - Third parties (Razorpay for payments, SendGrid for email, AI providers)
+  - Data retention periods (configurable by admin in system settings)
+  - User rights (access, correction, deletion — contact support)
+  - Cookie usage (JWT session cookies, trust tokens)
+  - Contact for privacy: privacy@agencyfic.com
+
+REFUND POLICY:
+  - Order credits are non-refundable once any credits have been used
+  - Full refund within 7 days if zero credits used and account is new
+  - Technical issues: credits reinstated if proven platform fault
+  - Disputes: contact support@agencyfic.com within 30 days of transaction
+
+GST COMPLIANCE:
+  - GST registration required if annual revenue >₹20L (Agencyfic)
+  - 18% GST applied to all subscription payments
+  - GST invoice generated for every transaction
+  - Seller can claim input credit on their GST returns
+  - Your GSTIN displayed on all invoices
+
+================================================================================
+PART 18 — BUILD ROADMAP (Phase-by-Phase)
+================================================================================
+
+PHASE 1 — FOUNDATION (Weeks 1-3):
+  - VPS setup (Ubuntu, Nginx, PostgreSQL, Redis, PM2)
+  - Database schema creation with all tables
+  - Auth system: signup, login, email OTP, JWT, trusted devices
+  - User profile and settings pages
+  - Platform account linking (Meesho, Amazon, Flipkart — connection UI only)
+  - Basic superadmin panel: overview, client list, system settings
+  
+  Deliverable: Working auth, can add platform accounts, basic dashboard shell
+
+PHASE 2 — MEESHO INTEGRATION (Weeks 4-6):
+  - Playwright session manager: login + cookie storage
+  - Order sync cron job (HTTP polling with session cookies)
+  - Order display in dashboard (all status tabs)
+  - Order actions: accept, pack, ship via Playwright
+  - Session health monitoring and auto re-login
+  - Meesho label download and storage
+  - Dispatch deadline tracking and alerts (in-app + email)
+  
+  Deliverable: Full Meesho order management working end-to-end
+
+PHASE 3 — AMAZON & FLIPKART (Weeks 7-8):
+  - Amazon SP-API OAuth flow (seller authorization)
+  - Amazon order sync (polling + SNS webhooks)
+  - Amazon label generation via Merchant Fulfillment API
+  - Flipkart OAuth flow
+  - Flipkart order sync (polling + webhook)
+  - Flipkart label/invoice/manifest download
+  - Unified orders view across all 3 platforms
+  
+  Deliverable: All 3 platforms syncing and displaying orders
+
+PHASE 4 — BILLING SYSTEM (Week 9):
+  - Razorpay integration (order creation, webhook handler)
+  - Credit pool system (purchase, deduct, grace orders)
+  - Billing page (plans, top-up, payment history)
+  - Seller invoice generation (GST invoices for their purchases)
+  - Credit enforcement middleware (block actions when credits=0)
+  - Superadmin billing controls (add credits, change plans)
+  
+  Deliverable: Full billing working, platform goes live for beta users
+
+PHASE 5 — LABELS & INVOICES (Week 10):
+  - Merged PDF label generation (all formats: A4, thermal 4x6, 4-up)
+  - Thermal label crop/resize for Flipkart labels
+  - Manifest generation
+  - GST invoice generation (pdfkit)
+  - Bulk download (ZIP via archiver)
+  - Label history page
+  
+  Deliverable: Print labels and invoices fully functional
+
+PHASE 6 — CLAIMS & EVIDENCE (Weeks 11-12):
+  - Evidence capture UI (camera in browser using getUserMedia)
+  - Presigned R2 URL upload flow
+  - Evidence file management (per order)
+  - Return detection and tracking
+  - Claims wizard (4-step)
+  - Amazon SAFE-T claim API integration
+  - Meesho semi-manual claim assistance
+  - Claim history and status tracking
+  
+  Deliverable: Evidence capture and claim filing complete
+
+PHASE 7 — AI FEATURES (Weeks 13-14):
+  - AI model settings panel in superadmin
+  - Listing optimizer (Claude/GPT-4 integration)
+  - Side-by-side comparison UI
+  - Background removal (Clipdrop API)
+  - Background replacement (Stability AI)
+  - AI usage tracking and cost monitoring
+  - Plan-based feature gating (Starter: off, Growth: on-request, Pro: unlimited)
+  
+  Deliverable: AI tools working for Growth and Pro plan users
+
+PHASE 8 — REPORTS & POLISH (Weeks 15-16):
+  - Reports pages (sales summary, returns analysis, platform performance)
+  - Export to CSV/Excel
+  - Notification system (email, in-app, WhatsApp)
+  - Team member sub-users (invite, roles, permissions)
+  - CMS editor in superadmin (text editing for all pages)
+  - Branding settings (logo, favicon, colors)
+  - Legal pages (Terms, Privacy, Refund, etc.)
+  - Bug fixes, performance optimization, load testing
+  
+  Deliverable: Production-ready platform, public launch
+
+PHASE 9 — MOBILE APP (Weeks 17-20):
+  - React Native app (iOS + Android)
+  - Same backend API (no new APIs needed)
+  - Native camera for evidence capture (better than browser camera)
+  - Push notifications (Firebase FCM)
+  - App Store + Play Store submission
+  
+PHASE 10 — DESKTOP APP & SCALE (Weeks 21-24):
+  - Tauri desktop app (Windows + Mac)
+  - VPS scaling (upgrade server as users grow)
+  - Performance optimization (connection pooling, caching)
+  - Load testing with simulated 500 users
+
+TOTAL TIMELINE: 24 weeks (6 months) for complete product with mobile app
+MVP LAUNCH (end of Phase 5): 10 weeks
+Full web launch (end of Phase 8): 16 weeks
+
+TEAM NEEDED:
+  Minimum viable:
+  1 Backend developer (Node.js, PostgreSQL, Redis, Playwright)
+  1 Frontend developer (Next.js, React)
+  1 Part-time DevOps (VPS setup, deployment, monitoring)
+  
+  Alternatively:
+  Claude Code as primary developer + 1-2 hours daily direction from you
+  This is the autonomous AI development model you've been building with
+  the Forge Team / Legacy Empire setup on Hetzner with OpenHands.
+
+================================================================================
+PART 19 — COST PROJECTIONS
+================================================================================
+
+INFRASTRUCTURE COSTS:
+
+  10 users:
+  Hetzner CX22 (4GB RAM): €4.35/mo = ₹400
+  R2 storage (~5GB): $0.075/mo = ₹6
+  SendGrid (free tier): ₹0
+  Domain: ₹65/mo (₹800/year)
+  TOTAL: ~₹475/month
+
+  50 users:
+  Hetzner CX32 (8GB RAM): €8.86/mo = ₹820
+  R2 storage (~25GB): $0.375/mo = ₹31
+  SendGrid (3k emails/day): $20/mo = ₹1,650
+  Domain + misc: ₹65/mo
+  TOTAL: ~₹2,566/month
+
+  200 users:
+  Hetzner CX42 (16GB RAM): €17.99/mo = ₹1,660
+  R2 storage (~100GB): $1.50/mo = ₹124
+  SendGrid (10k emails/day): $20/mo = ₹1,650
+  Domain + misc: ₹65/mo
+  Hetzner backups: €3/mo = ₹277
+  TOTAL: ~₹3,776/month
+
+AI COSTS (per month at 200 users):
+  Assumption: 50% of users on Growth/Pro, using AI moderately
+  Listing optimizations: 100 users × 30 calls/month × ₹3.50 = ₹10,500
+  Image generation: 50 Pro users × 100 images × ₹4.00 = ₹20,000
+  Background removal: 100 users × 50 calls × ₹0.60 = ₹3,000
+  Total AI: ~₹33,500/month at 200 users
+
+REVENUE PROJECTIONS:
+
+  Assumption: Average plan value ₹3,000/purchase, 1.5 purchases/user/month
+
+  10 users:  ₹45,000 revenue vs ₹475 infra = 99% gross margin
+  50 users:  ₹225,000 revenue vs ₹2,566 infra + ₹8,375 AI = 96% gross margin
+  200 users: ₹900,000 revenue vs ₹3,776 infra + ₹33,500 AI = 96% gross margin
+
+  Infrastructure is never your constraint. Your growth costs are:
+  - Marketing/acquisition
+  - Support team (at 100+ users, 1 part-time support needed)
+  - Meesho API changes breaking things (maintenance time)
+
+BREAK-EVEN: 3-5 users covers all VPS costs. From user #6 onward, profitable.
+
+================================================================================
+PART 20 — FOLDER STRUCTURE
+================================================================================
+
+/agencyfic-oms/                    [root repo]
+│
+├── /frontend/                     [Next.js PWA]
+│   ├── /pages/
+│   │   ├── index.js               [landing/login redirect]
+│   │   ├── login.js
+│   │   ├── signup.js
+│   │   ├── forgot-password.js
+│   │   ├── reset-password.js
+│   │   ├── dashboard.js
+│   │   ├── /orders/
+│   │   │   ├── index.js           [all orders]
+│   │   │   └── [id].js            [order detail]
+│   │   ├── labels.js
+│   │   ├── invoices.js
+│   │   ├── /claims/
+│   │   │   ├── index.js
+│   │   │   └── raise.js
+│   │   ├── reports.js
+│   │   ├── /platforms/
+│   │   │   ├── meesho.js
+│   │   │   ├── amazon.js
+│   │   │   └── flipkart.js
+│   │   ├── /ai/
+│   │   │   ├── listings.js
+│   │   │   └── images.js
+│   │   ├── /billing/
+│   │   │   ├── index.js
+│   │   │   └── success.js
+│   │   ├── /settings/
+│   │   │   ├── profile.js
+│   │   │   ├── business.js
+│   │   │   ├── notifications.js
+│   │   │   ├── team.js
+│   │   │   └── security.js
+│   │   ├── /superadmin/           [admin panel]
+│   │   │   ├── login.js
+│   │   │   ├── overview.js
+│   │   │   ├── /clients/
+│   │   │   │   ├── index.js
+│   │   │   │   └── [id].js
+│   │   │   ├── /plans/
+│   │   │   │   ├── index.js
+│   │   │   │   └── revenue.js
+│   │   │   ├── /platform-health/
+│   │   │   │   ├── sessions.js
+│   │   │   │   ├── jobs.js
+│   │   │   │   └── errors.js
+│   │   │   ├── /ai-settings/
+│   │   │   │   ├── models.js
+│   │   │   │   └── usage.js
+│   │   │   ├── /website-settings/
+│   │   │   │   ├── branding.js
+│   │   │   │   ├── cms.js
+│   │   │   │   ├── emails.js
+│   │   │   │   └── legal.js
+│   │   │   ├── notifications.js
+│   │   │   ├── /system-settings/
+│   │   │   │   ├── global.js
+│   │   │   │   ├── api-keys.js
+│   │   │   │   └── security.js
+│   │   │   └── activity-log.js
+│   │   └── /legal/
+│   │       ├── terms.js
+│   │       ├── privacy.js
+│   │       ├── refund.js
+│   │       ├── cookies.js
+│   │       └── grievance.js
+│   ├── /components/
+│   │   ├── /layout/               [Sidebar, Topbar, Layout wrapper]
+│   │   ├── /orders/               [OrderTable, OrderDetail, OrderBadge]
+│   │   ├── /billing/              [CreditPill, PlanCard, UsageBar]
+│   │   ├── /claims/               [ClaimWizard, EvidenceCapture]
+│   │   ├── /ai/                   [ListingComparison, ImageEditor]
+│   │   ├── /common/               [Button, Input, Modal, Toast, Badge]
+│   │   └── /charts/               [LineChart, BarChart, DonutChart]
+│   ├── /hooks/                    [useOrders, useBilling, useSocket]
+│   ├── /services/                 [api.js, socket.js, auth.js]
+│   ├── /utils/                    [formatters, validators, constants]
+│   ├── /styles/                   [globals.css, variables.css]
+│   └── next.config.js
+│
+├── /backend/                      [Node.js API]
+│   ├── /api/
+│   │   ├── /routes/
+│   │   │   ├── auth.routes.js
+│   │   │   ├── orders.routes.js
+│   │   │   ├── labels.routes.js
+│   │   │   ├── invoices.routes.js
+│   │   │   ├── claims.routes.js
+│   │   │   ├── evidence.routes.js
+│   │   │   ├── platforms.routes.js
+│   │   │   ├── billing.routes.js
+│   │   │   ├── ai.routes.js
+│   │   │   ├── settings.routes.js
+│   │   │   ├── webhooks.routes.js
+│   │   │   └── admin.routes.js
+│   │   ├── /controllers/          [one per route file]
+│   │   └── /middleware/
+│   │       ├── auth.middleware.js  [JWT verify, role check]
+│   │       ├── credits.middleware.js [credit check before billable action]
+│   │       ├── rateLimit.middleware.js
+│   │       └── validate.middleware.js
+│   ├── /automation/               [Playwright — Meesho]
+│   │   ├── sessionManager.js      [login, cookie storage, health check]
+│   │   ├── orderScraper.js        [HTTP polling with session cookies]
+│   │   ├── orderActions.js        [accept, pack, ship via Playwright]
+│   │   ├── labelFetcher.js        [download label PDFs]
+│   │   └── claimAssist.js         [open claim page, pre-fill text]
+│   ├── /integrations/
+│   │   ├── amazon.js              [SP-API calls, OAuth]
+│   │   ├── flipkart.js            [Seller API calls, OAuth]
+│   │   ├── razorpay.js            [payment + webhook]
+│   │   └── r2.js                  [Cloudflare R2 operations]
+│   ├── /queues/
+│   │   ├── queues.js              [Bull queue definitions]
+│   │   ├── /workers/
+│   │   │   ├── orderSync.worker.js
+│   │   │   ├── orderAction.worker.js
+│   │   │   ├── label.worker.js
+│   │   │   ├── ai.worker.js
+│   │   │   └── notification.worker.js
+│   │   └── scheduler.js           [Cron job definitions]
+│   ├── /services/
+│   │   ├── invoiceGenerator.js    [pdfkit invoice generation]
+│   │   ├── labelProcessor.js      [PDF merge, thermal crop]
+│   │   ├── emailService.js        [SendGrid wrapper]
+│   │   ├── smsService.js          [SMS gateway wrapper]
+│   │   ├── whatsappService.js     [WhatsApp API wrapper]
+│   │   ├── encryptService.js      [AES-256 encrypt/decrypt]
+│   │   ├── aiListingService.js    [Claude/GPT listing optimization]
+│   │   └── aiImageService.js      [Stability AI / Clipdrop]
+│   ├── /db/
+│   │   ├── index.js               [pg pool connection]
+│   │   ├── /migrations/           [sequential SQL migration files]
+│   │   └── /seeds/                [initial data: plans, admin user, settings]
+│   ├── /realtime/
+│   │   └── socketManager.js       [Socket.io setup, room management]
+│   ├── /config/
+│   │   ├── env.js                 [process.env validation]
+│   │   └── constants.js
+│   └── server.js                  [Express app entry point]
+│
+├── /scripts/
+│   ├── setup.sh                   [VPS setup automation]
+│   ├── deploy.sh                  [pull + build + reload PM2]
+│   └── backup.sh                  [PostgreSQL backup to R2]
+│
+├── /docs/                         [this plan file lives here]
+│   └── agencyfic_oms_complete_plan.txt
+│
+├── .env.example                   [all required env vars listed]
+├── .gitignore
+├── ecosystem.config.js            [PM2 config]
+└── README.md
+
+ENVIRONMENT VARIABLES (.env):
+  # Database
+  DATABASE_URL=postgresql://user:pass@localhost:5432/agencyfic
+  REDIS_URL=redis://localhost:6379
+  
+  # Auth
+  JWT_SECRET=...
+  ENCRYPTION_MASTER_KEY=...  # 32-byte hex string for AES-256
+  
+  # External services
+  SENDGRID_API_KEY=...
+  RAZORPAY_KEY_ID=...
+  RAZORPAY_KEY_SECRET=...
+  RAZORPAY_WEBHOOK_SECRET=...
+  R2_ACCOUNT_ID=...
+  R2_ACCESS_KEY_ID=...
+  R2_SECRET_ACCESS_KEY=...
+  R2_BUCKET_NAME=agencyfic-storage
+  
+  # AI (managed via superadmin panel, but fallback here)
+  ANTHROPIC_API_KEY=...
+  OPENAI_API_KEY=...
+  STABILITY_API_KEY=...
+  CLIPDROP_API_KEY=...
+  
+  # App
+  NEXT_PUBLIC_API_URL=https://yourdomain.com/api
+  NEXT_PUBLIC_SOCKET_URL=https://yourdomain.com
+  NODE_ENV=production
+  PORT=4000
+
+================================================================================
+FINAL SUMMARY
+================================================================================
+
+AGENCYFIC OMS IS:
+  - A multi-tenant web SaaS (web-first, mobile-responsive PWA)
+  - Meesho: session-based automation via Playwright (no official API)
+  - Amazon: official SP-API with OAuth
+  - Flipkart: official Seller API with OAuth
+  - Unified per-order credit pool billing (platform-agnostic)
+  - Razorpay payments with GST invoice generation
+  - Evidence capture for return fraud defense
+  - AI listing optimization (Claude/GPT-4)
+  - AI product image generation (Stability AI + Clipdrop)
+  - Complete superadmin control: clients, billing, AI models, branding, CMS
+  - VPS-hosted (Hetzner), all data yours, no third-party SaaS dependencies
+
+WHAT MAKES IT WIN IN THE INDIAN MARKET:
+  1. Only platform supporting Meesho WITHOUT official API (competitors need approval)
+  2. Evidence capture for return claims (nobody has built this for small sellers)
+  3. Thermal label auto-crop (massive daily time saver)
+  4. Per-order credits (not per-platform, not monthly subscription — sellers love it)
+  5. AI images at growth plan level (competitors charge extra for this)
+  6. Full Hindi + English support in AI listing optimizer
+  7. Affordable entry price (₹1,000 vs Unicommerce's enterprise pricing)
+
+================================================================================
+END OF AGENCYFIC OMS COMPLETE PLAN
+Version 1.0 | Agencyfic | 11 April 2026
+================================================================================
