@@ -1,14 +1,19 @@
 import { PrismaClient, UserRole, Platform, OrderStatus, PaymentType, PaymentStatus, BillingTransactionType } from '@prisma/client';
 import bcrypt from 'bcryptjs';
+import { randomBytes } from 'crypto';
 
 const prisma = new PrismaClient();
 
 function requireSeedPassword(varName: 'SEED_SUPERADMIN_PASSWORD' | 'SEED_SELLER_PASSWORD', fallback: string) {
   const value = process.env[varName];
-  if (process.env.NODE_ENV === 'production' && !value) {
+  if (process.env.NODE_ENV === 'production' && (!value || value.trim().length === 0)) {
     throw new Error(`${varName} must be set in production when running seed`);
   }
-  return value ?? fallback;
+  return value && value.trim().length > 0 ? value : fallback;
+}
+
+function secureSeedFallback(prefix: string) {
+  return `${prefix}-${randomBytes(12).toString('hex')}`;
 }
 
 async function main() {
@@ -57,8 +62,14 @@ async function main() {
     },
   });
 
-  const adminPass = await bcrypt.hash(requireSeedPassword('SEED_SUPERADMIN_PASSWORD', 'ChangeMe-Admin-123!'), 12);
-  const sellerPass = await bcrypt.hash(requireSeedPassword('SEED_SELLER_PASSWORD', 'ChangeMe-Seller-123!'), 12);
+  const adminPass = await bcrypt.hash(
+    requireSeedPassword('SEED_SUPERADMIN_PASSWORD', secureSeedFallback('SeedAdmin')),
+    12,
+  );
+  const sellerPass = await bcrypt.hash(
+    requireSeedPassword('SEED_SELLER_PASSWORD', secureSeedFallback('SeedSeller')),
+    12,
+  );
 
   const admin = await prisma.user.upsert({
     where: { email: 'superadmin@agencyfic.com' },

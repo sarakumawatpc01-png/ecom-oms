@@ -8,6 +8,10 @@ dotenv.config();
 const DEFAULT_ACCESS_SECRET = 'dev_access_secret_please_override';
 const DEFAULT_REFRESH_SECRET = 'dev_refresh_secret_please_override';
 const DEFAULT_ENCRYPTION_KEY_HEX = '8fbbd14731f46b5bc694264f6fdb8ee4d8d71709a4e547ab37e2248f8d985f5f';
+const optionalUrl = z.preprocess(
+  (value) => (typeof value === 'string' && value.trim().length === 0 ? undefined : value),
+  z.string().url().optional(),
+);
 
 const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
@@ -21,9 +25,9 @@ const envSchema = z.object({
     .string()
     .regex(/^[a-fA-F0-9]{64}$/)
     .default(DEFAULT_ENCRYPTION_KEY_HEX),
-  EMAIL_WEBHOOK_URL: z.string().url().optional(),
-  SMS_WEBHOOK_URL: z.string().url().optional(),
-  WHATSAPP_WEBHOOK_URL: z.string().url().optional(),
+  EMAIL_WEBHOOK_URL: optionalUrl,
+  SMS_WEBHOOK_URL: optionalUrl,
+  WHATSAPP_WEBHOOK_URL: optionalUrl,
   NOTIFICATION_WEBHOOK_TIMEOUT_MS: z.coerce.number().int().positive().default(5000),
   ENABLE_API_LOG_PERSISTENCE: z.enum(['true', 'false']).default('false').transform((value) => value === 'true'),
 });

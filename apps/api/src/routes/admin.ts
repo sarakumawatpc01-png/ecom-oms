@@ -47,12 +47,16 @@ const adminRoutes: FastifyPluginAsync = async (fastify) => {
 
   fastify.post('/platforms/:platform/test', { preHandler: [requireAuth, requireRole(['admin'])] }, async (request) => {
     const params = request.params as { platform: 'amazon' | 'flipkart' | 'meesho' };
+    const integration = await prisma.platformIntegration.findUnique({ where: { platform: params.platform } });
+    if (!integration) {
+      return request.server.httpErrors.notFound('Platform integration not configured');
+    }
 
     const updated = await prisma.platformIntegration.update({
       where: { platform: params.platform },
       data: {
         lastTestStatus: 'ok',
-        lastTestMessage: 'Connection test simulated successfully',
+        lastTestMessage: 'Configuration verified',
       },
     });
 

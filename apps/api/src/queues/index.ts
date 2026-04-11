@@ -81,6 +81,10 @@ function toBooleanSetting(value: string | null | undefined, fallback: boolean) {
   return fallback;
 }
 
+function resolveSettingWithFallback(value: string | undefined, fallback: string | undefined) {
+  return value ?? fallback;
+}
+
 async function getNotificationDeliverySettings(): Promise<NotificationDeliverySettings> {
   const keys = Object.values(notificationSettingKeys);
   const settings = await prisma.siteSetting.findMany({ where: { key: { in: keys } } });
@@ -88,9 +92,12 @@ async function getNotificationDeliverySettings(): Promise<NotificationDeliverySe
 
   return {
     // Persisted admin settings take precedence; env values remain fallback defaults.
-    emailWebhookUrl: settingMap.get(notificationSettingKeys.emailWebhookUrl) || env.EMAIL_WEBHOOK_URL,
-    smsWebhookUrl: settingMap.get(notificationSettingKeys.smsWebhookUrl) || env.SMS_WEBHOOK_URL,
-    whatsappWebhookUrl: settingMap.get(notificationSettingKeys.whatsappWebhookUrl) || env.WHATSAPP_WEBHOOK_URL,
+    emailWebhookUrl: resolveSettingWithFallback(settingMap.get(notificationSettingKeys.emailWebhookUrl), env.EMAIL_WEBHOOK_URL),
+    smsWebhookUrl: resolveSettingWithFallback(settingMap.get(notificationSettingKeys.smsWebhookUrl), env.SMS_WEBHOOK_URL),
+    whatsappWebhookUrl: resolveSettingWithFallback(
+      settingMap.get(notificationSettingKeys.whatsappWebhookUrl),
+      env.WHATSAPP_WEBHOOK_URL,
+    ),
     emailEnabled: toBooleanSetting(settingMap.get(notificationSettingKeys.emailEnabled), true),
     smsEnabled: toBooleanSetting(settingMap.get(notificationSettingKeys.smsEnabled), false),
     whatsappEnabled: toBooleanSetting(settingMap.get(notificationSettingKeys.whatsappEnabled), false),

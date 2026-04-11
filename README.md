@@ -26,6 +26,7 @@ Multi-tenant Order Management System for Amazon India, Flipkart, and Meesho.
    - `npm run prisma:migrate`
 5. Seed sample data:
    - `npm run db:seed`
+   - For deterministic local logins, set `SEED_SUPERADMIN_PASSWORD` and `SEED_SELLER_PASSWORD` first.
 6. Start apps:
    - `npm run dev`
 

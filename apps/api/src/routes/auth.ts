@@ -15,8 +15,9 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
 
   fastify.post('/register', { preHandler: [ipBasedLimiter] }, async (request, reply) => {
     const body = request.body as { email: string; password: string; name: string; role?: 'seller' | 'sub_user' };
+    const email = body.email.trim().toLowerCase();
 
-    const existing = await prisma.user.findUnique({ where: { email: body.email } });
+    const existing = await prisma.user.findUnique({ where: { email } });
     if (existing) {
       return reply.code(409).send({ message: 'Email already in use' });
     }
@@ -24,7 +25,7 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
     const passwordHash = await hashPassword(body.password);
     const user = await prisma.user.create({
       data: {
-        email: body.email,
+        email,
         passwordHash,
         name: body.name,
         role: body.role ?? 'seller',
@@ -38,6 +39,9 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
   fastify.post(
     '/verify-otp',
     {
+      config: {
+        rateLimit: { max: OTP_VERIFY_MAX_ATTEMPTS, timeWindow: '1 minute' },
+      },
       preHandler: [
         ipBasedLimiter,
         async (request, reply) => {
@@ -60,20 +64,22 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
     // codeql[js/missing-rate-limiting] false positive: this handler is protected by preHandler IP rate limit + Redis per-ip/email attempt throttling above.
     async (request, reply) => {
       const body = request.body as { email: string; otp: string };
+      const email = body.email.trim().toLowerCase();
 
-      const ok = await verifyOtp(body.email, body.otp);
+      const ok = await verifyOtp(email, body.otp);
       if (!ok) {
         return reply.code(400).send({ message: 'Invalid OTP' });
       }
 
-      await prisma.user.update({ where: { email: body.email }, data: { isVerified: true } });
+      await prisma.user.update({ where: { email }, data: { isVerified: true } });
       return reply.send({ verified: true });
     },
   );
 
   fastify.post('/login', { preHandler: [loginLimiter] }, async (request, reply) => {
     const body = request.body as { email: string; password: string; trustDevice?: boolean; deviceName?: string };
-    const user = await prisma.user.findUnique({ where: { email: body.email } });
+    const email = body.email.trim().toLowerCase();
+    const user = await prisma.user.findUnique({ where: { email } });
 
     if (!user) {
       return reply.code(401).send({ message: 'Invalid credentials' });

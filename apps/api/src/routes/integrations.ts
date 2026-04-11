@@ -11,13 +11,17 @@ const integrationRoutes: FastifyPluginAsync = async (fastify) => {
 
   fastify.get('/amazon/callback', { preHandler: [requireAuth] }, async (request) => {
     const query = request.query as { code?: string };
+    const code = query.code?.trim();
+    if (!code) {
+      return request.server.httpErrors.badRequest('Missing amazon authorization code');
+    }
 
     await prisma.linkedAccount.create({
       data: {
         userId: request.userContext!.userId,
         platform: 'amazon',
         accountNickname: 'Amazon Account',
-        amazonRefreshToken: query.code ?? 'sample-refresh-token',
+        amazonRefreshToken: code,
         sessionStatus: 'active',
       },
     });
@@ -31,13 +35,17 @@ const integrationRoutes: FastifyPluginAsync = async (fastify) => {
 
   fastify.get('/flipkart/callback', { preHandler: [requireAuth] }, async (request) => {
     const query = request.query as { code?: string };
+    const code = query.code?.trim();
+    if (!code) {
+      return request.server.httpErrors.badRequest('Missing flipkart authorization code');
+    }
 
     await prisma.linkedAccount.create({
       data: {
         userId: request.userContext!.userId,
         platform: 'flipkart',
         accountNickname: 'Flipkart Account',
-        flipkartAccessToken: query.code ?? 'sample-access-token',
+        flipkartAccessToken: code,
         sessionStatus: 'active',
       },
     });
