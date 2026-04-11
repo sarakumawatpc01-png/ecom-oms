@@ -25,6 +25,7 @@ const envSchema = z.object({
   SMS_WEBHOOK_URL: z.string().url().optional(),
   WHATSAPP_WEBHOOK_URL: z.string().url().optional(),
   NOTIFICATION_WEBHOOK_TIMEOUT_MS: z.coerce.number().int().positive().default(5000),
+  ENABLE_API_LOG_PERSISTENCE: z.enum(['true', 'false']).default('false').transform((value) => value === 'true'),
 });
 
 export const env = envSchema.parse(process.env);

@@ -38,6 +38,9 @@ export function buildServer(options?: { withBackgroundJobs?: boolean }) {
 
   app.addHook('onResponse', async (request, reply) => {
     app.log.info({ method: request.method, url: request.url, statusCode: reply.statusCode }, 'request.completed');
+    if (!env.ENABLE_API_LOG_PERSISTENCE) {
+      return;
+    }
     try {
       await prisma.apiLog.create({
         data: {
