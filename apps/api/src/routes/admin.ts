@@ -1,9 +1,10 @@
 import type { FastifyPluginAsync } from 'fastify';
-import { prisma } from '../lib/prisma.js';
-import { requireAuth, requireRole } from '../middleware/auth.js';
-import { encryptAes256Gcm } from '@agencyfic/utils';
-import { env } from '../config/env.js';
-import { createAdminAuditLog } from '../lib/audit.js';
+import { prisma } from '../lib/prisma';
+import { requireAuth, requireRole } from '../middleware/auth';
+import { encryptAes256Gcm } from '../lib/encryption';
+import { env } from '../config/env';
+import { createAdminAuditLog } from '../lib/audit';
+import { Prisma } from '@prisma/client';
 
 const adminRoutes: FastifyPluginAsync = async (fastify) => {
   fastify.get('/platforms', { preHandler: [requireAuth, requireRole(['admin'])] }, async () => {
@@ -20,14 +21,14 @@ const adminRoutes: FastifyPluginAsync = async (fastify) => {
       update: {
         clientId: body.clientId,
         clientSecretEnc: body.clientSecret ? encryptAes256Gcm(body.clientSecret, env.ENCRYPTION_KEY_HEX) : undefined,
-        extraConfig: body.extraConfig,
+        extraConfig: body.extraConfig as Prisma.InputJsonValue | undefined,
         updatedByAdminId: request.userContext!.userId,
       },
       create: {
         platform: params.platform,
         clientId: body.clientId,
         clientSecretEnc: body.clientSecret ? encryptAes256Gcm(body.clientSecret, env.ENCRYPTION_KEY_HEX) : undefined,
-        extraConfig: body.extraConfig,
+        extraConfig: body.extraConfig as Prisma.InputJsonValue | undefined,
         updatedByAdminId: request.userContext!.userId,
       },
     });

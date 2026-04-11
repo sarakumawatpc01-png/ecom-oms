@@ -1,6 +1,6 @@
 import type { FastifyPluginAsync } from 'fastify';
-import { prisma } from '../lib/prisma.js';
-import { requireAuth } from '../middleware/auth.js';
+import { prisma } from '../lib/prisma';
+import { requireAuth } from '../middleware/auth';
 
 const billingRoutes: FastifyPluginAsync = async (fastify) => {
   fastify.get('/plans', { preHandler: [requireAuth] }, async () => {

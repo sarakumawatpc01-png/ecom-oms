@@ -1,4 +1,4 @@
-import { redis } from '../lib/redis.js';
+import { redis } from '../lib/redis';
 
 export async function createOtp(email: string) {
   const otp = Math.floor(100000 + Math.random() * 900000).toString();

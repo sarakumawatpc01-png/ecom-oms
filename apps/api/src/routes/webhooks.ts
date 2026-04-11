@@ -1,5 +1,6 @@
 import type { FastifyPluginAsync } from 'fastify';
-import { prisma } from '../lib/prisma.js';
+import { prisma } from '../lib/prisma';
+import { Prisma } from '@prisma/client';
 
 const webhookRoutes: FastifyPluginAsync = async (fastify) => {
   fastify.post('/flipkart', async (request) => {
@@ -8,7 +9,7 @@ const webhookRoutes: FastifyPluginAsync = async (fastify) => {
       data: {
         platform: 'flipkart',
         eventType: String(payload.type ?? 'unknown'),
-        payload,
+        payload: payload as Prisma.InputJsonValue,
       },
     });
 
@@ -21,7 +22,7 @@ const webhookRoutes: FastifyPluginAsync = async (fastify) => {
       data: {
         platform: 'amazon',
         eventType: String(payload.type ?? 'unknown'),
-        payload,
+        payload: payload as Prisma.InputJsonValue,
       },
     });
 

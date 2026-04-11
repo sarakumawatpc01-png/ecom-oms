@@ -1,6 +1,6 @@
 import type { FastifyPluginAsync } from 'fastify';
-import { prisma } from '../lib/prisma.js';
-import { requireAuth } from '../middleware/auth.js';
+import { prisma } from '../lib/prisma';
+import { requireAuth } from '../middleware/auth';
 
 const claimsRoutes: FastifyPluginAsync = async (fastify) => {
   fastify.get('/', { preHandler: [requireAuth] }, async (request) => {

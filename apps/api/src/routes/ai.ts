@@ -1,7 +1,7 @@
 import type { FastifyPluginAsync } from 'fastify';
-import { requireAuth } from '../middleware/auth.js';
-import { prisma } from '../lib/prisma.js';
-import { aiProcessingQueue } from '../queues/index.js';
+import { requireAuth } from '../middleware/auth';
+import { prisma } from '../lib/prisma';
+import { aiProcessingQueue } from '../queues/index';
 
 const aiRoutes: FastifyPluginAsync = async (fastify) => {
   fastify.post('/listing-optimize', { preHandler: [requireAuth] }, async (request) => {

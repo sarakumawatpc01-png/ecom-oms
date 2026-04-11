@@ -3,24 +3,25 @@ import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
 import jwt from '@fastify/jwt';
 import sensible from '@fastify/sensible';
-import { env } from './config/env.js';
-import healthRoutes from './routes/health.js';
-import authRoutes from './routes/auth.js';
-import adminRoutes from './routes/admin.js';
-import integrationRoutes from './routes/integrations.js';
-import orderRoutes from './routes/orders.js';
-import webhookRoutes from './routes/webhooks.js';
-import schedulerPlugin from './plugins/scheduler.js';
-import { startQueueWorkers } from './queues/index.js';
-import billingRoutes from './routes/billing.js';
-import claimsRoutes from './routes/claims.js';
-import evidenceRoutes from './routes/evidence.js';
-import labelRoutes from './routes/labels.js';
-import invoiceRoutes from './routes/invoices.js';
-import aiRoutes from './routes/ai.js';
-import notificationRoutes from './routes/notifications.js';
+import { env } from './config/env';
+import healthRoutes from './routes/health';
+import authRoutes from './routes/auth';
+import adminRoutes from './routes/admin';
+import integrationRoutes from './routes/integrations';
+import orderRoutes from './routes/orders';
+import webhookRoutes from './routes/webhooks';
+import schedulerPlugin from './plugins/scheduler';
+import { startQueueWorkers } from './queues/index';
+import billingRoutes from './routes/billing';
+import claimsRoutes from './routes/claims';
+import evidenceRoutes from './routes/evidence';
+import labelRoutes from './routes/labels';
+import invoiceRoutes from './routes/invoices';
+import aiRoutes from './routes/ai';
+import notificationRoutes from './routes/notifications';
 
-export function buildServer() {
+export function buildServer(options?: { withBackgroundJobs?: boolean }) {
+  const withBackgroundJobs = options?.withBackgroundJobs ?? true;
   const app = Fastify({ logger: true });
 
   app.register(cors, { origin: true, credentials: true });
@@ -46,8 +47,10 @@ export function buildServer() {
   app.register(aiRoutes, { prefix: '/api/ai' });
   app.register(notificationRoutes, { prefix: '/api/notifications' });
 
-  app.register(schedulerPlugin);
-  startQueueWorkers();
+  if (withBackgroundJobs) {
+    app.register(schedulerPlugin);
+    startQueueWorkers();
+  }
 
   return app;
 }

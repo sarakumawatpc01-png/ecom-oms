@@ -1,6 +1,6 @@
 import type { FastifyPluginAsync } from 'fastify';
-import { requireAuth } from '../middleware/auth.js';
-import { prisma } from '../lib/prisma.js';
+import { requireAuth } from '../middleware/auth';
+import { prisma } from '../lib/prisma';
 
 const integrationRoutes: FastifyPluginAsync = async (fastify) => {
   fastify.get('/amazon/connect', { preHandler: [requireAuth] }, async () => {

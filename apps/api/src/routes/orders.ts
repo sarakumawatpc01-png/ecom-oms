@@ -1,7 +1,7 @@
 import type { FastifyPluginAsync } from 'fastify';
-import { requireAuth } from '../middleware/auth.js';
-import { prisma } from '../lib/prisma.js';
-import { orderSyncQueue } from '../queues/index.js';
+import { requireAuth } from '../middleware/auth';
+import { prisma } from '../lib/prisma';
+import { orderSyncQueue } from '../queues/index';
 
 const orderRoutes: FastifyPluginAsync = async (fastify) => {
   fastify.get('/', { preHandler: [requireAuth] }, async (request) => {

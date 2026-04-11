@@ -1,7 +1,7 @@
 import type { FastifyPluginAsync } from 'fastify';
 import cron from 'node-cron';
-import { orderSyncQueue } from '../queues/index.js';
-import { prisma } from '../lib/prisma.js';
+import { orderSyncQueue } from '../queues/index';
+import { prisma } from '../lib/prisma';
 
 const schedulerPlugin: FastifyPluginAsync = async (fastify) => {
   cron.schedule('*/5 * * * *', async () => {

@@ -12,7 +12,9 @@
     "forceConsistentCasingInFileNames": true,
     "baseUrl": ".",
     "paths": {
+      "@agencyfic/ui": ["packages/ui/src/index.ts"],
       "@agencyfic/ui/*": ["packages/ui/src/*"],
+      "@agencyfic/utils": ["packages/utils/src/index.ts"],
       "@agencyfic/utils/*": ["packages/utils/src/*"]
     }
   }

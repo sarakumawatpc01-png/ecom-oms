@@ -1,10 +1,10 @@
 import { randomUUID } from 'crypto';
-import { addDays } from '../services/date.js';
+import { addDays } from '../services/date';
 import type { FastifyPluginAsync } from 'fastify';
-import { prisma } from '../lib/prisma.js';
-import { comparePassword, hashPassword, signAccessToken, signRefreshToken } from '../lib/auth.js';
-import { createOtp, verifyOtp } from '../services/otp.js';
-import { requireAuth } from '../middleware/auth.js';
+import { prisma } from '../lib/prisma';
+import { comparePassword, hashPassword, signAccessToken, signRefreshToken } from '../lib/auth';
+import { createOtp, verifyOtp } from '../services/otp';
+import { requireAuth } from '../middleware/auth';
 
 const authRoutes: FastifyPluginAsync = async (fastify) => {
   fastify.post('/register', async (request, reply) => {
