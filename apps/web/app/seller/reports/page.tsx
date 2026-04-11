@@ -30,9 +30,11 @@ export default function SellerReportsPage() {
       </div>
       <Card className="mt-4 p-5">
         <h3 className="text-sm font-bold">Export</h3>
-        <p className="mt-2 text-sm text-slate-600">Download order export CSV using GET /api/reports/export/orders.csv</p>
+        <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-slate-600">
+          <li>CSV: GET /api/reports/export/orders.csv</li>
+          <li>Excel: GET /api/reports/export/orders.xlsx</li>
+        </ul>
       </Card>
     </AppShell>
   );
 }
-

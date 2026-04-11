@@ -110,7 +110,57 @@ const reportsRoutes: FastifyPluginAsync = async (fastify) => {
     reply.header('content-disposition', 'attachment; filename="orders-report.csv"');
     return rows.join('\n');
   });
+
+  fastify.get('/export/orders.xlsx', { preHandler: [requireAuth] }, async (request, reply) => {
+    const userId = request.userContext!.userId;
+    const orders = await prisma.order.findMany({
+      where: { userId },
+      orderBy: { createdAt: 'desc' },
+      take: 2000,
+      select: {
+        id: true,
+        platform: true,
+        platformOrderId: true,
+        status: true,
+        orderAmount: true,
+        customerName: true,
+        createdAt: true,
+      },
+    });
+
+    const escapeCell = (value: string) =>
+      value
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+
+    const tableRows = [
+      ['id', 'platform', 'platformOrderId', 'status', 'orderAmount', 'customerName', 'createdAt'],
+      ...orders.map((order) => [
+        order.id,
+        order.platform,
+        order.platformOrderId,
+        order.status,
+        String(order.orderAmount ?? ''),
+        order.customerName ?? '',
+        order.createdAt.toISOString(),
+      ]),
+    ]
+      .map((row) => `<tr>${row.map((cell) => `<td>${escapeCell(cell)}</td>`).join('')}</tr>`)
+      .join('');
+
+    const htmlWorkbook = `<!doctype html>
+<html>
+  <head><meta charset="utf-8" /></head>
+  <body><table>${tableRows}</table></body>
+</html>`;
+
+    reply.header('content-type', 'application/vnd.ms-excel; charset=utf-8');
+    reply.header('content-disposition', 'attachment; filename="orders-report.xlsx"');
+    return htmlWorkbook;
+  });
 };
 
 export default reportsRoutes;
-

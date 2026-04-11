@@ -1,6 +1,11 @@
 import Link from 'next/link';
+import { getPublicLegalContent } from '../../lib/public-site-content';
 
-export default function PrivacyPage() {
+export const dynamic = 'force-dynamic';
+
+export default async function PrivacyPage() {
+  const content = await getPublicLegalContent('privacy');
+
   return (
     <main className="mx-auto max-w-4xl px-6 py-10">
       <h1 className="text-3xl font-extrabold text-slate-900">Privacy Policy</h1>
@@ -8,9 +13,7 @@ export default function PrivacyPage() {
         This page can be managed by superadmin via site settings key
         <code className="mx-1 rounded bg-slate-100 px-1.5 py-0.5">legal.privacy</code>.
       </p>
-      <div className="mt-6 rounded-lg border border-slate-200 bg-white p-5 text-sm text-slate-700">
-        We process account and order data only for OMS operations and platform integrations. Sensitive credentials are encrypted at rest.
-      </div>
+      <div className="mt-6 whitespace-pre-wrap rounded-lg border border-slate-200 bg-white p-5 text-sm text-slate-700">{content}</div>
       <div className="mt-6 flex gap-4 text-sm">
         <Link href="/terms" className="text-violet-700 hover:underline">Terms & Conditions</Link>
         <Link href="/refund" className="text-violet-700 hover:underline">Refund Policy</Link>
@@ -18,4 +21,3 @@ export default function PrivacyPage() {
     </main>
   );
 }
-

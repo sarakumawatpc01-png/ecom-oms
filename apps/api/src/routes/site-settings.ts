@@ -9,6 +9,13 @@ const legalDefaults: Record<string, string> = {
   refund: 'Refund Policy will be configured by superadmin.',
 };
 
+const brandingDefaults = {
+  logoUrl: '',
+  faviconUrl: '',
+  primaryColor: '#7c3aed',
+  accentColor: '#f97316',
+};
+
 const siteSettingsRoutes: FastifyPluginAsync = async (fastify) => {
   fastify.get('/', { preHandler: [requireAuth, requireRole(['admin'])] }, async () => {
     const settings = await prisma.siteSetting.findMany({ orderBy: { key: 'asc' } });
@@ -61,7 +68,19 @@ const siteSettingsRoutes: FastifyPluginAsync = async (fastify) => {
       updatedAt: setting?.updatedAt ?? null,
     };
   });
+
+  fastify.get('/public/branding', async () => {
+    const keys = ['branding.logoUrl', 'branding.faviconUrl', 'branding.primaryColor', 'branding.accentColor'];
+    const settings = await prisma.siteSetting.findMany({ where: { key: { in: keys } } });
+    const settingMap = new Map(settings.map((setting) => [setting.key, setting.value ?? '']));
+
+    return {
+      logoUrl: settingMap.get('branding.logoUrl') || brandingDefaults.logoUrl,
+      faviconUrl: settingMap.get('branding.faviconUrl') || brandingDefaults.faviconUrl,
+      primaryColor: settingMap.get('branding.primaryColor') || brandingDefaults.primaryColor,
+      accentColor: settingMap.get('branding.accentColor') || brandingDefaults.accentColor,
+    };
+  });
 };
 
 export default siteSettingsRoutes;
-
