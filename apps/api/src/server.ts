@@ -23,6 +23,7 @@ import notificationRoutes from './routes/notifications';
 import reportsRoutes from './routes/reports';
 import teamRoutes from './routes/team';
 import siteSettingsRoutes from './routes/site-settings';
+import { prisma } from './lib/prisma';
 
 export function buildServer(options?: { withBackgroundJobs?: boolean }) {
   const withBackgroundJobs = options?.withBackgroundJobs ?? true;
@@ -37,6 +38,20 @@ export function buildServer(options?: { withBackgroundJobs?: boolean }) {
 
   app.addHook('onResponse', async (request, reply) => {
     app.log.info({ method: request.method, url: request.url, statusCode: reply.statusCode }, 'request.completed');
+    try {
+      await prisma.apiLog.create({
+        data: {
+          userId: request.userContext?.userId,
+          method: request.method,
+          path: request.url,
+          statusCode: reply.statusCode,
+          latencyMs: Math.max(0, Math.round(reply.elapsedTime)),
+          payload: request.body as object | undefined,
+        },
+      });
+    } catch (error) {
+      app.log.warn({ err: error, path: request.url }, 'api_log.persist_failed');
+    }
   });
 
   app.register(healthRoutes, { prefix: '/health' });

@@ -1,7 +1,7 @@
 import type { FastifyPluginAsync } from 'fastify';
 import { requireAuth } from '../middleware/auth';
 import { prisma } from '../lib/prisma';
-import { orderSyncQueue } from '../queues/index';
+import { enqueueNotificationJob, orderSyncQueue } from '../queues/index';
 import { emitToUser } from '../lib/realtime';
 
 const orderRoutes: FastifyPluginAsync = async (fastify) => {
@@ -62,6 +62,13 @@ const orderRoutes: FastifyPluginAsync = async (fastify) => {
       title: notification.title,
       message: notification.message,
       sentAt: notification.sentAt.toISOString(),
+    });
+    await enqueueNotificationJob({
+      userId,
+      type: 'order_sync_queued',
+      title: notification.title,
+      message: notification.message,
+      channels: ['email', 'sms', 'whatsapp'],
     });
 
     return { queued: linkedAccounts.length };

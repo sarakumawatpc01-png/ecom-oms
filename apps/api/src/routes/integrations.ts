@@ -1,6 +1,7 @@
 import type { FastifyPluginAsync } from 'fastify';
 import { requireAuth } from '../middleware/auth';
 import { prisma } from '../lib/prisma';
+import { enqueueNotificationJob } from '../queues/index';
 import { emitToUser } from '../lib/realtime';
 
 const integrationRoutes: FastifyPluginAsync = async (fastify) => {
@@ -88,6 +89,13 @@ const integrationRoutes: FastifyPluginAsync = async (fastify) => {
       title: notification.title,
       message: notification.message,
       sentAt: notification.sentAt.toISOString(),
+    });
+    await enqueueNotificationJob({
+      userId,
+      type: 'session_expired',
+      title: notification.title,
+      message: notification.message,
+      channels: ['email', 'sms', 'whatsapp'],
     });
 
     return { warned: true };
