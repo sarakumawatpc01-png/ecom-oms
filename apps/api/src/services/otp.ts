@@ -2,7 +2,8 @@ import crypto from 'crypto';
 import { redis } from '../lib/redis';
 
 export async function createOtp(email: string) {
-  const otp = crypto.randomInt(100000, 1000000).toString();
+  const bytes = crypto.randomBytes(4).readUInt32BE(0);
+  const otp = (bytes % 900000 + 100000).toString();
   await redis.set(`otp:${email}`, otp, 'EX', 600);
   return otp;
 }

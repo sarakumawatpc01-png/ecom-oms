@@ -3,6 +3,14 @@ import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
+function requireSeedPassword(varName: 'SEED_SUPERADMIN_PASSWORD' | 'SEED_SELLER_PASSWORD', fallback: string) {
+  const value = process.env[varName];
+  if (process.env.NODE_ENV === 'production' && !value) {
+    throw new Error(`${varName} must be set in production when running seed`);
+  }
+  return value ?? fallback;
+}
+
 async function main() {
   const starter = await prisma.plan.upsert({
     where: { name: 'Starter' },
@@ -49,9 +57,8 @@ async function main() {
     },
   });
 
-  // Development bootstrap only: override these via environment variables before production seeding.
-  const adminPass = await bcrypt.hash(process.env.SEED_SUPERADMIN_PASSWORD ?? 'ChangeMe-Admin-123!', 12);
-  const sellerPass = await bcrypt.hash(process.env.SEED_SELLER_PASSWORD ?? 'ChangeMe-Seller-123!', 12);
+  const adminPass = await bcrypt.hash(requireSeedPassword('SEED_SUPERADMIN_PASSWORD', 'ChangeMe-Admin-123!'), 12);
+  const sellerPass = await bcrypt.hash(requireSeedPassword('SEED_SELLER_PASSWORD', 'ChangeMe-Seller-123!'), 12);
 
   const admin = await prisma.user.upsert({
     where: { email: 'superadmin@agencyfic.com' },
