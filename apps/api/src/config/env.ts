@@ -8,6 +8,7 @@ dotenv.config();
 const DEFAULT_ACCESS_SECRET = 'dev_access_secret_please_override';
 const DEFAULT_REFRESH_SECRET = 'dev_refresh_secret_please_override';
 const DEFAULT_ENCRYPTION_KEY_HEX = '8fbbd14731f46b5bc694264f6fdb8ee4d8d71709a4e547ab37e2248f8d985f5f';
+// Allow empty env values for optional webhook URLs by coercing blank strings to undefined before URL validation.
 const optionalUrl = z.preprocess(
   (value) => (typeof value === 'string' && value.trim().length === 0 ? undefined : value),
   z.string().url().optional(),

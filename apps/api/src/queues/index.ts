@@ -82,6 +82,7 @@ function toBooleanSetting(value: string | null | undefined, fallback: boolean) {
 }
 
 function resolveSettingWithFallback(value: string | undefined, fallback: string | undefined) {
+  // Admin site settings are the source of truth in runtime; env value is only fallback when no persisted setting exists.
   return value ?? fallback;
 }
 
