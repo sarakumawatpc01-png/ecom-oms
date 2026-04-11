@@ -14,4 +14,3 @@ export function emitToUser(
 
   fastify.io.to(`user:${userId}`).emit(event, payload);
 }
-
