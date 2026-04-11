@@ -2,6 +2,7 @@ import type { FastifyPluginAsync } from 'fastify';
 import { requireAuth } from '../middleware/auth';
 import { prisma } from '../lib/prisma';
 import { aiProcessingQueue } from '../queues/index';
+import { emitToUser } from '../lib/realtime';
 
 const aiRoutes: FastifyPluginAsync = async (fastify) => {
   fastify.post('/listing-optimize', { preHandler: [requireAuth] }, async (request) => {
@@ -18,6 +19,12 @@ const aiRoutes: FastifyPluginAsync = async (fastify) => {
     });
 
     await aiProcessingQueue.add('ai-listing-optimize', { aiJobId: job.id }, { attempts: 2 });
+    emitToUser(fastify, request.userContext!.userId, 'ai.completion', {
+      kind: 'queued',
+      jobType: 'listing_optimize',
+      aiJobId: job.id,
+      at: new Date().toISOString(),
+    });
 
     return { jobId: job.id };
   });
@@ -35,6 +42,12 @@ const aiRoutes: FastifyPluginAsync = async (fastify) => {
     });
 
     await aiProcessingQueue.add('ai-image-generate', { aiJobId: job.id }, { attempts: 2 });
+    emitToUser(fastify, request.userContext!.userId, 'ai.completion', {
+      kind: 'queued',
+      jobType: 'image_generate',
+      aiJobId: job.id,
+      at: new Date().toISOString(),
+    });
 
     return { jobId: job.id };
   });

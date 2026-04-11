@@ -1,5 +1,6 @@
 import { Card } from '@agencyfic/ui';
 import { AppShell } from '../../../components/AppShell';
+import { SellerRealtimeFeed } from '../../../components/SellerRealtimeFeed';
 
 const quickStats = [
   { label: 'Pending', value: '34' },
@@ -59,6 +60,7 @@ export default function SellerDashboardPage() {
           </tbody>
         </table>
       </Card>
+      <SellerRealtimeFeed />
     </AppShell>
   );
 }

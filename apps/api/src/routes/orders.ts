@@ -2,6 +2,7 @@ import type { FastifyPluginAsync } from 'fastify';
 import { requireAuth } from '../middleware/auth';
 import { prisma } from '../lib/prisma';
 import { orderSyncQueue } from '../queues/index';
+import { emitToUser } from '../lib/realtime';
 
 const orderRoutes: FastifyPluginAsync = async (fastify) => {
   fastify.get('/', { preHandler: [requireAuth] }, async (request) => {
@@ -29,6 +30,7 @@ const orderRoutes: FastifyPluginAsync = async (fastify) => {
   });
 
   fastify.post('/sync', { preHandler: [requireAuth] }, async (request) => {
+    const userId = request.userContext!.userId;
     const linkedAccounts = await prisma.linkedAccount.findMany({ where: { userId: request.userContext!.userId, syncEnabled: true } });
     await Promise.all(
       linkedAccounts.map((account) =>
@@ -39,6 +41,28 @@ const orderRoutes: FastifyPluginAsync = async (fastify) => {
         ),
       ),
     );
+
+    const notification = await prisma.notificationLog.create({
+      data: {
+        userId,
+        channel: 'in_app',
+        type: 'order_sync_queued',
+        title: 'Order sync started',
+        message: `Queued sync for ${linkedAccounts.length} linked account(s).`,
+      },
+    });
+
+    emitToUser(fastify, userId, 'order.update', {
+      kind: 'sync_queued',
+      queuedAccounts: linkedAccounts.length,
+      at: new Date().toISOString(),
+    });
+    emitToUser(fastify, userId, 'notification.new', {
+      id: notification.id,
+      title: notification.title,
+      message: notification.message,
+      sentAt: notification.sentAt.toISOString(),
+    });
 
     return { queued: linkedAccounts.length };
   });

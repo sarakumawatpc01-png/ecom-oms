@@ -24,6 +24,7 @@ import notificationRoutes from './routes/notifications';
 export function buildServer(options?: { withBackgroundJobs?: boolean }) {
   const withBackgroundJobs = options?.withBackgroundJobs ?? true;
   const app = Fastify({ logger: true });
+  app.decorate('io', undefined);
 
   app.register(cors, { origin: true, credentials: true });
   app.register(helmet);
