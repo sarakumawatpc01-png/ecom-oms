@@ -7,7 +7,7 @@ import { createOtp, verifyOtp } from '../services/otp';
 import { requireAuth } from '../middleware/auth';
 
 const authRoutes: FastifyPluginAsync = async (fastify) => {
-  fastify.post('/register', async (request, reply) => {
+  fastify.post('/register', { config: { rateLimit: { max: 10, timeWindow: '1 minute' } } }, async (request, reply) => {
     const body = request.body as { email: string; password: string; name: string; role?: 'seller' | 'sub_user' };
 
     const existing = await prisma.user.findUnique({ where: { email: body.email } });
@@ -25,8 +25,8 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
       },
     });
 
-    const otp = await createOtp(user.email);
-    return reply.code(201).send({ userId: user.id, otpPreview: otp });
+    await createOtp(user.email);
+    return reply.code(201).send({ userId: user.id, message: 'Registered. Verify OTP sent to your email.' });
   });
 
   fastify.post('/verify-otp', async (request, reply) => {
@@ -40,7 +40,7 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
     return reply.send({ verified: true });
   });
 
-  fastify.post('/login', async (request, reply) => {
+  fastify.post('/login', { config: { rateLimit: { max: 10, timeWindow: '1 minute' } } }, async (request, reply) => {
     const body = request.body as { email: string; password: string; trustDevice?: boolean; deviceName?: string };
     const user = await prisma.user.findUnique({ where: { email: body.email } });
 

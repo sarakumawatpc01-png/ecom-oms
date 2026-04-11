@@ -2,14 +2,28 @@ import { Queue, Worker } from 'bullmq';
 import { redis } from '../lib/redis';
 
 const connection = redis;
+const isTest = process.env.NODE_ENV === 'test';
 
-export const orderSyncQueue = new Queue('order_sync_queue', { connection });
-export const tokenRefreshQueue = new Queue('token_refresh_queue', { connection });
-export const labelGenerationQueue = new Queue('label_generation_queue', { connection });
-export const aiProcessingQueue = new Queue('ai_processing_queue', { connection });
-export const notificationQueue = new Queue('notification_queue', { connection });
+function createQueue(name: string): any {
+  if (isTest) {
+    return {
+      add: async () => ({ mocked: true }),
+    };
+  }
+  return new Queue(name, { connection });
+}
+
+export const orderSyncQueue = createQueue('order_sync_queue');
+export const tokenRefreshQueue = createQueue('token_refresh_queue');
+export const labelGenerationQueue = createQueue('label_generation_queue');
+export const aiProcessingQueue = createQueue('ai_processing_queue');
+export const notificationQueue = createQueue('notification_queue');
 
 export function startQueueWorkers() {
+  if (isTest) {
+    return;
+  }
+
   const defaults = { connection, removeOnComplete: { count: 1000 }, removeOnFail: { count: 1000 } };
 
   new Worker('order_sync_queue', async () => ({ ok: true }), defaults);

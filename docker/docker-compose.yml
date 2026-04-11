@@ -22,9 +22,9 @@ services:
       - PORT=4000
       - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/agencyfic_oms
       - REDIS_URL=redis://redis:6379
-      - JWT_ACCESS_SECRET=replace_access_secret
-      - JWT_REFRESH_SECRET=replace_refresh_secret
-      - ENCRYPTION_KEY_HEX=0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
+      - JWT_ACCESS_SECRET=${JWT_ACCESS_SECRET}
+      - JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET}
+      - ENCRYPTION_KEY_HEX=${ENCRYPTION_KEY_HEX}
       - WEB_URL=http://localhost:3000
     ports:
       - '4000:4000'

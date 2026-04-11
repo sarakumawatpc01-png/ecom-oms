@@ -12,11 +12,19 @@ const labelRoutes: FastifyPluginAsync = async (fastify) => {
 
   fastify.post('/:orderId/generate', { preHandler: [requireAuth] }, async (request) => {
     const params = request.params as { orderId: string };
+    const order = await prisma.order.findFirst({
+      where: { id: params.orderId, userId: request.userContext!.userId },
+    });
+
+    if (!order) {
+      return { message: 'Order not found' };
+    }
+
     const label = await prisma.label.create({
       data: {
         userId: request.userContext!.userId,
         orderId: params.orderId,
-        platform: 'meesho',
+        platform: order.platform,
         labelFormat: 'a4',
         storageKey: `labels/${request.userContext!.userId}/${params.orderId}.pdf`,
       },

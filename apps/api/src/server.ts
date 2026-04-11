@@ -2,6 +2,7 @@ import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
 import jwt from '@fastify/jwt';
+import rateLimit from '@fastify/rate-limit';
 import sensible from '@fastify/sensible';
 import { env } from './config/env';
 import healthRoutes from './routes/health';
@@ -27,6 +28,7 @@ export function buildServer(options?: { withBackgroundJobs?: boolean }) {
   app.register(cors, { origin: true, credentials: true });
   app.register(helmet);
   app.register(sensible);
+  app.register(rateLimit, { global: false });
   app.register(jwt, { secret: env.JWT_ACCESS_SECRET });
 
   app.addHook('onResponse', async (request, reply) => {

@@ -11,8 +11,16 @@ const notificationRoutes: FastifyPluginAsync = async (fastify) => {
   fastify.patch('/:id/read', { preHandler: [requireAuth] }, async (request) => {
     const params = request.params as { id: string };
 
+    const existing = await prisma.notificationLog.findFirst({
+      where: { id: params.id, userId: request.userContext!.userId },
+    });
+
+    if (!existing) {
+      return { message: 'Notification not found' };
+    }
+
     const notification = await prisma.notificationLog.update({
-      where: { id: params.id },
+      where: { id: existing.id },
       data: { isRead: true, readAt: new Date() },
     });
 

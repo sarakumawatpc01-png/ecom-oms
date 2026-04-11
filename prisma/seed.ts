@@ -49,8 +49,9 @@ async function main() {
     },
   });
 
-  const adminPass = await bcrypt.hash('Admin@12345', 12);
-  const sellerPass = await bcrypt.hash('Seller@12345', 12);
+  // Development bootstrap only: override these via environment variables before production seeding.
+  const adminPass = await bcrypt.hash(process.env.SEED_SUPERADMIN_PASSWORD ?? 'ChangeMe-Admin-123!', 12);
+  const sellerPass = await bcrypt.hash(process.env.SEED_SELLER_PASSWORD ?? 'ChangeMe-Seller-123!', 12);
 
   const admin = await prisma.user.upsert({
     where: { email: 'superadmin@agencyfic.com' },
