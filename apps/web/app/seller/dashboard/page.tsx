@@ -17,6 +17,8 @@ export default function SellerDashboardPage() {
       navItems={[
         { label: 'Dashboard', active: true },
         { label: 'Orders', badge: '34' },
+        { label: 'Reports' },
+        { label: 'Team' },
         { label: 'Platform Connections' },
         { label: 'Labels & Invoices' },
         { label: 'Claims & Evidence' },

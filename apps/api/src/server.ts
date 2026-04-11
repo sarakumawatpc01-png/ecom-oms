@@ -20,6 +20,9 @@ import labelRoutes from './routes/labels';
 import invoiceRoutes from './routes/invoices';
 import aiRoutes from './routes/ai';
 import notificationRoutes from './routes/notifications';
+import reportsRoutes from './routes/reports';
+import teamRoutes from './routes/team';
+import siteSettingsRoutes from './routes/site-settings';
 
 export function buildServer(options?: { withBackgroundJobs?: boolean }) {
   const withBackgroundJobs = options?.withBackgroundJobs ?? true;
@@ -49,6 +52,9 @@ export function buildServer(options?: { withBackgroundJobs?: boolean }) {
   app.register(invoiceRoutes, { prefix: '/api/invoices' });
   app.register(aiRoutes, { prefix: '/api/ai' });
   app.register(notificationRoutes, { prefix: '/api/notifications' });
+  app.register(reportsRoutes, { prefix: '/api/reports' });
+  app.register(teamRoutes, { prefix: '/api/team' });
+  app.register(siteSettingsRoutes, { prefix: '/api/site-settings' });
 
   if (withBackgroundJobs) {
     app.register(schedulerPlugin);

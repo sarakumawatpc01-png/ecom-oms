@@ -19,6 +19,7 @@ export default function SuperadminPage() {
         { label: 'Platform Integrations' },
         { label: 'Sellers', badge: '12' },
         { label: 'Billing & Plans' },
+        { label: 'CMS & Branding' },
         { label: 'System Monitoring' },
         { label: 'Activity Log' },
       ]}
