@@ -17,7 +17,7 @@ const labelRoutes: FastifyPluginAsync = async (fastify) => {
     });
 
     if (!order) {
-      return { message: 'Order not found' };
+      return request.server.httpErrors.notFound('Order not found');
     }
 
     const label = await prisma.label.create({

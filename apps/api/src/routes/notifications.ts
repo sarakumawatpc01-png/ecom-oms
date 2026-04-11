@@ -16,7 +16,7 @@ const notificationRoutes: FastifyPluginAsync = async (fastify) => {
     });
 
     if (!existing) {
-      return { message: 'Notification not found' };
+      return request.server.httpErrors.notFound('Notification not found');
     }
 
     const notification = await prisma.notificationLog.update({

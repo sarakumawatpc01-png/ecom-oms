@@ -29,7 +29,7 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
     return reply.code(201).send({ userId: user.id, message: 'Registered. Verify OTP sent to your email.' });
   });
 
-  fastify.post('/verify-otp', async (request, reply) => {
+  fastify.post('/verify-otp', { config: { rateLimit: { max: 10, timeWindow: '1 minute' } } }, async (request, reply) => {
     const body = request.body as { email: string; otp: string };
     const ok = await verifyOtp(body.email, body.otp);
     if (!ok) {
