@@ -29,7 +29,7 @@ export function buildServer(options?: { withBackgroundJobs?: boolean }) {
   app.register(cors, { origin: true, credentials: true });
   app.register(helmet);
   app.register(sensible);
-  app.register(rateLimit, { global: true, max: 300, timeWindow: '1 minute' });
+  app.register(rateLimit, { global: true, max: 100, timeWindow: '1 minute' });
   app.register(jwt, { secret: env.JWT_ACCESS_SECRET });
 
   app.addHook('onResponse', async (request, reply) => {
