@@ -8,10 +8,11 @@ import { requireAuth } from '../middleware/auth';
 import { redis } from '../lib/redis';
 
 const authRoutes: FastifyPluginAsync = async (fastify) => {
-  const registerOtpLimiter = fastify.rateLimit({ max: 5, timeWindow: '1 minute' });
+  const OTP_VERIFY_MAX_ATTEMPTS = 5;
+  const authSensitiveLimiter = fastify.rateLimit({ max: OTP_VERIFY_MAX_ATTEMPTS, timeWindow: '1 minute' });
   const loginLimiter = fastify.rateLimit({ max: 10, timeWindow: '1 minute' });
 
-  fastify.post('/register', { preHandler: [registerOtpLimiter] }, async (request, reply) => {
+  fastify.post('/register', { preHandler: [authSensitiveLimiter] }, async (request, reply) => {
     const body = request.body as { email: string; password: string; name: string; role?: 'seller' | 'sub_user' };
 
     const existing = await prisma.user.findUnique({ where: { email: body.email } });
@@ -33,11 +34,11 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
     return reply.code(201).send({ userId: user.id, message: 'Registered. Verify OTP sent to your email.' });
   });
 
-  fastify.post('/verify-otp', { preHandler: [registerOtpLimiter] }, async (request, reply) => {
+  fastify.post('/verify-otp', { preHandler: [authSensitiveLimiter] }, async (request, reply) => {
     const body = request.body as { email: string; otp: string };
     const limiterKey = `otp_verify:${request.ip}:${body.email}`;
     const current = Number((await redis.get(limiterKey)) ?? 0);
-    if (current >= 5) {
+    if (current >= OTP_VERIFY_MAX_ATTEMPTS) {
       return reply.code(429).send({ message: 'Too many OTP verification attempts. Try again shortly.' });
     }
     await redis.multi().incr(limiterKey).expire(limiterKey, 60).exec();
