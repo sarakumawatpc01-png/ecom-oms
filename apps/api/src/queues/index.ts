@@ -49,12 +49,52 @@ type MarketplaceOrderCandidate = {
   orderAmount?: Prisma.Decimal;
 };
 
-const webhookUrls: Partial<Record<Channel, string | undefined>> = {
-  in_app: undefined,
-  email: env.EMAIL_WEBHOOK_URL,
-  sms: env.SMS_WEBHOOK_URL,
-  whatsapp: env.WHATSAPP_WEBHOOK_URL,
+type NotificationDeliverySettings = {
+  emailWebhookUrl?: string;
+  smsWebhookUrl?: string;
+  whatsappWebhookUrl?: string;
+  emailEnabled: boolean;
+  smsEnabled: boolean;
+  whatsappEnabled: boolean;
 };
+
+const notificationSettingKeys = {
+  emailWebhookUrl: 'notifications.emailWebhookUrl',
+  smsWebhookUrl: 'notifications.smsWebhookUrl',
+  whatsappWebhookUrl: 'notifications.whatsappWebhookUrl',
+  emailEnabled: 'notifications.emailEnabled',
+  smsEnabled: 'notifications.smsEnabled',
+  whatsappEnabled: 'notifications.whatsappEnabled',
+} as const;
+
+function toBooleanSetting(value: string | null | undefined, fallback: boolean) {
+  if (value == null) {
+    return fallback;
+  }
+  const normalized = value.trim().toLowerCase();
+  if (normalized === 'true') {
+    return true;
+  }
+  if (normalized === 'false') {
+    return false;
+  }
+  return fallback;
+}
+
+async function getNotificationDeliverySettings(): Promise<NotificationDeliverySettings> {
+  const keys = Object.values(notificationSettingKeys);
+  const settings = await prisma.siteSetting.findMany({ where: { key: { in: keys } } });
+  const settingMap = new Map(settings.map((setting) => [setting.key, setting.value ?? '']));
+
+  return {
+    emailWebhookUrl: settingMap.get(notificationSettingKeys.emailWebhookUrl) || env.EMAIL_WEBHOOK_URL,
+    smsWebhookUrl: settingMap.get(notificationSettingKeys.smsWebhookUrl) || env.SMS_WEBHOOK_URL,
+    whatsappWebhookUrl: settingMap.get(notificationSettingKeys.whatsappWebhookUrl) || env.WHATSAPP_WEBHOOK_URL,
+    emailEnabled: toBooleanSetting(settingMap.get(notificationSettingKeys.emailEnabled), true),
+    smsEnabled: toBooleanSetting(settingMap.get(notificationSettingKeys.smsEnabled), false),
+    whatsappEnabled: toBooleanSetting(settingMap.get(notificationSettingKeys.whatsappEnabled), false),
+  };
+}
 
 function createQueue(name: string): QueueLike {
   if (isTest) {
@@ -116,7 +156,30 @@ async function dispatchChannel(
     return;
   }
 
-  const endpoint = webhookUrls[channel];
+  const deliverySettings = await getNotificationDeliverySettings();
+  const channelEnabled =
+    (channel === 'email' && deliverySettings.emailEnabled) ||
+    (channel === 'sms' && deliverySettings.smsEnabled) ||
+    (channel === 'whatsapp' && deliverySettings.whatsappEnabled);
+  if (!channelEnabled) {
+    await prisma.notificationLog.create({
+      data: {
+        userId: user.id,
+        channel,
+        type: `${payload.type}.skipped`,
+        title: payload.title,
+        message: `${payload.message} (delivery skipped: ${channel} channel disabled in admin settings)`,
+      },
+    });
+    return;
+  }
+
+  const endpoint =
+    channel === 'email'
+      ? deliverySettings.emailWebhookUrl
+      : channel === 'sms'
+        ? deliverySettings.smsWebhookUrl
+        : deliverySettings.whatsappWebhookUrl;
   if (!endpoint) {
     await prisma.notificationLog.create({
       data: {

@@ -1,4 +1,5 @@
 import { Card } from '@agencyfic/ui';
+import Link from 'next/link';
 import { AppShell } from '../../components/AppShell';
 
 const metrics = [
@@ -20,6 +21,7 @@ export default function SuperadminPage() {
         { label: 'Sellers', badge: '12' },
         { label: 'Billing & Plans' },
         { label: 'CMS & Branding' },
+        { label: 'System Settings' },
         { label: 'System Monitoring' },
         { label: 'Activity Log' },
       ]}
@@ -60,6 +62,16 @@ export default function SuperadminPage() {
             <p>Disabled inactive sub-user • 25 min ago</p>
             <p>Triggered order sync for all accounts • 38 min ago</p>
           </div>
+        </Card>
+
+        <Card className="p-5">
+          <h3 className="mb-3 text-sm font-bold">Auth & Notification Setup</h3>
+          <p className="text-sm text-slate-600">
+            OTP expiry, Email, SMS, and WhatsApp delivery settings are available in System Settings.
+          </p>
+          <Link href="/superadmin/system-settings" className="mt-4 inline-flex rounded-lg bg-violet-600 px-4 py-2 text-sm font-semibold text-white">
+            Open System Settings
+          </Link>
         </Card>
       </div>
     </AppShell>

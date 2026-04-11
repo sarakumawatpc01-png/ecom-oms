@@ -18,6 +18,7 @@ export default async function SuperadminCmsPage() {
         { label: 'Sellers' },
         { label: 'Billing & Plans' },
         { label: 'CMS & Branding', active: true },
+        { label: 'System Settings' },
       ]}
     >
       <Card className="p-5">
@@ -27,6 +28,8 @@ export default async function SuperadminCmsPage() {
           <li>PUT /api/site-settings/:key</li>
           <li>GET /api/site-settings/public/legal/:slug</li>
           <li>GET /api/site-settings/public/branding</li>
+          <li>GET /api/site-settings/admin/communication-settings</li>
+          <li>PUT /api/site-settings/admin/communication-settings</li>
         </ul>
       </Card>
       <Card className="mt-4 p-5">
