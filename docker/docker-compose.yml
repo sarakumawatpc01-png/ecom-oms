@@ -1,0 +1,62 @@
+version: '3.9'
+
+services:
+  web:
+    build:
+      context: ..
+      dockerfile: apps/web/Dockerfile
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_API_URL=http://api:4000
+    ports:
+      - '3000:3000'
+    depends_on:
+      - api
+
+  api:
+    build:
+      context: ..
+      dockerfile: apps/api/Dockerfile
+    environment:
+      - NODE_ENV=production
+      - PORT=4000
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/agencyfic_oms
+      - REDIS_URL=redis://redis:6379
+      - JWT_ACCESS_SECRET=replace_access_secret
+      - JWT_REFRESH_SECRET=replace_refresh_secret
+      - ENCRYPTION_KEY_HEX=0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
+      - WEB_URL=http://localhost:3000
+    ports:
+      - '4000:4000'
+    depends_on:
+      - postgres
+      - redis
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: agencyfic_oms
+    ports:
+      - '5432:5432'
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - '6379:6379'
+
+  nginx:
+    image: nginx:1.27-alpine
+    ports:
+      - '80:80'
+    depends_on:
+      - web
+      - api
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+
+volumes:
+  pg_data:
