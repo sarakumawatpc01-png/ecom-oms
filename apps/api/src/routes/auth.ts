@@ -61,7 +61,7 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
         },
       ],
     },
-    // codeql[js/missing-rate-limiting] false positive: this handler is protected by preHandler IP rate limit + Redis per-ip/email attempt throttling above.
+    // codeql[js/missing-rate-limiting] false positive: route-level protection is already applied via ipBasedLimiter + Redis per-ip/email attempt throttling in preHandler.
     async (request, reply) => {
       const body = request.body as { email: string; otp: string };
       const email = body.email.trim().toLowerCase();
