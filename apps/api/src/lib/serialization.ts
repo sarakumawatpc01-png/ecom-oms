@@ -22,7 +22,7 @@ export function sanitizeResponse<T>(payload: T): T {
   return sanitized as T;
 }
 
-export function serializeOrderWithDetails<T extends { rawData?: unknown }>(order: T): Omit<T, 'rawData'> & { details: { rawData: unknown | null } } {
+export function nestOrderRawData<T extends { rawData?: unknown }>(order: T): Omit<T, 'rawData'> & { details: { rawData: unknown | null } } {
   const { rawData, ...rest } = order as T & { rawData?: unknown };
   return {
     ...rest,

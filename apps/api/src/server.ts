@@ -26,6 +26,8 @@ import teamRoutes from './routes/team';
 import siteSettingsRoutes from './routes/site-settings';
 import { prisma } from './lib/prisma';
 
+const MAX_JWT_TOKEN_LENGTH = 2048;
+
 export function buildServer(options?: { withBackgroundJobs?: boolean }) {
   const withBackgroundJobs = options?.withBackgroundJobs ?? true;
   const app = Fastify({ logger: true });
@@ -43,7 +45,7 @@ export function buildServer(options?: { withBackgroundJobs?: boolean }) {
       const authorization = request.headers.authorization;
       if (authorization?.startsWith('Bearer ')) {
         const token = authorization.slice('Bearer '.length);
-        if (token.length > 2048 || token.split('.').length !== 3) {
+        if (token.length > MAX_JWT_TOKEN_LENGTH || token.split('.').length !== 3) {
           return `ip:${request.ip}`;
         }
         try {

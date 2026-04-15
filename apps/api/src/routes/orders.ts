@@ -5,7 +5,7 @@ import { prisma } from '../lib/prisma';
 import { enqueueNotificationJob, orderSyncQueue } from '../queues/index';
 import { emitToUser } from '../lib/realtime';
 import { idParamSchema } from '../lib/validation';
-import { serializeOrderWithDetails } from '../lib/serialization';
+import { nestOrderRawData } from '../lib/serialization';
 
 const syncBodySchema = z
   .object({
@@ -22,7 +22,7 @@ const orderRoutes: FastifyPluginAsync = async (fastify) => {
       include: { items: true },
     });
 
-    return { orders: orders.map((order) => serializeOrderWithDetails(order)) };
+    return { orders: orders.map((order) => nestOrderRawData(order)) };
   });
 
   fastify.get('/:id', { preHandler: [requireAuth] }, async (request, reply) => {
@@ -36,7 +36,7 @@ const orderRoutes: FastifyPluginAsync = async (fastify) => {
       return reply.code(404).send({ message: 'Order not found' });
     }
 
-    return { order: serializeOrderWithDetails(order) };
+    return { order: nestOrderRawData(order) };
   });
 
   fastify.post('/sync', { preHandler: [requireAuth] }, async (request) => {
