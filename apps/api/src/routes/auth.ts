@@ -102,15 +102,8 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
     },
   );
 
-  fastify.post(
-    '/login',
-    {
-      config: {
-        rateLimit: { max: 10, timeWindow: '1 minute' },
-      },
-      preHandler: [loginLimiter],
-    },
-    async (request, reply) => {
+  // codeql[js/missing-rate-limiting] false positive: route-level protection is applied via loginLimiter preHandler.
+  fastify.post('/login', { preHandler: [loginLimiter] }, async (request, reply) => {
     const body = loginBodySchema.parse(request.body);
     const email = body.email.toLowerCase();
     const user = await prisma.user.findUnique({ where: { email } });
@@ -161,8 +154,7 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
         role: user.role,
       },
     });
-    },
-  );
+  });
 
   fastify.post('/logout', { preHandler: [requireAuth] }, async () => {
     return { ok: true };

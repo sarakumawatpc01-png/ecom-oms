@@ -42,8 +42,12 @@ export function buildServer(options?: { withBackgroundJobs?: boolean }) {
     keyGenerator: (request) => {
       const authorization = request.headers.authorization;
       if (authorization?.startsWith('Bearer ')) {
+        const token = authorization.slice('Bearer '.length);
+        if (token.length > 2048 || token.split('.').length !== 3) {
+          return `ip:${request.ip}`;
+        }
         try {
-          const payload = app.jwt.decode<{ userId?: string }>(authorization.slice('Bearer '.length));
+          const payload = app.jwt.verify<{ userId?: string }>(token);
           if (payload?.userId) {
             return `user:${payload.userId}`;
           }
