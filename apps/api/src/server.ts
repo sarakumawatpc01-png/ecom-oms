@@ -43,7 +43,7 @@ export function buildServer(options?: { withBackgroundJobs?: boolean }) {
       const authorization = request.headers.authorization;
       if (authorization?.startsWith('Bearer ')) {
         try {
-          const payload = app.jwt.verify<{ userId: string }>(authorization.slice('Bearer '.length));
+          const payload = app.jwt.decode<{ userId?: string }>(authorization.slice('Bearer '.length));
           if (payload?.userId) {
             return `user:${payload.userId}`;
           }

@@ -55,7 +55,7 @@ const upsertSiteSettingBodySchema = z.object({
   description: z.string().optional(),
 });
 const communicationSettingsBodySchema = z.object({
-  otpExpiryMinutes: z.number().int().optional(),
+  otpExpiryMinutes: z.number().int().min(1).max(30).optional(),
   emailWebhookUrl: z.string().optional(),
   smsWebhookUrl: z.string().optional(),
   whatsappWebhookUrl: z.string().optional(),
@@ -184,12 +184,6 @@ const siteSettingsRoutes: FastifyPluginAsync = async (fastify) => {
 
   fastify.put('/admin/communication-settings', { preHandler: [requireAuth, requireRole(['admin'])] }, async (request, reply) => {
     const body = communicationSettingsBodySchema.parse(request.body) as CommunicationSettingsBody;
-
-    if (typeof body.otpExpiryMinutes === 'number') {
-      if (!Number.isInteger(body.otpExpiryMinutes) || body.otpExpiryMinutes < 1 || body.otpExpiryMinutes > 30) {
-        return reply.code(400).send({ message: 'otpExpiryMinutes must be an integer between 1 and 30' });
-      }
-    }
 
     if (typeof body.emailWebhookUrl === 'string') {
       try {

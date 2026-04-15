@@ -7,7 +7,6 @@ import { redis } from '../lib/redis';
 import { comparePassword, hashPassword, signAccessToken, signRefreshToken } from '../lib/auth';
 import { createOtp, verifyOtp } from '../services/otp';
 import { requireAuth } from '../middleware/auth';
-import { sanitizeResponse } from '../lib/serialization';
 
 const registerBodySchema = z.object({
   email: z.string().trim().email(),
@@ -103,7 +102,15 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
     },
   );
 
-  fastify.post('/login', { preHandler: [loginLimiter] }, async (request, reply) => {
+  fastify.post(
+    '/login',
+    {
+      config: {
+        rateLimit: { max: 10, timeWindow: '1 minute' },
+      },
+      preHandler: [loginLimiter],
+    },
+    async (request, reply) => {
     const body = loginBodySchema.parse(request.body);
     const email = body.email.toLowerCase();
     const user = await prisma.user.findUnique({ where: { email } });
@@ -154,7 +161,8 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
         role: user.role,
       },
     });
-  });
+    },
+  );
 
   fastify.post('/logout', { preHandler: [requireAuth] }, async () => {
     return { ok: true };
@@ -189,7 +197,7 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
         updatedAt: true,
       },
     });
-    return { user: sanitizeResponse(user) };
+    return { user };
   });
 };
 

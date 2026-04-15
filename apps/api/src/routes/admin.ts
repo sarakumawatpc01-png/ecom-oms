@@ -60,6 +60,18 @@ const adminRoutes: FastifyPluginAsync = async (fastify) => {
         extraConfig: body.extraConfig as Prisma.InputJsonValue | undefined,
         updatedByAdminId: request.userContext!.userId,
       },
+      select: {
+        id: true,
+        platform: true,
+        clientId: true,
+        extraConfig: true,
+        isActive: true,
+        lastTestStatus: true,
+        lastTestMessage: true,
+        updatedByAdminId: true,
+        createdAt: true,
+        updatedAt: true,
+      },
     });
 
     await createAdminAuditLog({
