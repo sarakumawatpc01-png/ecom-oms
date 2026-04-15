@@ -63,6 +63,7 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
       },
       preHandler: fastify.rateLimit({ max: OTP_VERIFY_MAX_ATTEMPTS, timeWindow: '1 minute', keyGenerator: (request) => request.ip }),
     },
+    // lgtm[js/missing-rate-limiting]
     async (request, reply) => {
       const parsedBody = verifyOtpBodySchema.parse(request.body);
       const email = parsedBody.email.toLowerCase();
