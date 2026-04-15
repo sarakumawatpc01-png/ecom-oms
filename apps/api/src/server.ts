@@ -99,7 +99,8 @@ export function buildServer(options?: { withBackgroundJobs?: boolean }) {
   }
 
   app.setErrorHandler((error, request, reply) => {
-    request.log.error({ err: error, stack: error.stack }, 'request.failed');
+    const err = error as { stack?: string; message?: string; statusCode?: number };
+    request.log.error({ err: error, stack: err.stack }, 'request.failed');
 
     if (error instanceof ZodError) {
       return reply.code(400).send({
@@ -111,9 +112,9 @@ export function buildServer(options?: { withBackgroundJobs?: boolean }) {
       });
     }
 
-    if (typeof (error as { statusCode?: number }).statusCode === 'number' && (error as { statusCode?: number }).statusCode! < 500) {
-      return reply.code((error as { statusCode: number }).statusCode).send({
-        message: error.message,
+    if (typeof err.statusCode === 'number' && err.statusCode < 500) {
+      return reply.code(err.statusCode).send({
+        message: err.message ?? 'Request failed',
       });
     }
 
