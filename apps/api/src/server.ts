@@ -45,7 +45,19 @@ export function buildServer(options?: { withBackgroundJobs?: boolean }) {
       const authorization = request.headers.authorization;
       if (authorization?.startsWith('Bearer ')) {
         const token = authorization.slice('Bearer '.length);
-        if (token.length > MAX_JWT_TOKEN_LENGTH || token.split('.').length !== 3) {
+        if (token.length > MAX_JWT_TOKEN_LENGTH) {
+          return `ip:${request.ip}`;
+        }
+        let dotCount = 0;
+        for (const char of token) {
+          if (char === '.') {
+            dotCount += 1;
+            if (dotCount > 2) {
+              break;
+            }
+          }
+        }
+        if (dotCount !== 2) {
           return `ip:${request.ip}`;
         }
         try {

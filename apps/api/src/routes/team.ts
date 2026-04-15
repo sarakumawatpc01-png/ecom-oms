@@ -8,7 +8,7 @@ import { idParamSchema } from '../lib/validation';
 
 const inviteBodySchema = z.object({
   name: z.string().trim().min(1),
-  email: z.string().trim().email(),
+  email: z.string().trim().toLowerCase().email(),
   role: z.enum(['admin', 'order_manager', 'view_only']).optional(),
 });
 
@@ -40,7 +40,7 @@ const teamRoutes: FastifyPluginAsync = async (fastify) => {
   fastify.post('/invite', { preHandler: [requireAuth] }, async (request, reply) => {
     const body = inviteBodySchema.parse(request.body);
     const role = body.role ?? 'view_only';
-    const email = body.email.toLowerCase();
+    const email = body.email;
     const existing = await prisma.user.findUnique({ where: { email } });
     if (existing) {
       return reply.code(409).send({ message: 'Email already in use' });
