@@ -68,8 +68,7 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
       preHandler: [
         fastify.rateLimit({ max: OTP_VERIFY_MAX_ATTEMPTS, timeWindow: '1 minute', keyGenerator: (request) => request.ip }),
         async (request, reply) => {
-          const body = request.body as { email?: string };
-          const parsedBody = verifyOtpPreBodySchema.parse(body);
+          const parsedBody = verifyOtpPreBodySchema.parse(request.body);
           const normalizedEmail = parsedBody.email?.toLowerCase();
           if (!normalizedEmail) {
             return;
@@ -85,9 +84,9 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
         },
       ],
     },
+    // lgtm [js/missing-rate-limiting] protected by inline fastify.rateLimit preHandler above plus Redis attempt throttling.
     async (request, reply) => {
-      const body = request.body as { email: string; otp: string };
-      const parsedBody = verifyOtpBodySchema.parse(body);
+      const parsedBody = verifyOtpBodySchema.parse(request.body);
       const email = parsedBody.email.toLowerCase();
 
       const ok = await verifyOtp(email, parsedBody.otp);
