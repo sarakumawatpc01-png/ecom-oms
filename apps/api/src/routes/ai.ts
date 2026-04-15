@@ -1,12 +1,25 @@
 import type { FastifyPluginAsync } from 'fastify';
+import { z } from 'zod';
 import { requireAuth } from '../middleware/auth';
 import { prisma } from '../lib/prisma';
 import { aiProcessingQueue } from '../queues/index';
 import { emitToUser } from '../lib/realtime';
+import { platformSchema } from '../lib/validation';
+
+const listingOptimizeBodySchema = z.object({
+  title: z.string().trim().min(1),
+  description: z.string().trim().min(1),
+  platform: platformSchema.optional(),
+});
+
+const imageGenerateBodySchema = z.object({
+  prompt: z.string().trim().min(1),
+  productCategory: z.string().trim().optional(),
+});
 
 const aiRoutes: FastifyPluginAsync = async (fastify) => {
   fastify.post('/listing-optimize', { preHandler: [requireAuth] }, async (request) => {
-    const body = request.body as { title: string; description: string; platform?: 'amazon' | 'flipkart' | 'meesho' };
+    const body = listingOptimizeBodySchema.parse(request.body);
 
     const job = await prisma.aiJob.create({
       data: {
@@ -30,7 +43,7 @@ const aiRoutes: FastifyPluginAsync = async (fastify) => {
   });
 
   fastify.post('/image-generate', { preHandler: [requireAuth] }, async (request) => {
-    const body = request.body as { prompt: string; productCategory?: string };
+    const body = imageGenerateBodySchema.parse(request.body);
 
     const job = await prisma.aiJob.create({
       data: {

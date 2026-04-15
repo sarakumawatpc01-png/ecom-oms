@@ -1,6 +1,14 @@
 import type { FastifyPluginAsync } from 'fastify';
+import { z } from 'zod';
 import { requireAuth } from '../middleware/auth';
 import { prisma } from '../lib/prisma';
+
+const uploadUrlBodySchema = z.object({
+  orderId: z.string().uuid(),
+  returnId: z.string().uuid().optional(),
+  fileType: z.enum(['photo', 'video']),
+  captureStage: z.enum(['packing', 'return_received']),
+});
 
 const evidenceRoutes: FastifyPluginAsync = async (fastify) => {
   fastify.get('/', { preHandler: [requireAuth] }, async (request) => {
@@ -9,7 +17,7 @@ const evidenceRoutes: FastifyPluginAsync = async (fastify) => {
   });
 
   fastify.post('/upload-url', { preHandler: [requireAuth] }, async (request) => {
-    const body = request.body as { orderId: string; returnId?: string; fileType: 'photo' | 'video'; captureStage: 'packing' | 'return_received' };
+    const body = uploadUrlBodySchema.parse(request.body);
     const storageKey = `evidence/${request.userContext!.userId}/${body.orderId}/${Date.now()}.${body.fileType === 'photo' ? 'jpg' : 'mp4'}`;
 
     const evidence = await prisma.evidenceFile.create({

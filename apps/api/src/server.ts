@@ -4,6 +4,7 @@ import helmet from '@fastify/helmet';
 import jwt from '@fastify/jwt';
 import rateLimit from '@fastify/rate-limit';
 import sensible from '@fastify/sensible';
+import { ZodError } from 'zod';
 import { env } from './config/env';
 import healthRoutes from './routes/health';
 import authRoutes from './routes/auth';
@@ -33,8 +34,26 @@ export function buildServer(options?: { withBackgroundJobs?: boolean }) {
   app.register(cors, { origin: true, credentials: true });
   app.register(helmet);
   app.register(sensible);
-  app.register(rateLimit, { global: true, max: 100, timeWindow: '1 minute' });
   app.register(jwt, { secret: env.JWT_ACCESS_SECRET });
+  app.register(rateLimit, {
+    global: true,
+    max: 1000,
+    timeWindow: '1 minute',
+    keyGenerator: (request) => {
+      const authorization = request.headers.authorization;
+      if (authorization?.startsWith('Bearer ')) {
+        try {
+          const payload = app.jwt.verify<{ userId: string }>(authorization.slice('Bearer '.length));
+          if (payload?.userId) {
+            return `user:${payload.userId}`;
+          }
+        } catch {
+          // fall back to IP for invalid/expired/missing token
+        }
+      }
+      return `ip:${request.ip}`;
+    },
+  });
 
   app.addHook('onResponse', async (request, reply) => {
     app.log.info({ method: request.method, url: request.url, statusCode: reply.statusCode }, 'request.completed');
@@ -78,6 +97,28 @@ export function buildServer(options?: { withBackgroundJobs?: boolean }) {
     app.register(schedulerPlugin);
     startQueueWorkers();
   }
+
+  app.setErrorHandler((error, request, reply) => {
+    request.log.error({ err: error, stack: error.stack }, 'request.failed');
+
+    if (error instanceof ZodError) {
+      return reply.code(400).send({
+        message: 'Invalid request payload',
+        issues: error.issues.map((issue) => ({
+          path: issue.path.join('.'),
+          message: issue.message,
+        })),
+      });
+    }
+
+    if (typeof (error as { statusCode?: number }).statusCode === 'number' && (error as { statusCode?: number }).statusCode! < 500) {
+      return reply.code((error as { statusCode: number }).statusCode).send({
+        message: error.message,
+      });
+    }
+
+    return reply.code(500).send({ message: 'Internal Server Error' });
+  });
 
   return app;
 }

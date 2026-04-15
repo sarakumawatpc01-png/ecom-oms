@@ -5,8 +5,12 @@ export async function requireAuth(request: FastifyRequest, reply: FastifyReply) 
     await request.jwtVerify<{ userId: string; role: string }>();
     const tokenUser = request.user as { userId: string; role: string };
     request.userContext = tokenUser;
-  } catch {
-    reply.code(401).send({ message: 'Unauthorized' });
+  } catch (error) {
+    const err = error as { code?: string; message?: string };
+    if (err.code === 'FST_JWT_AUTHORIZATION_TOKEN_EXPIRED') {
+      return reply.code(401).send({ message: 'Token Expired' });
+    }
+    return reply.code(401).send({ message: 'Unauthorized' });
   }
 }
 

@@ -1,7 +1,10 @@
 import type { FastifyPluginAsync } from 'fastify';
+import { z } from 'zod';
 import { prisma } from '../lib/prisma';
 import { Prisma } from '@prisma/client';
 import { orderSyncQueue } from '../queues/index';
+
+const webhookPayloadSchema = z.object({ type: z.unknown().optional() }).passthrough();
 
 async function enqueueWebhookSyncJobs(platform: 'amazon' | 'flipkart', eventId: string) {
   const linkedAccounts = await prisma.linkedAccount.findMany({
@@ -29,7 +32,7 @@ async function enqueueWebhookSyncJobs(platform: 'amazon' | 'flipkart', eventId: 
 
 const webhookRoutes: FastifyPluginAsync = async (fastify) => {
   fastify.post('/flipkart', async (request) => {
-    const payload = request.body as Record<string, unknown>;
+    const payload = webhookPayloadSchema.parse(request.body ?? {});
     const event = await prisma.webhookEvent.create({
       data: {
         platform: 'flipkart',
@@ -43,7 +46,7 @@ const webhookRoutes: FastifyPluginAsync = async (fastify) => {
   });
 
   fastify.post('/amazon', async (request) => {
-    const payload = request.body as Record<string, unknown>;
+    const payload = webhookPayloadSchema.parse(request.body ?? {});
     const event = await prisma.webhookEvent.create({
       data: {
         platform: 'amazon',
