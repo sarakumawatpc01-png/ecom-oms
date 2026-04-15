@@ -35,7 +35,6 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
   const OTP_VERIFY_MAX_ATTEMPTS = 5;
   const OTP_VERIFY_WINDOW_SECONDS = 60;
   const ipBasedLimiter = fastify.rateLimit({ max: OTP_VERIFY_MAX_ATTEMPTS, timeWindow: '1 minute', keyGenerator: (request) => request.ip });
-  const loginLimiter = fastify.rateLimit({ max: 10, timeWindow: '1 minute' });
 
   fastify.post('/register', { preHandler: [ipBasedLimiter] }, async (request, reply) => {
     const body = registerBodySchema.parse(request.body);
@@ -67,7 +66,7 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
         rateLimit: { max: OTP_VERIFY_MAX_ATTEMPTS, timeWindow: '1 minute' },
       },
       preHandler: [
-        ipBasedLimiter,
+        fastify.rateLimit({ max: OTP_VERIFY_MAX_ATTEMPTS, timeWindow: '1 minute', keyGenerator: (request) => request.ip }),
         async (request, reply) => {
           const body = request.body as { email?: string };
           const parsedBody = verifyOtpPreBodySchema.parse(body);
@@ -86,7 +85,6 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
         },
       ],
     },
-    // codeql[js/missing-rate-limiting] false positive: route-level protection is already applied via ipBasedLimiter + Redis per-ip/email attempt throttling in preHandler.
     async (request, reply) => {
       const body = request.body as { email: string; otp: string };
       const parsedBody = verifyOtpBodySchema.parse(body);
@@ -102,8 +100,7 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
     },
   );
 
-  // codeql[js/missing-rate-limiting] false positive: route-level protection is applied via loginLimiter preHandler.
-  fastify.post('/login', { preHandler: [loginLimiter] }, async (request, reply) => {
+  fastify.post('/login', { preHandler: [fastify.rateLimit({ max: 10, timeWindow: '1 minute' })] }, async (request, reply) => {
     const body = loginBodySchema.parse(request.body);
     const email = body.email.toLowerCase();
     const user = await prisma.user.findUnique({ where: { email } });
