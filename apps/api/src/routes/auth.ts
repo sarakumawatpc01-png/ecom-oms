@@ -58,6 +58,9 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
   fastify.post(
     '/verify-otp',
     {
+      config: {
+        rateLimit: { max: OTP_VERIFY_MAX_ATTEMPTS, timeWindow: '1 minute' },
+      },
       preHandler: fastify.rateLimit({ max: OTP_VERIFY_MAX_ATTEMPTS, timeWindow: '1 minute', keyGenerator: (request) => request.ip }),
     },
     async (request, reply) => {
