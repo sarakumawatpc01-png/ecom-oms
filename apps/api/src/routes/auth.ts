@@ -20,10 +20,6 @@ const verifyOtpBodySchema = z.object({
   otp: z.string().trim().min(1),
 });
 
-const verifyOtpPreBodySchema = z.object({
-  email: z.string().trim().email().optional(),
-});
-
 const loginBodySchema = z.object({
   email: z.string().trim().email(),
   password: z.string().min(1),
@@ -62,32 +58,19 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
   fastify.post(
     '/verify-otp',
     {
-      config: {
-        rateLimit: { max: OTP_VERIFY_MAX_ATTEMPTS, timeWindow: '1 minute' },
-      },
-      preHandler: [
-        fastify.rateLimit({ max: OTP_VERIFY_MAX_ATTEMPTS, timeWindow: '1 minute', keyGenerator: (request) => request.ip }),
-        async (request, reply) => {
-          const parsedBody = verifyOtpPreBodySchema.parse(request.body);
-          const normalizedEmail = parsedBody.email?.toLowerCase();
-          if (!normalizedEmail) {
-            return;
-          }
-          const key = `ratelimit:verify-otp:${request.ip}:${normalizedEmail}`;
-          const attempts = await redis.incr(key);
-          if (attempts === 1) {
-            await redis.expire(key, OTP_VERIFY_WINDOW_SECONDS);
-          }
-          if (attempts > OTP_VERIFY_MAX_ATTEMPTS) {
-            return reply.code(429).send({ message: 'Too many OTP verification attempts. Try again later.' });
-          }
-        },
-      ],
+      preHandler: fastify.rateLimit({ max: OTP_VERIFY_MAX_ATTEMPTS, timeWindow: '1 minute', keyGenerator: (request) => request.ip }),
     },
-    // lgtm [js/missing-rate-limiting] protected by inline fastify.rateLimit preHandler above plus Redis attempt throttling.
     async (request, reply) => {
       const parsedBody = verifyOtpBodySchema.parse(request.body);
       const email = parsedBody.email.toLowerCase();
+      const key = `ratelimit:verify-otp:${request.ip}:${email}`;
+      const attempts = await redis.incr(key);
+      if (attempts === 1) {
+        await redis.expire(key, OTP_VERIFY_WINDOW_SECONDS);
+      }
+      if (attempts > OTP_VERIFY_MAX_ATTEMPTS) {
+        return reply.code(429).send({ message: 'Too many OTP verification attempts. Try again later.' });
+      }
 
       const ok = await verifyOtp(email, parsedBody.otp);
       if (!ok) {
