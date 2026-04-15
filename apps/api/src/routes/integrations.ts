@@ -1,8 +1,13 @@
 import type { FastifyPluginAsync } from 'fastify';
+import { z } from 'zod';
 import { requireAuth } from '../middleware/auth';
 import { prisma } from '../lib/prisma';
 import { enqueueNotificationJob } from '../queues/index';
 import { emitToUser } from '../lib/realtime';
+import { platformParamSchema } from '../lib/validation';
+
+const authCallbackQuerySchema = z.object({ code: z.string().trim().min(1) });
+const sessionWarningBodySchema = z.object({ message: z.string().trim().optional() }).passthrough();
 
 const integrationRoutes: FastifyPluginAsync = async (fastify) => {
   fastify.get('/amazon/connect', { preHandler: [requireAuth] }, async () => {
@@ -10,11 +15,8 @@ const integrationRoutes: FastifyPluginAsync = async (fastify) => {
   });
 
   fastify.get('/amazon/callback', { preHandler: [requireAuth] }, async (request) => {
-    const query = request.query as { code?: string };
-    const code = query.code?.trim();
-    if (!code) {
-      return request.server.httpErrors.badRequest('Missing amazon authorization code');
-    }
+    const query = authCallbackQuerySchema.parse(request.query);
+    const code = query.code;
 
     await prisma.linkedAccount.create({
       data: {
@@ -34,11 +36,8 @@ const integrationRoutes: FastifyPluginAsync = async (fastify) => {
   });
 
   fastify.get('/flipkart/callback', { preHandler: [requireAuth] }, async (request) => {
-    const query = request.query as { code?: string };
-    const code = query.code?.trim();
-    if (!code) {
-      return request.server.httpErrors.badRequest('Missing flipkart authorization code');
-    }
+    const query = authCallbackQuerySchema.parse(request.query);
+    const code = query.code;
 
     await prisma.linkedAccount.create({
       data: {
@@ -54,8 +53,8 @@ const integrationRoutes: FastifyPluginAsync = async (fastify) => {
   });
 
   fastify.post('/:platform/session-warning', { preHandler: [requireAuth] }, async (request, reply) => {
-    const params = request.params as { platform: 'amazon' | 'flipkart' | 'meesho' };
-    const body = request.body as { message?: string };
+    const params = platformParamSchema.parse(request.params);
+    const body = sessionWarningBodySchema.parse(request.body ?? {});
     const userId = request.userContext!.userId;
 
     const account = await prisma.linkedAccount.findFirst({

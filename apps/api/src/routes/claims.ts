@@ -1,6 +1,15 @@
 import type { FastifyPluginAsync } from 'fastify';
+import { z } from 'zod';
 import { prisma } from '../lib/prisma';
 import { requireAuth } from '../middleware/auth';
+import { platformSchema } from '../lib/validation';
+
+const createClaimBodySchema = z.object({
+  orderId: z.string().uuid(),
+  platform: platformSchema,
+  claimReason: z.string().trim().min(1),
+  claimAmount: z.number().finite().nonnegative().optional(),
+});
 
 const claimsRoutes: FastifyPluginAsync = async (fastify) => {
   fastify.get('/', { preHandler: [requireAuth] }, async (request) => {
@@ -9,7 +18,7 @@ const claimsRoutes: FastifyPluginAsync = async (fastify) => {
   });
 
   fastify.post('/', { preHandler: [requireAuth] }, async (request) => {
-    const body = request.body as { orderId: string; platform: 'amazon' | 'flipkart' | 'meesho'; claimReason: string; claimAmount?: number };
+    const body = createClaimBodySchema.parse(request.body);
 
     const claim = await prisma.claim.create({
       data: {

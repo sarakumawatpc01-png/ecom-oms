@@ -1,4 +1,5 @@
 import type { FastifyPluginAsync } from 'fastify';
+import { z } from 'zod';
 import { prisma } from '../lib/prisma';
 import { requireAuth, requireRole } from '../middleware/auth';
 import { createAdminAuditLog } from '../lib/audit';
@@ -46,6 +47,23 @@ type CommunicationSettingsBody = Partial<{
   whatsappEnabled: boolean;
 }>;
 
+const keyParamSchema = z.object({ key: z.string().trim().min(1) });
+const legalSlugParamSchema = z.object({ slug: z.enum(['terms', 'privacy', 'refund']) });
+const upsertSiteSettingBodySchema = z.object({
+  value: z.string().optional(),
+  valueType: z.string().trim().optional(),
+  description: z.string().optional(),
+});
+const communicationSettingsBodySchema = z.object({
+  otpExpiryMinutes: z.number().int().min(1).max(30).optional(),
+  emailWebhookUrl: z.string().optional(),
+  smsWebhookUrl: z.string().optional(),
+  whatsappWebhookUrl: z.string().optional(),
+  emailEnabled: z.boolean().optional(),
+  smsEnabled: z.boolean().optional(),
+  whatsappEnabled: z.boolean().optional(),
+});
+
 function parseBooleanSetting(value: string | null | undefined, fallback: boolean) {
   if (value == null) {
     return fallback;
@@ -86,8 +104,8 @@ const siteSettingsRoutes: FastifyPluginAsync = async (fastify) => {
   });
 
   fastify.put('/:key', { preHandler: [requireAuth, requireRole(['admin'])] }, async (request) => {
-    const params = request.params as { key: string };
-    const body = request.body as { value?: string; valueType?: string; description?: string };
+    const params = keyParamSchema.parse(request.params);
+    const body = upsertSiteSettingBodySchema.parse(request.body);
 
     const setting = await prisma.siteSetting.upsert({
       where: { key: params.key },
@@ -118,10 +136,7 @@ const siteSettingsRoutes: FastifyPluginAsync = async (fastify) => {
   });
 
   fastify.get('/public/legal/:slug', async (request, reply) => {
-    const params = request.params as { slug: 'terms' | 'privacy' | 'refund' };
-    if (!['terms', 'privacy', 'refund'].includes(params.slug)) {
-      return reply.code(404).send({ message: 'Legal content not found' });
-    }
+    const params = legalSlugParamSchema.parse(request.params);
 
     const key = `legal.${params.slug}`;
     const setting = await prisma.siteSetting.findUnique({ where: { key } });
@@ -168,13 +183,7 @@ const siteSettingsRoutes: FastifyPluginAsync = async (fastify) => {
   });
 
   fastify.put('/admin/communication-settings', { preHandler: [requireAuth, requireRole(['admin'])] }, async (request, reply) => {
-    const body = request.body as CommunicationSettingsBody;
-
-    if (typeof body.otpExpiryMinutes === 'number') {
-      if (!Number.isInteger(body.otpExpiryMinutes) || body.otpExpiryMinutes < 1 || body.otpExpiryMinutes > 30) {
-        return reply.code(400).send({ message: 'otpExpiryMinutes must be an integer between 1 and 30' });
-      }
-    }
+    const body = communicationSettingsBodySchema.parse(request.body) as CommunicationSettingsBody;
 
     if (typeof body.emailWebhookUrl === 'string') {
       try {

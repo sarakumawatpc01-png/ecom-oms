@@ -1,6 +1,7 @@
 import type { FastifyPluginAsync } from 'fastify';
 import { requireAuth } from '../middleware/auth';
 import { prisma } from '../lib/prisma';
+import { idParamSchema } from '../lib/validation';
 
 const notificationRoutes: FastifyPluginAsync = async (fastify) => {
   fastify.get('/', { preHandler: [requireAuth] }, async (request) => {
@@ -9,7 +10,7 @@ const notificationRoutes: FastifyPluginAsync = async (fastify) => {
   });
 
   fastify.patch('/:id/read', { preHandler: [requireAuth] }, async (request) => {
-    const params = request.params as { id: string };
+    const params = idParamSchema.parse(request.params);
 
     const existing = await prisma.notificationLog.findFirst({
       where: { id: params.id, userId: request.userContext!.userId },

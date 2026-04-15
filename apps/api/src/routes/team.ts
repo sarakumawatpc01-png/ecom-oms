@@ -1,8 +1,22 @@
 import type { FastifyPluginAsync } from 'fastify';
+import { z } from 'zod';
 import { randomBytes } from 'crypto';
 import { prisma } from '../lib/prisma';
 import { requireAuth } from '../middleware/auth';
 import { hashPassword } from '../lib/auth';
+import { idParamSchema } from '../lib/validation';
+
+const inviteBodySchema = z.object({
+  name: z.string().trim().min(1),
+  email: z.string().trim().toLowerCase().email(),
+  role: z.enum(['admin', 'order_manager', 'view_only']).optional(),
+});
+
+const updateSubUserBodySchema = z.object({
+  name: z.string().trim().min(1).optional(),
+  isActive: z.boolean().optional(),
+  subUserRole: z.enum(['admin', 'order_manager', 'view_only']).optional(),
+});
 
 const teamRoutes: FastifyPluginAsync = async (fastify) => {
   fastify.get('/', { preHandler: [requireAuth] }, async (request) => {
@@ -24,9 +38,10 @@ const teamRoutes: FastifyPluginAsync = async (fastify) => {
   });
 
   fastify.post('/invite', { preHandler: [requireAuth] }, async (request, reply) => {
-    const body = request.body as { name: string; email: string; role?: 'admin' | 'order_manager' | 'view_only' };
+    const body = inviteBodySchema.parse(request.body);
     const role = body.role ?? 'view_only';
-    const existing = await prisma.user.findUnique({ where: { email: body.email } });
+    const email = body.email;
+    const existing = await prisma.user.findUnique({ where: { email } });
     if (existing) {
       return reply.code(409).send({ message: 'Email already in use' });
     }
@@ -38,7 +53,7 @@ const teamRoutes: FastifyPluginAsync = async (fastify) => {
         role: 'sub_user',
         subUserRole: role,
         name: body.name,
-        email: body.email,
+        email,
         passwordHash: await hashPassword(tempPassword),
         isVerified: false,
       },
@@ -62,8 +77,8 @@ const teamRoutes: FastifyPluginAsync = async (fastify) => {
   });
 
   fastify.patch('/:id', { preHandler: [requireAuth] }, async (request, reply) => {
-    const params = request.params as { id: string };
-    const body = request.body as { name?: string; isActive?: boolean; subUserRole?: 'admin' | 'order_manager' | 'view_only' };
+    const params = idParamSchema.parse(request.params);
+    const body = updateSubUserBodySchema.parse(request.body);
 
     const subUser = await prisma.user.findFirst({
       where: { id: params.id, parentUserId: request.userContext!.userId, role: 'sub_user' },

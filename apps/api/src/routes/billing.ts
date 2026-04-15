@@ -1,6 +1,13 @@
 import type { FastifyPluginAsync } from 'fastify';
+import { z } from 'zod';
 import { prisma } from '../lib/prisma';
 import { requireAuth } from '../middleware/auth';
+
+const checkoutBodySchema = z.object({
+  planId: z.string().uuid(),
+  amountInr: z.number().finite().nonnegative(),
+  ordersPurchased: z.number().int().positive(),
+});
 
 const billingRoutes: FastifyPluginAsync = async (fastify) => {
   fastify.get('/plans', { preHandler: [requireAuth] }, async () => {
@@ -17,7 +24,7 @@ const billingRoutes: FastifyPluginAsync = async (fastify) => {
   });
 
   fastify.post('/checkout', { preHandler: [requireAuth] }, async (request) => {
-    const body = request.body as { planId: string; amountInr: number; ordersPurchased: number };
+    const body = checkoutBodySchema.parse(request.body);
 
     const tx = await prisma.billingTransaction.create({
       data: {

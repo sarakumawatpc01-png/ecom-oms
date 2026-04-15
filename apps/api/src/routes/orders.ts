@@ -1,8 +1,18 @@
 import type { FastifyPluginAsync } from 'fastify';
+import { z } from 'zod';
 import { requireAuth } from '../middleware/auth';
 import { prisma } from '../lib/prisma';
 import { enqueueNotificationJob, orderSyncQueue } from '../queues/index';
 import { emitToUser } from '../lib/realtime';
+import { idParamSchema } from '../lib/validation';
+import { nestOrderRawData } from '../lib/serialization';
+
+const syncBodySchema = z
+  .object({
+    platform: z.enum(['amazon', 'flipkart', 'meesho']).optional(),
+    force: z.boolean().optional(),
+  })
+  .passthrough();
 
 const orderRoutes: FastifyPluginAsync = async (fastify) => {
   fastify.get('/', { preHandler: [requireAuth] }, async (request) => {
@@ -12,11 +22,11 @@ const orderRoutes: FastifyPluginAsync = async (fastify) => {
       include: { items: true },
     });
 
-    return { orders };
+    return { orders: orders.map((order) => nestOrderRawData(order)) };
   });
 
   fastify.get('/:id', { preHandler: [requireAuth] }, async (request, reply) => {
-    const params = request.params as { id: string };
+    const params = idParamSchema.parse(request.params);
     const order = await prisma.order.findFirst({
       where: { id: params.id, userId: request.userContext!.userId },
       include: { items: true, labels: true, invoices: true, returns: true },
@@ -26,10 +36,11 @@ const orderRoutes: FastifyPluginAsync = async (fastify) => {
       return reply.code(404).send({ message: 'Order not found' });
     }
 
-    return { order };
+    return { order: nestOrderRawData(order) };
   });
 
   fastify.post('/sync', { preHandler: [requireAuth] }, async (request) => {
+    syncBodySchema.parse(request.body ?? {});
     const userId = request.userContext!.userId;
     const linkedAccounts = await prisma.linkedAccount.findMany({ where: { userId: request.userContext!.userId, syncEnabled: true } });
     await Promise.all(
