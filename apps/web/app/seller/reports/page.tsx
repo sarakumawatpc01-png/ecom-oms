@@ -1,18 +1,13 @@
 import { Card } from '@agencyfic/ui';
 import { AppShell } from '../../../components/AppShell';
+import { sellerNav } from '../../../components/nav-config';
 
 export default function SellerReportsPage() {
   return (
     <AppShell
       title="Reports"
       subtitle="Sales, returns, and platform performance snapshots with export support"
-      navItems={[
-        { label: 'Dashboard' },
-        { label: 'Orders' },
-        { label: 'Reports', active: true },
-        { label: 'Team' },
-        { label: 'Billing' },
-      ]}
+      navItems={sellerNav('Reports')}
     >
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
         <Card className="p-5">

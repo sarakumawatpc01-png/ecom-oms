@@ -1,6 +1,7 @@
 import { Card } from '@agencyfic/ui';
 import { AppShell } from '../../../components/AppShell';
 import { SellerRealtimeFeed } from '../../../components/SellerRealtimeFeed';
+import { sellerNav } from '../../../components/nav-config';
 
 const quickStats = [
   { label: 'Pending', value: '34' },
@@ -14,17 +15,7 @@ export default function SellerDashboardPage() {
     <AppShell
       title="Seller Dashboard"
       subtitle="Unified order operations across Amazon, Flipkart, and Meesho"
-      navItems={[
-        { label: 'Dashboard', active: true },
-        { label: 'Orders', badge: '34' },
-        { label: 'Reports' },
-        { label: 'Team' },
-        { label: 'Platform Connections' },
-        { label: 'Labels & Invoices' },
-        { label: 'Claims & Evidence' },
-        { label: 'AI Tools' },
-        { label: 'Billing' },
-      ]}
+      navItems={sellerNav('Dashboard')}
     >
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
         {quickStats.map((stat) => (

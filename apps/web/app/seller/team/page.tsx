@@ -1,18 +1,13 @@
 import { Card } from '@agencyfic/ui';
 import { AppShell } from '../../../components/AppShell';
+import { sellerNav } from '../../../components/nav-config';
 
 export default function SellerTeamPage() {
   return (
     <AppShell
       title="Team Members"
       subtitle="Invite and manage sub-users with role-based permissions"
-      navItems={[
-        { label: 'Dashboard' },
-        { label: 'Orders' },
-        { label: 'Reports' },
-        { label: 'Team', active: true },
-        { label: 'Billing' },
-      ]}
+      navItems={sellerNav('Team')}
     >
       <Card className="p-5">
         <h3 className="text-sm font-bold">Sub-user Management APIs</h3>

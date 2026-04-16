@@ -1,6 +1,7 @@
 import { Card } from '@agencyfic/ui';
 import { AppShell } from '../../../components/AppShell';
 import { SuperadminCommunicationSettings } from '../../../components/SuperadminCommunicationSettings';
+import { superadminNav } from '../../../components/nav-config';
 
 export default function SuperadminSystemSettingsPage() {
   return (
@@ -8,14 +9,7 @@ export default function SuperadminSystemSettingsPage() {
       admin
       title="System Settings"
       subtitle="Global controls for OTP, email, SMS, and notification delivery channels"
-      navItems={[
-        { label: 'Overview' },
-        { label: 'Platform Integrations' },
-        { label: 'Sellers' },
-        { label: 'Billing & Plans' },
-        { label: 'CMS & Branding' },
-        { label: 'System Settings', active: true },
-      ]}
+      navItems={superadminNav('System Settings')}
     >
       <SuperadminCommunicationSettings />
       <Card className="mt-4 p-5">

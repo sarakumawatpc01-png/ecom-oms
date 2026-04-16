@@ -1,6 +1,7 @@
 import { Card } from '@agencyfic/ui';
 import Link from 'next/link';
 import { AppShell } from '../../components/AppShell';
+import { superadminNav } from '../../components/nav-config';
 
 const metrics = [
   { label: 'Active Sellers', value: '142' },
@@ -15,16 +16,7 @@ export default function SuperadminPage() {
       admin
       title="Superadmin Control Center"
       subtitle="Platform integrations, billing, seller management, and system monitoring"
-      navItems={[
-        { label: 'Overview', active: true },
-        { label: 'Platform Integrations' },
-        { label: 'Sellers', badge: '12' },
-        { label: 'Billing & Plans' },
-        { label: 'CMS & Branding' },
-        { label: 'System Settings' },
-        { label: 'System Monitoring' },
-        { label: 'Activity Log' },
-      ]}
+      navItems={superadminNav('Overview')}
     >
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
         {metrics.map((metric) => (
