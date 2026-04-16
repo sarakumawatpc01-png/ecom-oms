@@ -1,6 +1,6 @@
 import { Card } from '@agencyfic/ui';
-import { AppShell } from '../../../../components/AppShell';
-import { superadminNav } from '../../../../components/nav-config';
+import { AppShell } from '../../../components/AppShell';
+import { superadminNav } from '../../../components/nav-config';
 
 export default function SuperadminPlatformIntegrationsPage() {
   return (
@@ -19,4 +19,3 @@ export default function SuperadminPlatformIntegrationsPage() {
     </AppShell>
   );
 }
-

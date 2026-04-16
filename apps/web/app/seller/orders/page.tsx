@@ -1,6 +1,6 @@
 import { Card } from '@agencyfic/ui';
-import { AppShell } from '../../../../components/AppShell';
-import { sellerNav } from '../../../../components/nav-config';
+import { AppShell } from '../../../components/AppShell';
+import { sellerNav } from '../../../components/nav-config';
 
 export default function SellerOrdersPage() {
   return (

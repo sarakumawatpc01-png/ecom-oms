@@ -48,7 +48,7 @@ export function AppShell({
                 key={item.label}
                 type="button"
                 disabled
-                aria-disabled
+                aria-disabled={true}
                 className={`flex w-full cursor-not-allowed items-center justify-between rounded-lg px-3 py-2 text-left text-sm opacity-70 ${
                   item.active ? 'bg-white/10 text-white' : 'text-[#7a85b0]'
                 }`}
